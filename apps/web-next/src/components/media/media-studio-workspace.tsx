@@ -179,6 +179,21 @@ export function MediaStudioWorkspace() {
     },
   });
 
+  // Fetch AEO Prompts to allow quick-fill
+  const aeoPromptsQuery = useQuery({
+    queryKey: ["aeo_prompts", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("aeo_prompts")
+        .select("*")
+        .eq("project_id", activeProject!.id);
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   const savedAssets = assetsQuery.data || [];
 
   // Load Custom Presets
@@ -596,7 +611,30 @@ export function MediaStudioWorkspace() {
                 <div className="space-y-6">
                   {/* Prompt Textarea */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Describe visual style and target</label>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Describe visual style and target</label>
+                      {aeoPromptsQuery.data && aeoPromptsQuery.data.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                          <span className="font-semibold text-[10px] uppercase tracking-wider text-slate-400">Quick Fill from AEO Prompts:</span>
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setPrompt(e.target.value);
+                                e.target.value = "";
+                              }
+                            }}
+                            className="bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer max-w-[240px] truncate"
+                          >
+                            <option value="">Select a prompt...</option>
+                            {aeoPromptsQuery.data.map((p: any) => (
+                              <option key={p.id} value={p.prompt}>
+                                {p.topic ? `[${p.topic}] ` : ""}{p.prompt}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
                     <div className="relative">
                       <textarea
                         rows={4}
