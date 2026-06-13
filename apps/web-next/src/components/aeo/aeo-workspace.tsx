@@ -1688,11 +1688,11 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                   <tr className="bg-slate-50 border-b border-slate-155 text-[10px] font-black text-slate-450 uppercase tracking-wider">
                     <th className="px-4 py-3 min-w-[100px]">Topic</th>
                     <th className="px-4 py-3 min-w-[260px]">Prompt</th>
-                    <th className="px-4 py-3 text-right">Vol</th>
-                    <th className="px-4 py-3 text-center min-w-[120px]">Weighted Vis</th>
-                    <th className="px-4 py-3 text-center">Raw Vis</th>
-                    <th className="px-4 py-3 text-center">Cited</th>
-                    <th className="px-4 py-3 text-center">Sourced</th>
+                    <th className="px-4 py-3 text-right">Topic Search Volume</th>
+                    <th className="px-4 py-3 text-center min-w-[120px]">Visibility</th>
+                    <th className="px-4 py-3 text-center">Unweighted Visibility</th>
+                    <th className="px-4 py-3 text-center">Target Cited</th>
+                    <th className="px-4 py-3 text-center">Target Sourced</th>
                     <th className="px-4 py-3 min-w-[200px]">Top Sourced Pages</th>
                     <th className="px-4 py-3 text-center">Actions</th>
                   </tr>
@@ -2669,8 +2669,8 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-400 uppercase tracking-wider">
-                    <th className="px-4 py-3 min-w-[260px]">Prompt (Root Query)</th>
-                    <th className="px-4 py-3 min-w-[120px]">Topic (Intent)</th>
+                    <th className="px-4 py-3 min-w-[260px]">Prompt</th>
+                    <th className="px-4 py-3 min-w-[120px]">Topic</th>
                     <th className="px-4 py-3">Queries & Executions</th>
                   </tr>
                 </thead>

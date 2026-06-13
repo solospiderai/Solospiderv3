@@ -157,6 +157,36 @@ Instructions:
     }
   };
 
+  const perplexityCache = new Map<string, { text: string; latencyMs: number }>();
+  const perplexityLock = new Map<string, Promise<{ text: string; latencyMs: number }>>();
+
+  const getPerplexityGrounding = async (promptId: string, promptText: string) => {
+    if (perplexityCache.has(promptId)) {
+      return perplexityCache.get(promptId)!;
+    }
+    if (perplexityLock.has(promptId)) {
+      return perplexityLock.get(promptId)!;
+    }
+
+    const searchPromise = (async () => {
+      console.log(`[PromptScanWorker] Querying Perplexity Sonar for live search grounding: "${promptText.slice(0, 50)}…"`);
+      try {
+        const searchSysPrompt = `You are a real-time search engine query synthesizer. Provide a detailed summary of live web search results, top sources, links, comparison of brands, and a list of competitor brands visible on the web for this query. Be objective and cite real websites.`;
+        const res = await queryModel("perplexity", promptText, searchSysPrompt);
+        perplexityCache.set(promptId, res);
+        return res;
+      } catch (err) {
+        console.error(`[PromptScanWorker] Failed to query Perplexity Sonar grounding context for "${promptText}":`, err);
+        const fallback = { text: "No live search context available due to lookup timeout or error.", latencyMs: 0 };
+        perplexityCache.set(promptId, fallback);
+        return fallback;
+      }
+    })();
+
+    perplexityLock.set(promptId, searchPromise);
+    return searchPromise;
+  };
+
   const CONCURRENCY_LIMIT = 4;
   let taskIndex = 0;
 
@@ -168,8 +198,30 @@ Instructions:
     let errorMessage: string | null = null;
 
     try {
-      console.log(`[PromptScanWorker] Querying model: ${modelKey} for prompt "${prompt.prompt.slice(0, 50)}…"`);
-      const res = await queryModel(modelKey, prompt.prompt, systemPrompt);
+      let res;
+      if (modelKey === "perplexity") {
+        res = await getPerplexityGrounding(prompt.id, prompt.prompt);
+      } else {
+        const searchCtx = await getPerplexityGrounding(prompt.id, prompt.prompt);
+        const enrichedSystemPrompt = `You are a search engine assistant (like ChatGPT Search, Gemini Search, or Perplexity Search) with access to real-time search results and web indices.
+To answer the user's query, you must utilize the following real-time search engine results and website index records:
+
+Real-time Search Engine Results (Context from live web search):
+${searchCtx.text}
+
+Website index records of the target brand (${brandNameGround}):
+${groundingContext}
+
+Instructions:
+1. Provide a comprehensive, detailed response synthesizing the query.
+2. Integrate citations, links, or mentions of the brand (${brandNameGround}) and its competitors where relevant based on the search engine results context and index records.
+3. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
+4. Maintain a natural, authoritative search engine synthesis tone.`;
+
+        console.log(`[PromptScanWorker] Querying model: ${modelKey} for prompt "${prompt.prompt.slice(0, 50)}…"`);
+        res = await queryModel(modelKey, prompt.prompt, enrichedSystemPrompt);
+      }
+
       responseText = res.text;
       latencyMs    = res.latencyMs;
     } catch (e) {
@@ -234,6 +286,7 @@ Instructions:
     // Spacing back-off (100ms) to reduce immediate API rate pressure
     await new Promise(r => setTimeout(r, 100));
   };
+
 
   const worker = async () => {
     while (taskIndex < tasks.length) {
