@@ -109,7 +109,26 @@ function getDomainSeoMetrics(domain: string) {
 }
 
 // Geolocation location and competitors based on domain
-function getDomainInfoAndCompetitors(domain: string) {
+function getDomainInfoAndCompetitors(domain: string, brandDescription?: string | null) {
+  // Try to parse real metadata from brandDescription
+  const rawDesc = brandDescription || "";
+  const parts = rawDesc.split("\n---\nMETADATA: ");
+  if (parts.length > 1) {
+    try {
+      const meta = JSON.parse(parts[1]);
+      if (meta.location || Array.isArray(meta.competitors)) {
+        return {
+          location: meta.location || "United States",
+          competitors: Array.isArray(meta.competitors) && meta.competitors.length > 0 
+            ? meta.competitors 
+            : ["competitor1.com", "competitor2.com", "competitor3.com"],
+        };
+      }
+    } catch (e) {
+      console.warn("[SEO] Failed to parse metadata:", e);
+    }
+  }
+
   const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
   
   if (cleanDomain.includes("builditindia.com")) {
@@ -1026,7 +1045,7 @@ export function SeoWorkspace() {
 
   const domainInfo = useMemo(() => {
     if (!activeProject?.domain) return { location: "Unknown", competitors: [] };
-    return getDomainInfoAndCompetitors(activeProject.domain);
+    return getDomainInfoAndCompetitors(activeProject.domain, activeProject.brand_description);
   }, [activeProject]);
 
   const crawlStats = useMemo(() => {
@@ -1478,7 +1497,7 @@ export function SeoWorkspace() {
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Top Competitor Domains</span>
             <div className="flex flex-wrap gap-2 mt-1.5">
               {domainInfo.competitors.length > 0 ? (
-                domainInfo.competitors.map((comp, idx) => (
+                domainInfo.competitors.map((comp: string, idx: number) => (
                   <a
                     key={idx}
                     href={`https://${comp}`}
