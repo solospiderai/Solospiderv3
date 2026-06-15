@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import { buildCompetitorComparePrompts, buildDefaultAeoPrompts, seedAeoPrompts } from "@/lib/aeoPrompts";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isNonUserPage, copyToClipboard } from "@/lib/seo-utils";
+import { isNonUserPage, copyToClipboard, estimateDomainMetrics } from "@/lib/seo-utils";
 import { 
   Brain, FileText, Link2, Compass, TrendingUp, Sparkles, Play, Plus, 
   Loader2, CheckCircle2, AlertCircle, ShieldAlert, Cpu, BarChart3, 
@@ -389,7 +389,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         .select("id, model, brand_mentioned, mention_position, mention_sentiment, prompt_text, scanned_at, response_text")
         .eq("project_id", activeProject!.id)
         .order("scanned_at", { ascending: false })
-        .limit(100);
+        .limit(500);
       return (data || []) as any[];
     },
   });
@@ -404,7 +404,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         .select("id, provider, query, cited_title, position, metadata, created_at")
         .eq("project_id", activeProject!.id)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(500);
       return (data || []) as any[];
     },
   });
@@ -420,7 +420,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         .select("id, root_query, branch_query, intent, score, created_at")
         .eq("project_id", activeProject!.id)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(500);
       return (data || []) as any[];
     },
   });
@@ -452,7 +452,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         .select("id, source, landing_path, sessions, conversions, event_date")
         .eq("project_id", activeProject!.id)
         .order("event_date", { ascending: false })
-        .limit(100);
+        .limit(500);
       return (data || []) as any[];
     },
   });
@@ -463,6 +463,10 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
 
     const aeoScore = analysisQuery.data?.overall_score || 0;
     if (aeoScore <= 0) return [];
+
+    // Calculate baseline estimated organic traffic of this domain to scale AI referrals realistically
+    const est = estimateDomainMetrics(activeProject?.domain || "", 50);
+    const domainTraffic = est.organicTraffic || 500;
 
     const models = ["chatgpt", "gemini", "perplexity", "claude"];
     const paths = ["/", "/features", "/pricing", "/about"];
@@ -475,7 +479,16 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
 
       for (const model of models) {
         const rand = getSeededRandom(activeProject.id + "-" + i + "-" + model);
-        const baseSessions = Math.round(aeoScore * (0.8 + rand() * 0.4));
+        
+        // AI referrals generally represent 1% to 10% of standard organic search traffic depending on visibility score
+        const aiShare = 0.01 + (aeoScore / 100) * 0.09; 
+        const dailyBrandAeoTraffic = (domainTraffic * aiShare) / 30;
+
+        const baseSessions = Math.max(
+          Math.round(aeoScore * (0.8 + rand() * 0.4)),
+          Math.round(dailyBrandAeoTraffic * (0.8 + rand() * 0.4))
+        );
+
         if (baseSessions > 0) {
           const sessions = Math.max(5, baseSessions);
           const conversions = Math.round(sessions * (0.05 + rand() * 0.1));
@@ -492,7 +505,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       }
     }
     return generated;
-  }, [referralsQuery.data, analysisQuery.data?.overall_score, activeProject?.id]);
+  }, [referralsQuery.data, analysisQuery.data?.overall_score, activeProject?.id, activeProject?.domain]);
 
   const totalReferralSessions = useMemo(() => {
     return referralsData.reduce((sum, r) => sum + (r.sessions || 0), 0);
