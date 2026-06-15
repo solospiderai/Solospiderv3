@@ -857,12 +857,21 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Server returned ${res.status}`);
+        throw new Error(data.error || `Server returned ${res.status}`);
       }
 
       toast.success("🕷️ Crawler job enqueued! Tracking scan progress...");
+      qc.setQueryData(["crawl_run", activeProject.id], (prev: any) => ({
+        ...prev,
+        id: data.run_id,
+        status: "pending",
+        pages_crawled: 0,
+        pages_found: 0,
+        finished_at: null,
+        error: null,
+      }));
       qc.invalidateQueries({ queryKey: ["crawl_run", activeProject.id] });
       qc.invalidateQueries({ queryKey: ["crawled_pages", activeProject.id] });
     } catch (e: any) {
@@ -1026,9 +1035,9 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Server returned ${res.status}`);
+        throw new Error(data.error || `Server returned ${res.status}`);
       }
       // Immediately show progress UI and clear stale cache arrays
       qc.setQueryData(["prompt_scan_results", activeProject.id], []);
@@ -1037,7 +1046,8 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       qc.setQueryData(["ai_referrals", activeProject.id], []);
       qc.setQueryData(["prompt_scan_run", activeProject.id], (prev: any) => ({
         ...prev,
-        status: "running",
+        id: data.run_id,
+        status: "pending",
         completed: 0,
         total_prompts: (promptsQuery.data?.length || 5) * DEFAULT_MODELS.length,
         brand_mentioned_count: 0,
