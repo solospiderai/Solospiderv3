@@ -6,8 +6,30 @@ import { Project } from "@/types/project";
 
 export function CompetitorSnapshot({ project }: { project: Project | null }) {
   const rawDesc = project?.brand_description || "";
-  let meta: any = null;
   const parts = rawDesc.split("\n---\nMETADATA: ");
+  const hasMeta = parts.length > 1;
+
+  if (!hasMeta) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 h-full animate-pulse flex flex-col justify-between">
+        <div>
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+            <div className="h-4 bg-slate-200 rounded w-1/3 animate-pulse"></div>
+          </div>
+          <div className="space-y-4">
+            <div className="h-3 bg-slate-100 rounded w-full animate-pulse"></div>
+            <div className="h-3 bg-slate-100 rounded w-5/6 animate-pulse"></div>
+            <div className="h-3 bg-slate-100 rounded w-4/5 animate-pulse"></div>
+          </div>
+        </div>
+        <div className="h-10 bg-indigo-50/50 border border-indigo-100/50 rounded-xl flex items-center justify-center mt-6">
+          <span className="text-[10px] font-bold text-indigo-500 tracking-wider uppercase">Crawl Analysis Pending...</span>
+        </div>
+      </div>
+    );
+  }
+
+  let meta: any = null;
   if (parts.length > 1) {
     try {
       meta = JSON.parse(parts[1]);

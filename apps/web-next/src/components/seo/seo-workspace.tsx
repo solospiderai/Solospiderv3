@@ -452,7 +452,7 @@ export function SeoWorkspace() {
       issue.failedPages.length
     ]);
 
-    const csvContent = [
+    const csvContent = "\ufeff" + [
       headers.join(","),
       ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
     ].join("\n");
@@ -485,7 +485,7 @@ export function SeoWorkspace() {
       (page.schema_types || []).join(" | ")
     ]);
 
-    const csvContent = [
+    const csvContent = "\ufeff" + [
       headers.join(","),
       ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
     ].join("\n");
@@ -670,6 +670,7 @@ export function SeoWorkspace() {
       toast.error("No website URL configured for this project.");
       return;
     }
+    qc.setQueryData(["crawled_pages", activeProject.id], []);
     setCrawling(true);
     try {
       toast.info("🕷️ Launching Site Crawler locally...");
@@ -831,7 +832,9 @@ export function SeoWorkspace() {
       }));
 
     // H. Sitemap XML check
-    const hasSitemap = pages.some((p) => p.source === "sitemap");
+    const rawPagesList = crawledPagesQuery.data || [];
+    const hasSitemap = pages.some((p) => p.source === "sitemap" || p.url.endsWith("/sitemap.xml")) ||
+                       rawPagesList.some((p) => p.source === "sitemap" || p.url.endsWith("/sitemap.xml"));
     const sitemapIssue = !hasSitemap ? [{
       url: `${activeProject.domain.replace(/\/$/, "")}/sitemap.xml`,
       detail: "Sitemap file not found at default paths."
@@ -1326,13 +1329,9 @@ export function SeoWorkspace() {
             break-inside: avoid;
             margin-bottom: 20px !important;
           }
-          /* Selective print: when print-speed-only class is on body, hide everything else */
-          body.print-speed-only * {
+          /* Selective print: target direct children of the print container */
+          body.print-speed-only .print-container > :not(.speed-card-container):not(style) {
             display: none !important;
-          }
-          body.print-speed-only .speed-card-container, 
-          body.print-speed-only .speed-card-container * {
-            display: block !important;
           }
           body.print-speed-only .speed-card-container {
             display: flex !important;
@@ -1352,7 +1351,7 @@ export function SeoWorkspace() {
         <div>
           <h1 className="text-[28px] font-extrabold tracking-tight text-slate-900">SEO Audit</h1>
           <p className="text-slate-500 text-[13px] font-medium mt-1">
-            We scanned your website <span className="font-extrabold text-slate-700">{activeProject.domain}</span> and found issues that can improve your ranking.
+            We scanned your website and found issues that can improve your ranking.
           </p>
         </div>
 

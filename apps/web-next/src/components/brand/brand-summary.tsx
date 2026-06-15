@@ -11,6 +11,8 @@ import { useEffect, useState } from "react";
 export function BrandSummary({ project }: { project: Project | null }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const qc = useQueryClient();
+  const rawDesc = project?.brand_description || "";
+  const hasMeta = rawDesc.includes("\n---\nMETADATA: ");
 
   const handleGenerate = async () => {
     if (!project?.id) return;
@@ -59,9 +61,14 @@ export function BrandSummary({ project }: { project: Project | null }) {
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI is crafting your summary...</p>
           </div>
         ) : (
-          <p className="mt-4 text-sm font-semibold text-slate-700 leading-relaxed relative z-10">
-            {getCleanDescription(project?.brand_description) || "No brand summary generated yet. Click 'Refresh Brand Data' to generate one."}
-          </p>
+          <div className="mt-4 relative z-10 space-y-4">
+            <p className="text-sm font-semibold text-slate-650 leading-relaxed">
+              {hasMeta ? getCleanDescription(project?.brand_description) : "AI Brand Summary is pending crawl analysis. Once the site is crawled, the AI will analyze your positioning and generate a brand summary."}
+            </p>
+            {!hasMeta && (
+              <div className="h-2 bg-indigo-200/50 rounded animate-pulse w-5/6"></div>
+            )}
+          </div>
         )}
       </div>
       

@@ -975,7 +975,11 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Server returned ${res.status}`);
       }
-      // Immediately show progress UI
+      // Immediately show progress UI and clear stale cache arrays
+      qc.setQueryData(["prompt_scan_results", activeProject.id], []);
+      qc.setQueryData(["aeo_citations", activeProject.id], []);
+      qc.setQueryData(["query_fanouts", activeProject.id], []);
+      qc.setQueryData(["ai_referrals", activeProject.id], []);
       qc.setQueryData(["prompt_scan_run", activeProject.id], (prev: any) => ({
         ...prev,
         status: "running",
@@ -1058,7 +1062,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       {/* Metrics Dashboard Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Prompts metric */}
-        <div className="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
+        <Link href="/app/en/aeo/prompt-generation" className="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300 cursor-pointer block select-none">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600 shrink-0">
             <FileText className="h-6 w-6" />
           </div>
@@ -1066,10 +1070,10 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Active Prompts</p>
             <h3 className="text-2xl font-black text-slate-900 mt-0.5">{promptsQuery.data?.length || 0}</h3>
           </div>
-        </div>
+        </Link>
 
         {/* Citations metric */}
-        <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
+        <Link href="/app/en/aeo/citations" className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300 cursor-pointer block select-none">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shrink-0">
             <Link2 className="h-6 w-6" />
           </div>
@@ -1077,10 +1081,10 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Citations</p>
             <h3 className="text-2xl font-black text-slate-900 mt-0.5">{citationsQuery.data?.length || 0}</h3>
           </div>
-        </div>
+        </Link>
 
         {/* Fanouts metric */}
-        <div className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
+        <Link href="/app/en/aeo/fanouts" className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300 cursor-pointer block select-none">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600 shrink-0">
             <Compass className="h-6 w-6" />
           </div>
@@ -1088,10 +1092,10 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Query Fanouts</p>
             <h3 className="text-2xl font-black text-slate-900 mt-0.5">{fanoutsQuery.data?.length || 0}</h3>
           </div>
-        </div>
+        </Link>
 
         {/* Referrals metric */}
-        <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
+        <Link href="/app/en/aeo/referrals" className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300 cursor-pointer block select-none">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shrink-0">
             <TrendingUp className="h-6 w-6" />
           </div>
@@ -1099,7 +1103,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">AI Referrals</p>
             <h3 className="text-2xl font-black text-slate-900 mt-0.5">{referralsQuery.data?.length || 0}</h3>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* ── Premium Scanner Section with Live Progress ────────────────────── */}

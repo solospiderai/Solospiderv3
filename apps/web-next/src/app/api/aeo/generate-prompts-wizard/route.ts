@@ -10,6 +10,7 @@ const GeneratePromptsWizardSchema = z.object({
   location: z.string().min(1),
   selectedTopics: z.array(z.string()).min(1),
   competitors: z.array(z.string()).optional().default([]),
+  promptCount: z.number().int().min(5).max(100).optional().default(25),
 });
 
 async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash") {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { brandName, domain, location, selectedTopics, competitors } = parsed.data;
+    const { brandName, domain, location, selectedTopics, competitors, promptCount } = parsed.data;
 
     let webContent = "";
     try {
@@ -76,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.
-Your task is to analyze the following business details, crawled homepage content, and selected keyword topics to generate a comprehensive list of exactly 25 highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
+Your task is to analyze the following business details, crawled homepage content, and selected keyword topics to generate a comprehensive list of exactly ${promptCount} highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
 
 Business Information (For niche context only):
 - Brand Name: "${brandName}"
@@ -89,8 +90,8 @@ Crawled Homepage Content:
 ${webContent || "No page content available."}
 
 Guidelines:
-1. Generate EXACTLY 25 search prompts. Do not generate less or more.
-2. Group the prompts under the selected focus topics: [${selectedTopics.join(", ")}]. Distribute the 25 prompts reasonably across these topics.
+1. Generate EXACTLY ${promptCount} search prompts. Do not generate less or more.
+2. Group the prompts under the selected focus topics: [${selectedTopics.join(", ")}]. Distribute the ${promptCount} prompts reasonably across these topics.
 3. CRITICAL: ALL GENERATED PROMPTS MUST BE COMPLETELY UNBRANDED. Do NOT include our brand name "${brandName}", our domain "${domain}", or the names of the competitors (like ${competitors.join(", ")}) in any of the prompts. They must be organic category/industry queries that real users would search (e.g. "perfumes under $50 that smell luxurious", "how do I choose a signature scent", "What are some highly recommended fragrances known for lasting all day?", "Compare perfume and EDT for longevity").
 4. The queries must read naturally like queries typed or spoken by real users in "${location}" (e.g. including local search terms, pricing in local currency like INR if location is India, or targeting localized intent).
 5. Do NOT generate generic placeholder templates such as "Is [Brand] trustworthy?". Instead, customize them to the actual niche, features, and topics of the business (e.g. fragrance, construction procurement, venue booking, etc.) while keeping them unbranded.

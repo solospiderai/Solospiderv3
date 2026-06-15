@@ -25,6 +25,9 @@ function loadEnv() {
   if (!result.success) {
     console.error("❌ Invalid environment variables:");
     result.error.issues.forEach(i => console.error(` • ${i.path.join(".")}: ${i.message}`));
+    const definedKeys = Object.keys(process.env).filter(k => process.env[k] !== undefined && process.env[k] !== "");
+    console.error(" • Currently defined environment variable keys in process.env:", definedKeys.join(", "));
+    console.error("💡 Tip: Verify that all required variables are set in your deployment system (e.g., Railway).");
     process.exit(1);
   }
   return result.data;

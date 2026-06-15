@@ -36,8 +36,31 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   await job.updateProgress(5);
 
   // ── 2. Discover URLs ────────────────────────────────────────────────────────
-  const urlQueue = await discoverUrls(website, max_pages);
-  console.log(`[CrawlWorker] Discovered ${urlQueue.length} URLs`);
+  const { urls: urlQueue, foundSitemap } = await discoverUrls(website, max_pages);
+  console.log(`[CrawlWorker] Discovered ${urlQueue.length} URLs. foundSitemap=${foundSitemap}`);
+
+  if (foundSitemap) {
+    try {
+      const origin = new URL(website).origin;
+      const sitemapUrl = `${origin}/sitemap.xml`;
+      await supabase.from("crawled_pages").upsert({
+        project_id,
+        url: sitemapUrl,
+        title: "Sitemap XML",
+        meta_desc: "Sitemap index file found and parsed.",
+        h1: null,
+        word_count: 0,
+        status_code: 200,
+        source: "sitemap",
+        has_faq_schema: false,
+        has_howto: false,
+        schema_types: [],
+      }, { onConflict: "project_id,url" });
+      console.log(`[CrawlWorker] Inserted sitemap.xml marker for project ${project_id}`);
+    } catch (err: any) {
+      console.warn(`[CrawlWorker] Failed to insert sitemap.xml marker: ${err.message}`);
+    }
+  }
 
   await supabase.from("crawl_runs").update({ pages_found: urlQueue.length }).eq("id", runId);
   await job.updateProgress(15);
