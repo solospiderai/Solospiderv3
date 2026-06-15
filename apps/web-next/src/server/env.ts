@@ -15,10 +15,23 @@ const ServerEnvSchema = z.object({
 });
 
 export function getServerEnv() {
-  const parsed = ServerEnvSchema.safeParse(process.env);
+  const cleanEnv: Record<string, string> = {};
+  for (const rawKey of Object.keys(process.env)) {
+    const cleanKey = rawKey.trim();
+    const rawVal = process.env[rawKey];
+    if (rawVal !== undefined) {
+      cleanEnv[cleanKey] = rawVal.trim();
+    }
+  }
+
+  const parsed = ServerEnvSchema.safeParse(cleanEnv);
   if (!parsed.success) {
     const message = parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
     throw new Error(`Invalid server environment: ${message}`);
+  }
+
+  for (const key of Object.keys(cleanEnv)) {
+    process.env[key] = cleanEnv[key];
   }
 
   return parsed.data;

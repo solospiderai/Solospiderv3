@@ -21,15 +21,29 @@ const EnvSchema = z.object({
 });
 
 function loadEnv() {
-  const result = EnvSchema.safeParse(process.env);
+  const cleanEnv: Record<string, string> = {};
+  for (const rawKey of Object.keys(process.env)) {
+    const cleanKey = rawKey.trim();
+    const rawVal = process.env[rawKey];
+    if (rawVal !== undefined) {
+      cleanEnv[cleanKey] = rawVal.trim();
+    }
+  }
+
+  const result = EnvSchema.safeParse(cleanEnv);
   if (!result.success) {
     console.error("❌ Invalid environment variables:");
     result.error.issues.forEach(i => console.error(` • ${i.path.join(".")}: ${i.message}`));
-    const definedKeys = Object.keys(process.env).filter(k => process.env[k] !== undefined && process.env[k] !== "");
-    console.error(" • Currently defined environment variable keys in process.env:", definedKeys.join(", "));
+    const definedKeys = Object.keys(cleanEnv).filter(k => cleanEnv[k] !== undefined && cleanEnv[k] !== "");
+    console.error(" • Currently defined environment variable keys in process.env (cleaned):", definedKeys.join(", "));
     console.error("💡 Tip: Verify that all required variables are set in your deployment system (e.g., Railway).");
     process.exit(1);
   }
+
+  for (const key of Object.keys(cleanEnv)) {
+    process.env[key] = cleanEnv[key];
+  }
+
   return result.data;
 }
 
