@@ -28,10 +28,11 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
     enabled: Boolean(activeProject?.id),
     queryFn: async () => {
       const supabase = getSupabaseBrowserClient();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("crawled_pages" as any)
-        .select("id")
+        .select("url")
         .eq("project_id", activeProject!.id);
+      if (error) throw error;
       return data || [];
     },
   });
