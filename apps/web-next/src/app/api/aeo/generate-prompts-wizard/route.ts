@@ -10,7 +10,7 @@ const GeneratePromptsWizardSchema = z.object({
   location: z.string().min(1),
   selectedTopics: z.array(z.string()).min(1),
   competitors: z.array(z.string()).optional().default([]),
-  promptCount: z.number().int().min(5).max(100).optional().default(25),
+  limit: z.number().optional().default(25),
 });
 
 async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash") {
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { brandName, domain, location, selectedTopics, competitors, promptCount } = parsed.data;
+    const { brandName, domain, location, selectedTopics, competitors, limit } = parsed.data;
 
     let webContent = "";
     try {
@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
           .replace(/<[^>]+>/g, " ")
           .replace(/\s+/g, " ")
           .slice(0, 10000)
+          .slice(0, 10000)
           .trim();
       }
     } catch (err: any) {
@@ -77,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.
-Your task is to analyze the following business details, crawled homepage content, and selected keyword topics to generate a comprehensive list of exactly ${promptCount} highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
+Your task is to analyze the following business details, crawled homepage content, and selected keyword topics to generate a comprehensive list of exactly ${limit} highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
 
 Business Information (For niche context only):
 - Brand Name: "${brandName}"
@@ -90,8 +91,8 @@ Crawled Homepage Content:
 ${webContent || "No page content available."}
 
 Guidelines:
-1. Generate EXACTLY ${promptCount} search prompts. Do not generate less or more.
-2. Group the prompts under the selected focus topics: [${selectedTopics.join(", ")}]. Distribute the ${promptCount} prompts reasonably across these topics.
+1. Generate EXACTLY ${limit} search prompts. Do not generate less or more.
+2. Group the prompts under the selected focus topics: [${selectedTopics.join(", ")}]. Distribute the ${limit} prompts reasonably across these topics.
 3. CRITICAL: ALL GENERATED PROMPTS MUST BE COMPLETELY UNBRANDED. Do NOT include our brand name "${brandName}", our domain "${domain}", or the names of the competitors (like ${competitors.join(", ")}) in any of the prompts. They must be organic category/industry queries that real users would search (e.g. "perfumes under $50 that smell luxurious", "how do I choose a signature scent", "What are some highly recommended fragrances known for lasting all day?", "Compare perfume and EDT for longevity").
 4. The queries must read naturally like queries typed or spoken by real users in "${location}" (e.g. including local search terms, pricing in local currency like INR if location is India, or targeting localized intent).
 5. Do NOT generate generic placeholder templates such as "Is [Brand] trustworthy?". Instead, customize them to the actual niche, features, and topics of the business (e.g. fragrance, construction procurement, venue booking, etc.) while keeping them unbranded.
@@ -103,89 +104,7 @@ Guidelines:
 
 Format the output strictly as raw JSON. Do not include markdown code block formatting (like \`\`\`json) or any additional text.`;
 
-    let llmResponse = "";
-    try {
-      llmResponse = await callOpenRouter(promptText);
-    } catch (llmErr: any) {
-      console.warn("[GeneratePromptsWizard] LLM call failed, generating fallback prompts:", llmErr.message);
-      
-      const fallbackPrompts: Array<{ topic: string; prompt: string; rationale: string }> = [];
-      const domainLower = domain.toLowerCase();
-
-      // Custom templates based on the industry niche
-      let templates = [
-        "what is the best tool for {topic}?",
-        "how to choose a reliable provider for {topic}",
-        "compare top platforms for {topic} in terms of pricing and features",
-        "essential things to check when evaluating {topic} options",
-        "step by step guide to optimize {topic} for business growth",
-        "what are the top trends in {topic} this year?",
-        "affordable solutions for {topic} for small businesses",
-        "how do experts handle {topic} challenges?",
-        "common mistakes to avoid when starting with {topic}",
-        "what is the difference between different types of {topic}?",
-        "why should a business invest in {topic}?",
-        "who are the industry leaders in {topic}?"
-      ];
-
-      if (domainLower.includes("venueconnect")) {
-        templates = [
-          "how do I book {topic} in India?",
-          "what is the average cost for {topic}?",
-          "which are the top-rated sites for {topic}?",
-          "checklist for choosing {topic} for a wedding",
-          "compare best options for {topic} with pricing",
-          "how to negotiate prices with providers of {topic}",
-          "how early should I start planning {topic}?",
-          "luxury vs budget halls for {topic}",
-          "customer reviews of popular platforms for {topic}",
-          "trending themes and spaces for {topic}"
-        ];
-      } else if (domainLower.includes("builditindia")) {
-        templates = [
-          "where to buy {topic} wholesale online?",
-          "compare prices of top manufacturers for {topic}",
-          "how to source high quality {topic} for builders",
-          "best sites to buy bulk {topic} in India",
-          "raw materials pricing guides for {topic}",
-          "how to verify quality standards for {topic}",
-          "bulk delivery options for {topic}",
-          "cement and concrete brands comparison for {topic}",
-          "cost calculation tips for {topic} procurement",
-          "top rated industrial suppliers of {topic}"
-        ];
-      } else if (domainLower.includes("fraganote") || domainLower.includes("perfume") || domainLower.includes("fragrance")) {
-        templates = [
-          "which are the best {topic} online?",
-          "longest lasting {topic} for daily wear",
-          "how to choose {topic} for summer season",
-          "compare eau de parfum and eau de toilette for {topic}",
-          "affordable luxury brands for {topic}",
-          "highly recommended options for {topic} under budget",
-          "signature scent guide for {topic}",
-          "gift ideas for {topic} set for anniversary",
-          "reviews of popular brands in {topic}",
-          "how to store {topic} to make it last longer"
-        ];
-      }
-
-      for (let i = 0; i < promptCount; i++) {
-        const topic = selectedTopics[i % selectedTopics.length];
-        const templateIdx = Math.floor(i / selectedTopics.length) % templates.length;
-        const template = templates[templateIdx];
-        
-        // Formulate query from template
-        const promptString = template.replace("{topic}", topic);
-        fallbackPrompts.push({
-          topic,
-          prompt: promptString.charAt(0).toUpperCase() + promptString.slice(1),
-          rationale: `Conversational query targeting the ${topic} category search intent.`
-        });
-      }
-      
-      return NextResponse.json(fallbackPrompts);
-    }
-
+    const llmResponse = await callOpenRouter(promptText);
     let cleanedText = llmResponse.trim();
     if (cleanedText.startsWith("```")) {
       cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();

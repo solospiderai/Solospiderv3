@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -42,6 +43,7 @@ interface AeoWizardModalProps {
 }
 
 export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
+  const router = useRouter();
   const { addProject, canAddProject, currentPlan, projectLimit } = useProjects();
   const [step, setStep] = useState<WizardStep>(1);
   const [domain, setDomain] = useState("");
@@ -49,12 +51,12 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
   
   // Step 1 -> 2 state
   const [selectedLocation, setSelectedLocation] = useState("United States");
-  const [promptCount, setPromptCount] = useState(25);
   const [deducedExplanation, setDeducedExplanation] = useState("");
   const [discoveredTopics, setDiscoveredTopics] = useState<TopicObj[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<Record<string, boolean>>({});
   const [competitors, setCompetitors] = useState<string[]>([]);
   const [loadingTopics, setLoadingTopics] = useState(false);
+  const [promptLimit, setPromptLimit] = useState(25);
 
   // Step 2 -> 3 state
   const [loadingPrompts, setLoadingPrompts] = useState(false);
@@ -144,7 +146,7 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
           location: selectedLocation,
           selectedTopics: focusTopics,
           competitors: competitors,
-          promptCount: promptCount,
+          limit: promptLimit,
         }),
       });
 
@@ -347,31 +349,17 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="flex items-center gap-1.5">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Change:</label>
-                          <select
-                            value={selectedLocation}
-                            onChange={(e) => setSelectedLocation(e.target.value)}
-                            className="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2.5 py-1 text-slate-700 focus:outline-none"
-                          >
-                            {COUNTRIES.map((c) => (
-                              <option key={c.code} value={c.name}>{c.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className="flex items-center gap-1.5 border-l border-slate-200 pl-3">
-                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Count:</label>
-                          <select
-                            value={promptCount}
-                            onChange={(e) => setPromptCount(Number(e.target.value))}
-                            className="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2.5 py-1 text-slate-700 focus:outline-none"
-                          >
-                            <option value={10}>10 prompts</option>
-                            <option value={25}>25 prompts</option>
-                            <option value={50}>50 prompts</option>
-                          </select>
-                        </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Change:</label>
+                        <select
+                          value={selectedLocation}
+                          onChange={(e) => setSelectedLocation(e.target.value)}
+                          className="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2.5 py-1 text-slate-700 focus:outline-none"
+                        >
+                          {COUNTRIES.map((c) => (
+                            <option key={c.code} value={c.name}>{c.name}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                     {deducedExplanation && (
@@ -406,9 +394,35 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                     </div>
                   </div>
 
+                  {/* Prompt Count Selection */}
+                  <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 shrink-0 border border-violet-100">
+                          <Database className="h-4.5 w-4.5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Number of Prompts</p>
+                          <p className="text-slate-500 text-[11px] font-semibold mt-1">
+                            Choose how many unbranded search prompts to scan
+                          </p>
+                        </div>
+                      </div>
+                      <select
+                        value={promptLimit}
+                        onChange={(e) => setPromptLimit(Number(e.target.value))}
+                        className="bg-white border border-slate-200 rounded-lg text-xs font-bold px-3 py-1.5 text-slate-700 focus:outline-none cursor-pointer"
+                      >
+                        {[10, 15, 20, 25, 30, 40, 50].map((n) => (
+                          <option key={n} value={n}>{n} Prompts</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
                   {/* Topics List */}
                   <div className="space-y-3">
-                    <h4 className="text-[11px] font-black uppercase text-slate-450 tracking-wider text-center block mb-3">Select Topics to Track</h4>
+                    <h4 className="text-sm font-bold uppercase text-slate-800 tracking-wider text-center mb-4 mt-2">Select Topics to Track</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {discoveredTopics.map((item) => {
                         const active = selectedTopics[item.topic];
@@ -459,7 +473,7 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                   <div className="space-y-1">
                     <p className="font-black text-slate-850 text-sm">Crafting realistic search engine prompts...</p>
                     <p className="text-slate-400 font-medium max-w-sm leading-relaxed text-[11px]">
-                      Writing exactly {promptCount} conversational queries targeted for searchers in {selectedLocation}...
+                      Writing exactly {promptLimit} conversational queries targeted for searchers in {selectedLocation}...
                     </p>
                   </div>
                 </div>
@@ -552,7 +566,10 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
               </div>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  onClose();
+                  router.push("/app/en/aeo/overview");
+                }}
                 className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-extrabold shadow hover:bg-slate-800 transition-all text-xs"
               >
                 Go to Workspace
@@ -612,7 +629,7 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                   type="button"
                   onClick={handleLaunchScan}
                   disabled={submitting}
-                  className="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-750 text-white font-extrabold shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center gap-1.5 text-xs disabled:opacity-50 cursor-pointer"
+                  className="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-extrabold shadow-md hover:shadow-lg active:scale-[0.98] transition-all flex items-center gap-1.5 text-xs disabled:opacity-50 cursor-pointer"
                 >
                   {submitting ? (
                     <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Launching...</>

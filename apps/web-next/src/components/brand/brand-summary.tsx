@@ -11,8 +11,6 @@ import { useEffect, useState } from "react";
 export function BrandSummary({ project }: { project: Project | null }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const qc = useQueryClient();
-  const rawDesc = project?.brand_description || "";
-  const hasMeta = rawDesc.includes("\n---\nMETADATA: ");
 
   const handleGenerate = async () => {
     if (!project?.id) return;
@@ -60,14 +58,15 @@ export function BrandSummary({ project }: { project: Project | null }) {
             <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
             <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">AI is crafting your summary...</p>
           </div>
+        ) : getCleanDescription(project?.brand_description) ? (
+          <p className="mt-4 text-sm font-semibold text-slate-700 leading-relaxed relative z-10">
+            {getCleanDescription(project?.brand_description)}
+          </p>
         ) : (
-          <div className="mt-4 relative z-10 space-y-4">
-            <p className="text-sm font-semibold text-slate-650 leading-relaxed">
-              {hasMeta ? getCleanDescription(project?.brand_description) : "AI Brand Summary is pending crawl analysis. Once the site is crawled, the AI will analyze your positioning and generate a brand summary."}
+          <div className="mt-6 text-center py-4 relative z-10">
+            <p className="text-xs text-slate-550 font-semibold leading-relaxed mb-4">
+              AI brand summary has not been generated yet. Click <strong className="text-indigo-600">Refresh Brand Data</strong> in the Quick Actions panel to initiate the brand scan.
             </p>
-            {!hasMeta && (
-              <div className="h-2 bg-indigo-200/50 rounded animate-pulse w-5/6"></div>
-            )}
           </div>
         )}
       </div>

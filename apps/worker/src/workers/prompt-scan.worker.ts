@@ -81,8 +81,28 @@ async function processPromptScanJob(job: Job<PromptScanJobData>): Promise<object
     competitorsSection = `Target Competitors:\n${mergedCompetitors.map(c => `- ${c}`).join("\n")}\n\n`;
   }
 
-  const systemPrompt = `You are an objective search engine assistant (like ChatGPT Search, Perplexity, or Gemini Search) with access to real-time web search results.
-Answer the user's query comprehensively and accurately based on live web facts. Be neutral and objective, citing real sources and brands that are relevant to the query. Do not show favoritism to any brand.`;
+  let groundingContext = `\nWeb Search Grounding Context:\nBrand Information:\n- Brand Name: ${brandNameGround}\n- Website Domain: ${brandDomainGround}\n- Description: ${brandDescriptionGround}\n\n${competitorsSection}Indexed Web Pages for ${brandNameGround}:\n`;
+
+  if (crawledPages && crawledPages.length > 0) {
+    groundingContext += crawledPages.map(p => `* URL: ${p.url}\n  Title: ${p.title || ""}\n  Description: ${p.meta_desc || ""}\n  Heading: ${p.h1 || ""}`).join("\n");
+  } else {
+    groundingContext += "No indexed web pages available yet.";
+  }
+
+  const competitorInstruction = mergedCompetitors.length > 0
+    ? ` and its competitors (${mergedCompetitors.join(", ")})`
+    : "";
+
+  const systemPrompt = `You are a search engine assistant (like ChatGPT Search, Perplexity, or Gemini Search) with access to real-time search results and web indices.
+To answer the user's query, you must utilize the following search engine index records and grounding context:
+
+${groundingContext}
+
+Instructions:
+1. Provide a comprehensive, detailed, and realistic response to the search query.
+2. Integrate citations, links, or mentions of the brand (${brandNameGround})${competitorInstruction} where relevant to the user query, as a search engine would.
+3. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
+4. Maintain a natural, authoritative search engine synthesis tone.`;
 
   // Create tasks list representing prompt x model combinations
   const tasks: Array<{
@@ -209,16 +229,20 @@ Answer the user's query comprehensively and accurately based on live web facts. 
         res = await getPerplexityGrounding(prompt.id, prompt.prompt);
       } else {
         const searchCtx = await getPerplexityGrounding(prompt.id, prompt.prompt);
-        const enrichedSystemPrompt = `You are an objective search engine assistant (like ChatGPT Search, Gemini Search, or Perplexity Search) with access to real-time search results.
-To answer the user's query, you must utilize the following real-time search engine results context:
+        const enrichedSystemPrompt = `You are a search engine assistant (like ChatGPT Search, Gemini Search, or Perplexity Search) with access to real-time search results and web indices.
+To answer the user's query, you must utilize the following real-time search engine results and website index records:
 
-Real-time Search Engine Results Context (From live web search):
+Real-time Search Engine Results (Context from live web search):
 ${searchCtx.text}
 
+Website index records of the target brand (${brandNameGround}):
+${groundingContext}
+
 Instructions:
-1. Provide a comprehensive, detailed, and realistic response synthesizing the query based on the search results context.
-2. Be objective. Cite specific tools, products, companies, and brand names where appropriate. Do not inject or fabricate mentions or links if they are not naturally in the search results context.
-3. Maintain a natural, authoritative search engine synthesis tone.`;
+1. Provide a comprehensive, detailed response synthesizing the query.
+2. Integrate citations, links, or mentions of the brand (${brandNameGround})${competitorInstruction} where relevant based on the search engine results context and index records.
+3. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
+4. Maintain a natural, authoritative search engine synthesis tone.`;
 
         console.log(`[PromptScanWorker] Querying model: ${modelKey} for prompt "${prompt.prompt.slice(0, 50)}…"`);
         res = await queryModel(modelKey, prompt.prompt, enrichedSystemPrompt);

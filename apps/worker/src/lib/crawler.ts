@@ -15,21 +15,20 @@ export interface CrawledPageData {
   source:         "sitemap" | "crawl" | "manual";
 }
 
-const CRAWL_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SoloSpider-Bot/1.0";
+const CRAWL_UA = "SoloSpider-Crawler/1.0 (+https://solospider.ai/bot)";
 const TIMEOUT  = 8_000; // ms
 
-async function fetchPage(url: string): Promise<{ html: string; status: number; contentType: string | null } | null> {
+async function fetchPage(url: string): Promise<{ html: string; status: number } | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT);
   try {
     const res = await fetch(url, {
       signal: controller.signal,
-      headers: { "User-Agent": CRAWL_UA, Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" },
+      headers: { "User-Agent": CRAWL_UA, Accept: "text/html,application/xml,*/*" },
       redirect: "follow",
     });
-    const contentType = res.headers.get("content-type");
     const html = await res.text();
-    return { html, status: res.status, contentType };
+    return { html, status: res.status };
   } catch {
     return null;
   } finally {
@@ -74,7 +73,13 @@ function isNonUserPage(url: string): boolean {
     "xmlrpc.php",
     "/wp-admin",
     "/wp-includes",
-    "/wp-content"
+    "/wp-content",
+    "_next/",
+    "_vercel/",
+    "/api/",
+    "/fonts/",
+    "/assets/",
+    "/static/"
   ];
   
   if (nonUserKeywords.some(kw => clean.includes(kw))) {
@@ -156,7 +161,7 @@ function parseMeta(html: string): Omit<CrawledPageData, "url" | "status_code" | 
 export async function discoverUrls(
   website: string,
   maxPages: number
-): Promise<{ urls: Array<{ url: string; source: "sitemap" | "crawl" }>; foundSitemap: boolean }> {
+): Promise<Array<{ url: string; source: "sitemap" | "crawl" }>> {
   const origin = new URL(website).origin;
   const pageUrls: string[] = [];
   const sitemapsToProcess = [
@@ -249,14 +254,12 @@ export async function discoverUrls(
 
   // Deduplicate
   const seen = new Set<string>();
-  const urls = queue.filter(item => {
+  return queue.filter(item => {
     const norm = item.url.replace(/\/$/, "");
     if (seen.has(norm)) return false;
     seen.add(norm);
     return true;
   }).slice(0, maxPages);
-
-  return { urls, foundSitemap };
 }
 
 export async function crawlPage(
@@ -275,18 +278,6 @@ export async function crawlPage(
   if (page.status >= 400) {
     return {
       url, title: null, meta_desc: null, h1: null,
-      word_count: 0, schema_types: [], has_faq_schema: false,
-      has_howto: false, status_code: page.status, source,
-    };
-  }
-
-  // Filter out non-HTML/XML resources (like fonts, styles, scripts, images)
-  const ct = (page.contentType || "").toLowerCase();
-  const isHtmlOrXml = ct.includes("html") || ct.includes("xml");
-  if (page.contentType && !isHtmlOrXml) {
-    console.log(`[Crawler] Skipping non-HTML/XML resource "${url}" with content-type "${page.contentType}"`);
-    return {
-      url, title: "__SKIPPED__", meta_desc: null, h1: null,
       word_count: 0, schema_types: [], has_faq_schema: false,
       has_howto: false, status_code: page.status, source,
     };

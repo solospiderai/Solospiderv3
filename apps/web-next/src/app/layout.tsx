@@ -4,7 +4,7 @@ import { AppProviders } from "@/components/providers/app-providers";
 
 export const metadata: Metadata = {
   title: "SoloSpider",
-  description: "SoloSpider AI Answer Engine Optimization and SEO Audits platform.",
+  description: "SoloSpider AEO & SEO Optimization Platform",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

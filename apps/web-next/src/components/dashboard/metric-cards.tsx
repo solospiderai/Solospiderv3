@@ -265,61 +265,47 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     return { seoScore: score, subtitle, color };
   }, [pagesForCalculation]);
 
-  const timeMultiplier = useMemo(() => {
-    if (timeRange === "today") return 0.14;
-    if (timeRange === "30") return 4.3;
-    if (timeRange === "90") return 12.8;
-    return 1.0; // "7" days default
-  }, [timeRange]);
-
   const estimated = useMemo(() => {
     return estimateDomainMetrics(activeProject?.domain || "", scaleCount);
   }, [activeProject?.domain, scaleCount]);
 
-  const trafficNum = Math.max(1, Math.round(estimated.organicTraffic * timeMultiplier));
+  const multiplier = useMemo(() => {
+    if (timeRange === "today") return 0.033;
+    if (timeRange === "30") return 1.0;
+    if (timeRange === "90") return 3.0;
+    return 0.233; // 7 days fallback
+  }, [timeRange]);
+
+  const trafficNum = Math.round(estimated.organicTraffic * multiplier);
   const trafficValue = trafficNum >= 1000000 
     ? (trafficNum / 1000000).toFixed(1) + "M"
     : trafficNum >= 1000 
       ? (trafficNum / 1000).toFixed(1) + "K" 
       : trafficNum.toString();
 
-  const impressionsNum = Math.max(1, Math.round(trafficNum * 4.5));
+  const impressionsNum = Math.round(trafficNum * 4.5);
   const impressionsValue = impressionsNum >= 1000000 
     ? (impressionsNum / 1000000).toFixed(1) + "M"
     : impressionsNum >= 1000 
       ? (impressionsNum / 1000).toFixed(1) + "K" 
       : impressionsNum.toString();
 
-  let backlinksNum = estimated.backlinks;
-  if (timeRange === "today") backlinksNum = Math.max(1, Math.round(backlinksNum * 0.98));
-  else if (timeRange === "30") backlinksNum = Math.max(1, Math.round(backlinksNum * 1.05));
-  else if (timeRange === "90") backlinksNum = Math.max(1, Math.round(backlinksNum * 1.15));
-
+  const backlinksNum = Math.round(estimated.backlinks * multiplier);
   const backlinksValue = backlinksNum >= 1000 
     ? (backlinksNum / 1000).toFixed(1) + "K" 
     : backlinksNum.toString();
 
   const sparklineTraffic = useMemo(() => {
-    return (estimated.sparklineTraffic || []).map(pt => ({
-      value: Math.max(1, Math.round(pt.value * timeMultiplier))
-    }));
-  }, [estimated.sparklineTraffic, timeMultiplier]);
+    return estimated.sparklineTraffic.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
+  }, [estimated.sparklineTraffic, multiplier]);
 
   const sparklineImpressions = useMemo(() => {
-    return (estimated.sparklineImpressions || []).map(pt => ({
-      value: Math.max(1, Math.round(pt.value * timeMultiplier))
-    }));
-  }, [estimated.sparklineImpressions, timeMultiplier]);
+    return estimated.sparklineImpressions.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
+  }, [estimated.sparklineImpressions, multiplier]);
 
   const sparklineBacklinks = useMemo(() => {
-    let blMult = 1.0;
-    if (timeRange === "today") blMult = 0.98;
-    else if (timeRange === "30") blMult = 1.05;
-    else if (timeRange === "90") blMult = 1.15;
-    return (estimated.sparklineBacklinks || []).map(pt => ({
-      value: Math.max(1, Math.round(pt.value * blMult))
-    }));
-  }, [estimated.sparklineBacklinks, timeRange]);
+    return estimated.sparklineBacklinks.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
+  }, [estimated.sparklineBacklinks, multiplier]);
 
   const aeoScore = aeoAnalysisQuery.data?.overall_score ?? 0;
   const aeoSubtitle = aeoScore >= 80 ? "Optimized" : aeoScore >= 50 ? "Moderate" : aeoScore > 0 ? "Poor" : "No Data";

@@ -66,60 +66,6 @@ async function processScoringJob(job: Job<ScoringJobData>): Promise<object> {
 
   if (error) console.warn(`[ScoringWorker] Upsert error: ${error.message}`);
 
-  // Populate simulated referrals if geoScore is positive
-  if (geoScore > 0) {
-    try {
-      console.log(`[ScoringWorker] Populating simulated referrals for project ${project_id} (GEO score: ${geoScore})`);
-      
-      // Clear old daily referrals first to prevent duplicate stacking
-      await supabase.from("ai_referrals").delete().eq("project_id", project_id);
-
-      const referralRows: any[] = [];
-      const engines = ["ChatGPT Search", "Google Gemini", "Perplexity AI", "Claude"];
-      const landingPaths = ["/", "/features", "/pricing", "/blog"];
-
-      const nowTime = Date.now();
-      for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
-        const date = new Date(nowTime - dayOffset * 24 * 60 * 60 * 1000);
-        const dateStr = date.toISOString().slice(0, 10); // "YYYY-MM-DD"
-
-        for (const engine of engines) {
-          let baseCount = Math.round((geoScore * 0.8) + (dayOffset % 5));
-          if (engine === "ChatGPT Search") baseCount = Math.round(baseCount * 1.5);
-          if (engine === "Claude") baseCount = Math.round(baseCount * 0.4);
-
-          if (baseCount > 0) {
-            landingPaths.forEach((path, idx) => {
-              let pathMult = 0.6;
-              if (path === "/features") pathMult = 0.2;
-              if (path === "/pricing") pathMult = 0.15;
-              if (path === "/blog") pathMult = 0.05;
-
-              const sessions = Math.max(1, Math.round(baseCount * pathMult * (0.8 + (Math.sin(dayOffset + idx) * 0.2))));
-              const conversions = Math.round(sessions * (0.02 + (dayOffset % 3) / 100)); // 2% to 5% conversion
-
-              referralRows.push({
-                project_id,
-                source: engine,
-                landing_path: path,
-                sessions,
-                conversions,
-                event_date: dateStr
-              });
-            });
-          }
-        }
-      }
-
-      if (referralRows.length > 0) {
-        const { error: refErr } = await supabase.from("ai_referrals").insert(referralRows);
-        if (refErr) console.warn(`[ScoringWorker] Failed to insert simulated referrals: ${refErr.message}`);
-      }
-    } catch (refEx) {
-      console.error("[ScoringWorker] Exception populating simulated referrals:", refEx);
-    }
-  }
-
   await job.updateProgress(100);
 
   const summary = {

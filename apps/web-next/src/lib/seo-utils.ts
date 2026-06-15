@@ -28,7 +28,13 @@ export function isNonUserPage(url: string | null | undefined): boolean {
     "xmlrpc.php",
     "/wp-admin",
     "/wp-includes",
-    "/wp-content"
+    "/wp-content",
+    "_next/",
+    "_vercel/",
+    "/api/",
+    "/fonts/",
+    "/assets/",
+    "/static/"
   ];
   
   if (nonUserKeywords.some(kw => clean.includes(kw))) {

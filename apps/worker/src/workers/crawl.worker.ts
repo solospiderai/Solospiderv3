@@ -36,30 +36,36 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   await job.updateProgress(5);
 
   // ── 2. Discover URLs ────────────────────────────────────────────────────────
-  const { urls: urlQueue, foundSitemap } = await discoverUrls(website, max_pages);
-  console.log(`[CrawlWorker] Discovered ${urlQueue.length} URLs. foundSitemap=${foundSitemap}`);
+  const urlQueue = await discoverUrls(website, max_pages);
+  console.log(`[CrawlWorker] Discovered ${urlQueue.length} URLs`);
+  const hasSitemap = urlQueue.some(item => item.source === "sitemap");
 
-  if (foundSitemap) {
-    try {
-      const origin = new URL(website).origin;
-      const sitemapUrl = `${origin}/sitemap.xml`;
-      await supabase.from("crawled_pages").upsert({
-        project_id,
-        url: sitemapUrl,
-        title: "Sitemap XML",
-        meta_desc: "Sitemap index file found and parsed.",
-        h1: null,
-        word_count: 0,
-        status_code: 200,
-        source: "sitemap",
-        has_faq_schema: false,
-        has_howto: false,
-        schema_types: [],
-      }, { onConflict: "project_id,url" });
-      console.log(`[CrawlWorker] Inserted sitemap.xml marker for project ${project_id}`);
-    } catch (err: any) {
-      console.warn(`[CrawlWorker] Failed to insert sitemap.xml marker: ${err.message}`);
+  try {
+    const { data: proj } = await supabase
+      .from("projects")
+      .select("brand_description")
+      .eq("id", project_id)
+      .single();
+    if (proj) {
+      const rawDesc = proj.brand_description || "";
+      let meta: any = {};
+      const parts = rawDesc.split("\n---\nMETADATA: ");
+      if (parts.length > 1) {
+        try {
+          meta = JSON.parse(parts[1]) || {};
+        } catch {}
+      }
+      meta.hasSitemap = hasSitemap;
+      const cleanDesc = parts[0];
+      const updatedDesc = `${cleanDesc}\n---\nMETADATA: ${JSON.stringify(meta)}`;
+      await supabase
+        .from("projects")
+        .update({ brand_description: updatedDesc })
+        .eq("id", project_id);
+      console.log(`[CrawlWorker] Updated hasSitemap=${hasSitemap} in project metadata`);
     }
+  } catch (err) {
+    console.error("[CrawlWorker] Failed to update sitemap metadata:", err);
   }
 
   await supabase.from("crawl_runs").update({ pages_found: urlQueue.length }).eq("id", runId);

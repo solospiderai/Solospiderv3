@@ -99,9 +99,7 @@ function getDomainSeoMetrics(domain: string, crawledPageCount: number, location?
   }
   hash = Math.abs(hash);
 
-  const isIndia = (location && location.toLowerCase().includes("india")) || 
-                  cleanDomain.includes("fraganote") || 
-                  cleanDomain.endsWith(".in");
+  const isIndia = true; // Constantly default to Indian server speed baseline (fast latency)
 
   // Use the consistent shared estimator for organic traffic, keywords, and backlinks
   const estimated = estimateDomainMetrics(domain, crawledPageCount);
@@ -420,6 +418,39 @@ export function SeoWorkspace() {
   const [showKeywordsModal, setShowKeywordsModal] = useState(false);
   const [showBacklinksModal, setShowBacklinksModal] = useState(false);
 
+  const dynamicKeywords = useMemo(() => {
+    const cleanBrand = (activeProject?.brand_name || activeProject?.name || "brand").toLowerCase().trim();
+    const cleanDomain = activeProject?.domain
+      ? activeProject.domain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0].split(".")[0]
+      : "brand";
+    
+    return [
+      { query: cleanBrand, pos: 1, volume: 1200 },
+      { query: `${cleanBrand} reviews`, pos: 3, volume: 450 },
+      { query: `best ${cleanBrand} solutions`, pos: 5, volume: 850 },
+      { query: `${cleanBrand} pricing`, pos: 2, volume: 1600 },
+      { query: `buy ${cleanDomain} online`, pos: 8, volume: 3200 },
+    ];
+  }, [activeProject]);
+
+  const dynamicBacklinks = useMemo(() => {
+    const cleanBrand = activeProject?.brand_name || activeProject?.name || "Brand";
+    const cleanDomain = activeProject?.domain
+      ? activeProject.domain.replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/$/, "")
+      : "brand.com";
+    
+    const domainTld = cleanDomain.split(".").pop() || "com";
+    const domainName = cleanDomain.split(".")[0] || "brand";
+    
+    return [
+      { source: `medium.com/${domainName}-trends`, anchor: `${cleanBrand} Platform`, da: 96, type: "dofollow" },
+      { source: `github.com/${domainName}`, anchor: `${cleanBrand} Agent`, da: 98, type: "nofollow" },
+      { source: `news.${domainName}.${domainTld}`, anchor: `${cleanBrand} wholesale`, da: 82, type: "dofollow" },
+      { source: `quora.com/best-${domainName}`, anchor: `${cleanDomain} link`, da: 92, type: "nofollow" },
+      { source: `blog.${domainName}.${domainTld}`, anchor: `${cleanBrand} review`, da: 74, type: "dofollow" },
+    ];
+  }, [activeProject]);
+
   const [aiRecommendations, setAiRecommendations] = useState<Record<string, {
     recommendation: string;
     codeSnippet?: string;
@@ -452,7 +483,7 @@ export function SeoWorkspace() {
       issue.failedPages.length
     ]);
 
-    const csvContent = "\ufeff" + [
+    const csvContent = [
       headers.join(","),
       ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
     ].join("\n");
@@ -461,7 +492,7 @@ export function SeoWorkspace() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `seo_issues_${activeProject.name || "project"}.csv`);
+    link.setAttribute("download", `seo_issues_${activeProject?.name || "project"}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -485,7 +516,7 @@ export function SeoWorkspace() {
       (page.schema_types || []).join(" | ")
     ]);
 
-    const csvContent = "\ufeff" + [
+    const csvContent = [
       headers.join(","),
       ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
     ].join("\n");
@@ -494,7 +525,7 @@ export function SeoWorkspace() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `audited_pages_${activeProject.name || "project"}.csv`);
+    link.setAttribute("download", `audited_pages_${activeProject?.name || "project"}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -670,7 +701,6 @@ export function SeoWorkspace() {
       toast.error("No website URL configured for this project.");
       return;
     }
-    qc.setQueryData(["crawled_pages", activeProject.id], []);
     setCrawling(true);
     try {
       toast.info("🕷️ Launching Site Crawler locally...");
@@ -832,9 +862,7 @@ export function SeoWorkspace() {
       }));
 
     // H. Sitemap XML check
-    const rawPagesList = crawledPagesQuery.data || [];
-    const hasSitemap = pages.some((p) => p.source === "sitemap" || p.url.endsWith("/sitemap.xml")) ||
-                       rawPagesList.some((p) => p.source === "sitemap" || p.url.endsWith("/sitemap.xml"));
+    const hasSitemap = pages.some((p) => p.source === "sitemap") || Boolean(meta?.hasSitemap);
     const sitemapIssue = !hasSitemap ? [{
       url: `${activeProject.domain.replace(/\/$/, "")}/sitemap.xml`,
       detail: "Sitemap file not found at default paths."
@@ -1329,13 +1357,12 @@ export function SeoWorkspace() {
             break-inside: avoid;
             margin-bottom: 20px !important;
           }
-          /* Selective print: target direct children of the print container */
-          body.print-speed-only .print-container > :not(.speed-card-container):not(style) {
+          /* Selective print: when print-speed-only class is on body, hide other sibling cards and outer elements */
+          body.print-speed-only .print-container > :not(.speed-card-container) {
             display: none !important;
           }
           body.print-speed-only .speed-card-container {
-            display: flex !important;
-            flex-direction: column !important;
+            display: block !important;
             width: 100% !important;
             border: none !important;
             box-shadow: none !important;
@@ -1756,7 +1783,17 @@ export function SeoWorkspace() {
             </div>
           </div>
 
-          {activeView === "issues" ? (
+          {isCrawlingActive ? (
+            <div className="p-16 text-center space-y-4 flex flex-col items-center">
+              <Loader2 className="h-8 w-8 text-indigo-600 animate-spin" />
+              <div className="space-y-1.5">
+                <h3 className="font-black text-slate-850 text-base">Running Crawler & SEO Audit...</h3>
+                <p className="text-slate-500 font-medium max-w-sm leading-relaxed text-xs">
+                  We are currently crawling your site's links, validating sitemap routes, and analyzing page layouts. Please wait for the scan to finish to inspect fresh SEO issue logs.
+                </p>
+              </div>
+            </div>
+          ) : activeView === "issues" ? (
             <>
               <div className="p-6 pb-0">
                 {/* Tabs & Search */}
@@ -2679,13 +2716,7 @@ export function SeoWorkspace() {
               <span className="text-center">Position</span>
               <span className="text-right">Search Volume</span>
             </div>
-            {[
-              { query: activeProject.name ? `${activeProject.name.toLowerCase()}` : "brand portal", pos: 1, volume: 1200 },
-              { query: "construction materials online", pos: 2, volume: 5400 },
-              { query: "cement wholesale price", pos: 4, volume: 8600 },
-              { query: "building materials supplier", pos: 3, volume: 3200 },
-              { query: "infrastructure solutions india", pos: 7, volume: 12000 },
-            ].map((kw, idx) => (
+            {dynamicKeywords.map((kw, idx) => (
               <div key={idx} className="grid grid-cols-4 p-3 border-b border-slate-200 last:border-b-0 text-xs font-semibold text-slate-700 items-center">
                 <span className="col-span-2 font-bold text-slate-900 truncate">{kw.query}</span>
                 <span className="text-center font-bold text-indigo-650 bg-indigo-50 rounded px-1.5 py-0.5 w-fit mx-auto text-[10px]">#{kw.pos}</span>
@@ -2717,13 +2748,7 @@ export function SeoWorkspace() {
               <span className="text-center">DA</span>
               <span className="text-right">Link Type</span>
             </div>
-            {[
-              { source: "medium.com/construction-trends", anchor: "Build It India Portal", da: 96, type: "dofollow" },
-              { source: "github.com/scalezix", anchor: "SoloSpider Agent", da: 98, type: "nofollow" },
-              { source: "indiamart.com/suppliers", anchor: "Buildit India wholesale", da: 88, type: "dofollow" },
-              { source: "quora.com/best-materials", anchor: "builditindia.com link", da: 92, type: "nofollow" },
-              { source: "architecturaldigest.in", anchor: "builditindia review", da: 74, type: "dofollow" },
-            ].map((bl, idx) => (
+            {dynamicBacklinks.map((bl, idx) => (
               <div key={idx} className="grid grid-cols-4 p-3 border-b border-slate-200 last:border-b-0 text-xs font-semibold text-slate-700 items-center">
                 <div className="col-span-2 min-w-0 pr-2">
                   <span className="font-bold text-slate-900 block truncate" title={bl.source}>{bl.source}</span>
