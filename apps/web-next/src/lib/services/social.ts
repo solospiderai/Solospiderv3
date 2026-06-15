@@ -246,11 +246,16 @@ Make captions authentic, engaging, and platform-native. Mix the types across the
     }
 
     // Fallback to Pollinations if Edge Function doesn't return data
-    const encodedPrompt = encodeURIComponent(prompt);
-    const res = await fetch(
-      `https://text.pollinations.ai/${encodedPrompt}?model=openai&json=true`,
-      { method: "GET" }
-    );
+    console.log("Calling Pollinations AI fallback text generator for social ideas (POST)...");
+    const res = await fetch("https://text.pollinations.ai/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: prompt }],
+        model: "openai",
+        jsonMode: true
+      })
+    });
     const text = await res.text();
 
     // Extract JSON array from response

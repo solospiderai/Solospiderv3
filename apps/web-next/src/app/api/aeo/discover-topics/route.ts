@@ -42,14 +42,21 @@ async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash")
   }
 
   // Fallback to Pollinations AI
-  console.log("[DiscoverTopics] Calling Pollinations AI fallback text generator...");
+  console.log("[DiscoverTopics] Calling Pollinations AI fallback text generator (POST)...");
   try {
-    const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
-    const res = await fetch(pollinationsUrl);
+    const res = await fetch("https://text.pollinations.ai/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: prompt }],
+        model: "openai",
+      }),
+    });
     if (res.ok) {
       return (await res.text()).trim();
     } else {
-      throw new Error(`Pollinations responded with status ${res.status}`);
+      const errorText = await res.text().catch(() => "");
+      throw new Error(`Pollinations responded with status ${res.status}: ${errorText}`);
     }
   } catch (err: any) {
     throw new Error(`Both OpenRouter and Pollinations fallback failed: ${err.message || err}`);
