@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { HelpCircle } from "lucide-react";
-import { isNonUserPage } from "@/lib/seo-utils";
+import { isNonUserPage, estimateTrafficMetrics } from "@/lib/seo-utils";
 
 interface CrawledPage {
   id: string;
@@ -265,22 +265,23 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     return { seoScore: score, subtitle, color };
   }, [pagesForCalculation]);
 
-  // Scaled traffic, impressions, and backlinks based on count of scanned pages
-  const trafficNum = scaleCount === 0 ? 0 : scaleCount * 1200 + 4200;
+  // Estimated traffic, impressions, and backlinks using a realistic shared utility
+  const { organicTraffic: trafficNum, impressions: impressionsNum, backlinks: backlinksNum } = useMemo(() => {
+    return estimateTrafficMetrics(activeProject?.domain ?? "", scaleCount);
+  }, [activeProject?.domain, scaleCount]);
+
   const trafficValue = trafficNum >= 1000000 
     ? (trafficNum / 1000000).toFixed(1) + "M"
     : trafficNum >= 1000 
       ? (trafficNum / 1000).toFixed(1) + "K" 
       : trafficNum.toString();
 
-  const impressionsNum = scaleCount === 0 ? 0 : scaleCount * 45000 + 120000;
   const impressionsValue = impressionsNum >= 1000000 
     ? (impressionsNum / 1000000).toFixed(1) + "M"
     : impressionsNum >= 1000 
       ? (impressionsNum / 1000).toFixed(1) + "K" 
       : impressionsNum.toString();
 
-  const backlinksNum = scaleCount === 0 ? 0 : scaleCount * 12 + 45;
   const backlinksValue = backlinksNum >= 1000 
     ? (backlinksNum / 1000).toFixed(1) + "K" 
     : backlinksNum.toString();
@@ -289,41 +290,41 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
   const sparklineTraffic = useMemo(() => {
     if (scaleCount === 0) return Array(7).fill({ value: 0 });
     return [
-      { value: Math.round(scaleCount * 80 + 350) },
-      { value: Math.round(scaleCount * 110 + 400) },
-      { value: Math.round(scaleCount * 90 + 380) },
-      { value: Math.round(scaleCount * 130 + 450) },
-      { value: Math.round(scaleCount * 150 + 420) },
-      { value: Math.round(scaleCount * 170 + 480) },
-      { value: Math.round(scaleCount * 190 + 520) },
+      { value: Math.round(trafficNum * 0.72) },
+      { value: Math.round(trafficNum * 0.78) },
+      { value: Math.round(trafficNum * 0.81) },
+      { value: Math.round(trafficNum * 0.88) },
+      { value: Math.round(trafficNum * 0.92) },
+      { value: Math.round(trafficNum * 0.95) },
+      { value: Math.round(trafficNum) },
     ];
-  }, [scaleCount]);
+  }, [scaleCount, trafficNum]);
 
   const sparklineImpressions = useMemo(() => {
     if (scaleCount === 0) return Array(7).fill({ value: 0 });
     return [
-      { value: Math.round(scaleCount * 4000 + 18000) },
-      { value: Math.round(scaleCount * 5500 + 20000) },
-      { value: Math.round(scaleCount * 4500 + 19000) },
-      { value: Math.round(scaleCount * 6000 + 22000) },
-      { value: Math.round(scaleCount * 6500 + 21000) },
-      { value: Math.round(scaleCount * 7500 + 24000) },
-      { value: Math.round(scaleCount * 8000 + 26000) },
+      { value: Math.round(impressionsNum * 0.70) },
+      { value: Math.round(impressionsNum * 0.75) },
+      { value: Math.round(impressionsNum * 0.82) },
+      { value: Math.round(impressionsNum * 0.85) },
+      { value: Math.round(impressionsNum * 0.91) },
+      { value: Math.round(impressionsNum * 0.96) },
+      { value: Math.round(impressionsNum) },
     ];
-  }, [scaleCount]);
+  }, [scaleCount, impressionsNum]);
 
   const sparklineBacklinks = useMemo(() => {
     if (scaleCount === 0) return Array(7).fill({ value: 0 });
     return [
-      { value: Math.round(scaleCount * 0.8 + 4.0) },
-      { value: Math.round(scaleCount * 1.1 + 4.5) },
-      { value: Math.round(scaleCount * 0.9 + 4.2) },
-      { value: Math.round(scaleCount * 1.3 + 5.0) },
-      { value: Math.round(scaleCount * 1.5 + 5.2) },
-      { value: Math.round(scaleCount * 1.7 + 5.8) },
-      { value: Math.round(scaleCount * 1.9 + 6.2) },
+      { value: Math.round(backlinksNum * 0.80) },
+      { value: Math.round(backlinksNum * 0.85) },
+      { value: Math.round(backlinksNum * 0.88) },
+      { value: Math.round(backlinksNum * 0.91) },
+      { value: Math.round(backlinksNum * 0.94) },
+      { value: Math.round(backlinksNum * 0.97) },
+      { value: Math.round(backlinksNum) },
     ];
-  }, [scaleCount]);
+  }, [scaleCount, backlinksNum]);
 
   const aeoScore = aeoAnalysisQuery.data?.overall_score ?? 0;
   const aeoSubtitle = aeoScore >= 80 ? "Optimized" : aeoScore >= 50 ? "Moderate" : aeoScore > 0 ? "Poor" : "No Data";

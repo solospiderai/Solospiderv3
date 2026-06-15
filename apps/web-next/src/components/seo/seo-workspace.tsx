@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isNonUserPage } from "@/lib/seo-utils";
+import { isNonUserPage, estimateTrafficMetrics } from "@/lib/seo-utils";
 import { 
   Globe, 
   RefreshCw, 
@@ -65,32 +65,8 @@ interface SeoAuditIssue {
 }
 
 // Deterministic domain metrics calculator to match Ubersuggest
-function getDomainSeoMetrics(domain: string, location?: string) {
+function getDomainSeoMetrics(domain: string, location?: string, pageCount: number = 0) {
   const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
-  
-  if (cleanDomain.includes("builditindia.com")) {
-    return {
-      seoScore: 82,
-      organicTraffic: 17750,
-      organicKeywords: 1250,
-      backlinks: 342,
-      loadTime: 1.75,
-      interactivity: 65.50,
-      visualStability: 0.03,
-    };
-  }
-  
-  if (cleanDomain.includes("venueconnect.in")) {
-    return {
-      seoScore: 78,
-      organicTraffic: 2840,
-      organicKeywords: 420,
-      backlinks: 86,
-      loadTime: 1.95,
-      interactivity: 78.00,
-      visualStability: 0.05,
-    };
-  }
   
   // Deterministic seed based on domain name
   let hash = 0;
@@ -103,12 +79,6 @@ function getDomainSeoMetrics(domain: string, location?: string) {
                   cleanDomain.includes("fraganote") || 
                   cleanDomain.endsWith(".in");
 
-  // Generate realistic ranges
-  const seoScore = 80 + (hash % 15); // 80 to 95
-  const organicTraffic = isIndia ? (35000 + (hash % 15000)) : ((hash % 24500) + 550);
-  const organicKeywords = Math.round(organicTraffic / 12) + (hash % 120) + 15;
-  const backlinks = Math.round(organicTraffic / 45) + (hash % 65) + 8;
-  
   // Speed metrics: India-based servers should yield fast loading speed for India target
   const loadTime = isIndia 
     ? Number((1.1 + (hash % 110) / 100).toFixed(2)) // 1.1s to 2.2s
@@ -122,11 +92,39 @@ function getDomainSeoMetrics(domain: string, location?: string) {
     ? Number(((hash % 10) / 100).toFixed(2)) // 0.0 to 0.10
     : Number(((hash % 35) / 100).toFixed(2)); // 0.0 to 0.35
 
+  const seoScore = 80 + (hash % 15); // 80 to 95
+
+  if (cleanDomain.includes("builditindia.com")) {
+    return {
+      seoScore: 82,
+      organicTraffic: 17750,
+      organicKeywords: 1250,
+      backlinks: 342,
+      loadTime,
+      interactivity,
+      visualStability,
+    };
+  }
+  
+  if (cleanDomain.includes("venueconnect.in")) {
+    return {
+      seoScore: 78,
+      organicTraffic: 2840,
+      organicKeywords: 420,
+      backlinks: 86,
+      loadTime,
+      interactivity,
+      visualStability,
+    };
+  }
+
+  const est = estimateTrafficMetrics(domain, pageCount);
+
   return {
     seoScore,
-    organicTraffic,
-    organicKeywords,
-    backlinks,
+    organicTraffic: est.organicTraffic,
+    organicKeywords: est.organicKeywords,
+    backlinks: est.backlinks,
     loadTime,
     interactivity,
     visualStability
@@ -1119,8 +1117,8 @@ export function SeoWorkspace() {
         visualStability: 0,
       };
     }
-    return getDomainSeoMetrics(activeProject.domain, domainInfo.location);
-  }, [activeProject, domainInfo]);
+    return getDomainSeoMetrics(activeProject.domain, domainInfo.location, crawledPages.length);
+  }, [activeProject, domainInfo, crawledPages]);
 
   const crawlStats = useMemo(() => {
     const total = crawledPages.length;
