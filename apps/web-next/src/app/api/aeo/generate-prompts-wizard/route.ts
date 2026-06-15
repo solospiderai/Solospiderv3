@@ -110,9 +110,10 @@ Format the output strictly as raw JSON. Do not include markdown code block forma
       console.warn("[GeneratePromptsWizard] LLM call failed, generating fallback prompts:", llmErr.message);
       
       const fallbackPrompts: Array<{ topic: string; prompt: string; rationale: string }> = [];
-      
-      // Let's create a list of common natural AEO search query templates
-      const templates = [
+      const domainLower = domain.toLowerCase();
+
+      // Custom templates based on the industry niche
+      let templates = [
         "what is the best tool for {topic}?",
         "how to choose a reliable provider for {topic}",
         "compare top platforms for {topic} in terms of pricing and features",
@@ -126,6 +127,47 @@ Format the output strictly as raw JSON. Do not include markdown code block forma
         "why should a business invest in {topic}?",
         "who are the industry leaders in {topic}?"
       ];
+
+      if (domainLower.includes("venueconnect")) {
+        templates = [
+          "how do I book {topic} in India?",
+          "what is the average cost for {topic}?",
+          "which are the top-rated sites for {topic}?",
+          "checklist for choosing {topic} for a wedding",
+          "compare best options for {topic} with pricing",
+          "how to negotiate prices with providers of {topic}",
+          "how early should I start planning {topic}?",
+          "luxury vs budget halls for {topic}",
+          "customer reviews of popular platforms for {topic}",
+          "trending themes and spaces for {topic}"
+        ];
+      } else if (domainLower.includes("builditindia")) {
+        templates = [
+          "where to buy {topic} wholesale online?",
+          "compare prices of top manufacturers for {topic}",
+          "how to source high quality {topic} for builders",
+          "best sites to buy bulk {topic} in India",
+          "raw materials pricing guides for {topic}",
+          "how to verify quality standards for {topic}",
+          "bulk delivery options for {topic}",
+          "cement and concrete brands comparison for {topic}",
+          "cost calculation tips for {topic} procurement",
+          "top rated industrial suppliers of {topic}"
+        ];
+      } else if (domainLower.includes("fraganote") || domainLower.includes("perfume") || domainLower.includes("fragrance")) {
+        templates = [
+          "which are the best {topic} online?",
+          "longest lasting {topic} for daily wear",
+          "how to choose {topic} for summer season",
+          "compare eau de parfum and eau de toilette for {topic}",
+          "affordable luxury brands for {topic}",
+          "highly recommended options for {topic} under budget",
+          "signature scent guide for {topic}",
+          "gift ideas for {topic} set for anniversary",
+          "reviews of popular brands in {topic}",
+          "how to store {topic} to make it last longer"
+        ];
+      }
 
       for (let i = 0; i < promptCount; i++) {
         const topic = selectedTopics[i % selectedTopics.length];
