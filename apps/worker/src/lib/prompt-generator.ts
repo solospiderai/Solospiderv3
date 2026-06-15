@@ -5,17 +5,6 @@ export async function generateAndSaveAiPrompts(projectId: string) {
   try {
     console.log(`[PromptGenerator] Generating AEO prompts for project ${projectId}...`);
 
-    // Check if custom prompts already exist (e.g. created in the onboarding wizard)
-    const { count, error: countErr } = await supabase
-      .from("aeo_prompts")
-      .select("*", { count: "exact", head: true })
-      .eq("project_id", projectId);
-
-    if (!countErr && typeof count === "number" && count > 5) {
-      console.log(`[PromptGenerator] Project ${projectId} already has ${count} custom prompts. Skipping AI prompt generation to preserve them.`);
-      return;
-    }
-
     // 1. Fetch project details
     const { data: project, error: fetchErr } = await supabase
       .from("projects")
@@ -166,6 +155,17 @@ Ensure you output ONLY the raw valid JSON. Do not include markdown code block fo
       } catch (discErr) {
         console.warn(`[PromptGenerator] Auto-discovery failed for project ${projectId}:`, discErr);
       }
+    }
+
+    // Check if custom prompts already exist (e.g. created in the onboarding wizard)
+    const { count, error: countErr } = await supabase
+      .from("aeo_prompts")
+      .select("*", { count: "exact", head: true })
+      .eq("project_id", projectId);
+
+    if (!countErr && typeof count === "number" && count > 5) {
+      console.log(`[PromptGenerator] Project ${projectId} already has ${count} custom prompts. Skipping AI prompt generation to preserve them.`);
+      return;
     }
 
     // 3. Prompt for model
