@@ -45,8 +45,25 @@ console.log(`ENV: ${env.NODE_ENV}`);
 console.log("Workers: CrawlWorker | PromptScanWorker | ScoringWorker | PublishWorker");
 console.log("Cron: GEO score recompute every 6h; social publish check every minute");
 
+import http from "http";
+
+const port = process.env.PORT || 3005;
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("SoloSpider Worker is healthy\n");
+});
+
+server.on("error", (err: any) => {
+  console.warn(`[Worker] Health check server error: ${err.message}. Worker will continue running.`);
+});
+
+server.listen(port, () => {
+  console.log(`Health check server listening on port ${port}`);
+});
+
 async function shutdown(signal: string) {
   console.log(`\n[Worker] ${signal} received, shutting down gracefully...`);
+  server.close();
   await Promise.all([crawlWorker.close(), promptScanWorker.close(), scoringWorker.close(), publishWorker.close()]);
   process.exit(0);
 }
