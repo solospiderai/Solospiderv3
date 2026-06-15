@@ -5,7 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isNonUserPage, estimateTrafficMetrics } from "@/lib/seo-utils";
+import { isNonUserPage, getTrafficChartData } from "@/lib/seo-utils";
 
 const data = [
   { name: 'May 12', organic: 22000, paid: 11000 },
@@ -38,87 +38,13 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
     },
   });
 
-  const userPages = useMemo(() => {
-    return (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url));
-  }, [crawledPagesQuery.data]);
+  const hasData = (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url)).length > 0;
 
-  const hasData = userPages.length > 0;
+  const pageCount = (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url)).length;
 
   const chartData = useMemo(() => {
-    const dataPoints = [];
-    const now = new Date();
-
-    if (!hasData) {
-      const size = timeRange === "today" ? 7 : timeRange === "30" ? 6 : timeRange === "90" ? 6 : 7;
-      for (let i = size - 1; i >= 0; i--) {
-        const d = new Date();
-        if (timeRange === "today") {
-          const hours = [8, 10, 12, 14, 16, 18, 20];
-          dataPoints.push({ name: `${hours[size - 1 - i]}:00`, organic: 0, paid: 0 });
-        } else {
-          const offset = timeRange === "30" ? i * 5 : timeRange === "90" ? i * 15 : i;
-          d.setDate(now.getDate() - offset);
-          const name = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-          dataPoints.push({ name, organic: 0, paid: 0 });
-        }
-      }
-      return dataPoints;
-    }
-
-    const scaleCount = userPages.length;
-    const est = estimateTrafficMetrics(activeProject?.domain ?? "", scaleCount);
-    
-    // Estimate daily organic and paid traffic baselines
-    const dailyOrganicBase = Math.max(1, Math.round(est.organicTraffic / 30));
-    const dailyPaidBase = Math.max(1, Math.round(dailyOrganicBase * 0.35));
-    
-    if (timeRange === "today") {
-      // Hourly intervals: distribute the daily base over hours, peaking during mid-day
-      const hours = [8, 10, 12, 14, 16, 18, 20];
-      const hourlyBase = dailyOrganicBase / 6; 
-      for (let i = 0; i < hours.length; i++) {
-        const h = hours[i];
-        const organic = Math.round(hourlyBase * (0.8 + Math.sin(i * 0.8) * 0.4));
-        const paid = Math.round((hourlyBase * 0.35) * (0.7 + Math.cos(i * 0.8) * 0.3));
-        dataPoints.push({
-          name: `${h}:00`,
-          organic: Math.max(1, organic),
-          paid: Math.max(0, paid),
-        });
-      }
-    } else if (timeRange === "30") {
-      // Last 30 Days in 5-day intervals
-      for (let i = 25; i >= 0; i -= 5) {
-        const d = new Date();
-        d.setDate(now.getDate() - i);
-        const name = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        const organic = Math.round(dailyOrganicBase * (0.9 + Math.sin(i) * 0.12 + (25 - i) * 0.008));
-        const paid = Math.round(dailyPaidBase * (0.95 + Math.cos(i) * 0.15 + (25 - i) * 0.004));
-        dataPoints.push({ name, organic: Math.max(1, organic), paid: Math.max(0, paid) });
-      }
-    } else if (timeRange === "90") {
-      // Last 90 Days in 15-day intervals
-      for (let i = 75; i >= 0; i -= 15) {
-        const d = new Date();
-        d.setDate(now.getDate() - i);
-        const name = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        const organic = Math.round(dailyOrganicBase * (0.8 + Math.sin(i / 2) * 0.15 + (75 - i) * 0.005));
-        const paid = Math.round(dailyPaidBase * (0.9 + Math.cos(i / 2) * 0.18 + (75 - i) * 0.002));
-        dataPoints.push({ name, organic: Math.max(1, organic), paid: Math.max(0, paid) });
-      }
-    } else {
-      // Last 7 days (default)
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date();
-        d.setDate(now.getDate() - i);
-        const name = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        const organic = Math.round(dailyOrganicBase * (0.95 + Math.sin(i * 2) * 0.1 + (6 - i) * 0.015));
-        const paid = Math.round(dailyPaidBase * (0.98 + Math.cos(i * 2) * 0.12 + (6 - i) * 0.008));
-        dataPoints.push({ name, organic: Math.max(1, organic), paid: Math.max(0, paid) });
-      }
-    }
-    return dataPoints;
-  }, [timeRange, hasData, userPages, activeProject]);
+    return getTrafficChartData(activeProject?.domain || "", pageCount, timeRange);
+  }, [activeProject?.domain, pageCount, timeRange]);
 
   const rangeLabel = timeRange === "today" 
     ? "Today" 

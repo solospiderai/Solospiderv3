@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { HelpCircle } from "lucide-react";
-import { isNonUserPage, estimateTrafficMetrics } from "@/lib/seo-utils";
+import { isNonUserPage, estimateDomainMetrics } from "@/lib/seo-utils";
 
 interface CrawledPage {
   id: string;
@@ -265,66 +265,32 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     return { seoScore: score, subtitle, color };
   }, [pagesForCalculation]);
 
-  // Estimated traffic, impressions, and backlinks using a realistic shared utility
-  const { organicTraffic: trafficNum, impressions: impressionsNum, backlinks: backlinksNum } = useMemo(() => {
-    return estimateTrafficMetrics(activeProject?.domain ?? "", scaleCount);
+  const estimated = useMemo(() => {
+    return estimateDomainMetrics(activeProject?.domain || "", scaleCount);
   }, [activeProject?.domain, scaleCount]);
 
+  const trafficNum = estimated.organicTraffic;
   const trafficValue = trafficNum >= 1000000 
     ? (trafficNum / 1000000).toFixed(1) + "M"
     : trafficNum >= 1000 
       ? (trafficNum / 1000).toFixed(1) + "K" 
       : trafficNum.toString();
 
+  const impressionsNum = trafficNum * 4.5;
   const impressionsValue = impressionsNum >= 1000000 
     ? (impressionsNum / 1000000).toFixed(1) + "M"
     : impressionsNum >= 1000 
       ? (impressionsNum / 1000).toFixed(1) + "K" 
       : impressionsNum.toString();
 
+  const backlinksNum = estimated.backlinks;
   const backlinksValue = backlinksNum >= 1000 
     ? (backlinksNum / 1000).toFixed(1) + "K" 
     : backlinksNum.toString();
 
-  // Dynamic sparkline curves matching current page count
-  const sparklineTraffic = useMemo(() => {
-    if (scaleCount === 0) return Array(7).fill({ value: 0 });
-    return [
-      { value: Math.round(trafficNum * 0.72) },
-      { value: Math.round(trafficNum * 0.78) },
-      { value: Math.round(trafficNum * 0.81) },
-      { value: Math.round(trafficNum * 0.88) },
-      { value: Math.round(trafficNum * 0.92) },
-      { value: Math.round(trafficNum * 0.95) },
-      { value: Math.round(trafficNum) },
-    ];
-  }, [scaleCount, trafficNum]);
-
-  const sparklineImpressions = useMemo(() => {
-    if (scaleCount === 0) return Array(7).fill({ value: 0 });
-    return [
-      { value: Math.round(impressionsNum * 0.70) },
-      { value: Math.round(impressionsNum * 0.75) },
-      { value: Math.round(impressionsNum * 0.82) },
-      { value: Math.round(impressionsNum * 0.85) },
-      { value: Math.round(impressionsNum * 0.91) },
-      { value: Math.round(impressionsNum * 0.96) },
-      { value: Math.round(impressionsNum) },
-    ];
-  }, [scaleCount, impressionsNum]);
-
-  const sparklineBacklinks = useMemo(() => {
-    if (scaleCount === 0) return Array(7).fill({ value: 0 });
-    return [
-      { value: Math.round(backlinksNum * 0.80) },
-      { value: Math.round(backlinksNum * 0.85) },
-      { value: Math.round(backlinksNum * 0.88) },
-      { value: Math.round(backlinksNum * 0.91) },
-      { value: Math.round(backlinksNum * 0.94) },
-      { value: Math.round(backlinksNum * 0.97) },
-      { value: Math.round(backlinksNum) },
-    ];
-  }, [scaleCount, backlinksNum]);
+  const sparklineTraffic = estimated.sparklineTraffic;
+  const sparklineImpressions = estimated.sparklineImpressions;
+  const sparklineBacklinks = estimated.sparklineBacklinks;
 
   const aeoScore = aeoAnalysisQuery.data?.overall_score ?? 0;
   const aeoSubtitle = aeoScore >= 80 ? "Optimized" : aeoScore >= 50 ? "Moderate" : aeoScore > 0 ? "Poor" : "No Data";
