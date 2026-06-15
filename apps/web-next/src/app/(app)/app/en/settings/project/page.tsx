@@ -21,6 +21,9 @@ export default function ProjectSettingsPage() {
   const [ogImageUrl, setOgImageUrl] = useState("");
   const [faviconUrl, setFaviconUrl] = useState("");
   
+  const [location, setLocation] = useState("United States");
+  const [competitorsInput, setCompetitorsInput] = useState("");
+  
   const [isSaving, setIsSaving] = useState(false);
 
   // Sync state with active project
@@ -33,6 +36,20 @@ export default function ProjectSettingsPage() {
       const rawDesc = activeProject.brand_description || "";
       const parts = rawDesc.split("\n---\nMETADATA: ");
       setDescription(parts[0]);
+
+      let loc = "United States";
+      let comps: string[] = [];
+      if (parts.length > 1) {
+        try {
+          const meta = JSON.parse(parts[1]);
+          if (meta.location) loc = meta.location;
+          if (Array.isArray(meta.competitors)) comps = meta.competitors;
+        } catch (e) {
+          console.warn("Failed to parse metadata in settings:", e);
+        }
+      }
+      setLocation(loc);
+      setCompetitorsInput(comps.join(", "));
 
       setBrandLogoUrl(activeProject.brand_logo_url || "");
       setOgImageUrl(activeProject.og_image_url || "");
@@ -49,11 +66,18 @@ export default function ProjectSettingsPage() {
 
     setIsSaving(true);
     try {
-      const rawDesc = activeProject.brand_description || "";
-      const parts = rawDesc.split("\n---\nMETADATA: ");
-      const metadataStr = parts.length > 1 ? `\n---\nMETADATA: ${parts[1]}` : "";
+      const parsedComps = competitorsInput
+        .split(",")
+        .map(c => c.trim().toLowerCase())
+        .filter(Boolean);
+
+      const metadataBlock = `\n---\nMETADATA: ${JSON.stringify({
+        location: location.trim(),
+        competitors: parsedComps,
+      })}`;
+
       const cleanNewDesc = description.trim();
-      const updatedDesc = cleanNewDesc ? `${cleanNewDesc}${metadataStr}` : (metadataStr ? metadataStr : null);
+      const updatedDesc = cleanNewDesc ? `${cleanNewDesc}${metadataBlock}` : metadataBlock;
 
       const supabase = getSupabaseBrowserClient();
       const { error } = await supabase
@@ -212,6 +236,43 @@ export default function ProjectSettingsPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:border-violet-600 focus:bg-white focus:outline-none transition-all shadow-inner-sm"
                 />
+              </div>
+            </div>
+
+            {/* Target Location & Competitors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Primary Target Market */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Primary Target Market</label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <Globe className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="e.g. India, United States"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:border-violet-600 focus:bg-white focus:outline-none transition-all shadow-inner-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Top Competitor Domains */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Top Competitor Domains</label>
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
+                    <LinkIcon className="h-4 w-4" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="e.g. nykaa.com, sugarcosmetics.com"
+                    value={competitorsInput}
+                    onChange={(e) => setCompetitorsInput(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:border-violet-600 focus:bg-white focus:outline-none transition-all shadow-inner-sm"
+                  />
+                </div>
               </div>
             </div>
           </div>
