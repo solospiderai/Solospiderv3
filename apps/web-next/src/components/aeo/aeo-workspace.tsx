@@ -258,8 +258,6 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         .from("aeo_analyses" as any)
         .select("*")
         .eq("project_id", activeProject!.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
       return data as any;
     },

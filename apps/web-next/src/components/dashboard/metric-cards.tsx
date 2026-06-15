@@ -173,8 +173,6 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
         .from("aeo_analyses" as any)
         .select("*")
         .eq("project_id", activeProject!.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
       
       if (error) throw error;
