@@ -29,11 +29,13 @@ export async function generateAndSaveAiPrompts(projectId: string) {
     }
 
     const rawDesc = project.brand_description || "";
+    const hasMetadata = rawDesc.includes("\n---\nMETADATA: ");
     let cleanDesc = rawDesc;
     let competitorsFromMeta: string[] = [];
     let location = "United States";
+    
     const parts = rawDesc.split("\n---\nMETADATA: ");
-    if (parts.length > 1) {
+    if (hasMetadata && parts.length > 1) {
       cleanDesc = parts[0];
       try {
         const meta = JSON.parse(parts[1]);
@@ -92,6 +94,78 @@ export async function generateAndSaveAiPrompts(projectId: string) {
 
     if (!webContent) {
       webContent = "No pages indexed yet.";
+    }
+
+    // Auto-discover location and competitors if missing
+    if (!hasMetadata) {
+      console.log(`[PromptGenerator] Metadata missing for project ${projectId}. Running auto-discovery...`);
+      try {
+        const discoveryPrompt = `You are a professional business analyst. Your task is to analyze the text content of a company's website homepage to:
+1. DEDUCE the primary target country/market location of this brand. Analyze visible text, addresses, contact details, cities mentioned, currencies, regional spelling conventions (e.g. UK vs US spelling), phone number formats, or venue locations listed on the page. 
+   CRITICAL: If the currency is USD and TLD is generic (like .com) but the cities, physical venues, addresses, or services are situated in India (e.g. Mumbai, Bangalore, Delhi), the target location MUST be deduced as "India".
+2. IDENTIFY exactly 3 actual competitors of this brand (their brand names and website domain names, if possible).
+
+Business Metadata:
+- Provided Brand Name: "${brandName}"
+- Domain: "${domain}"
+
+CRAWLED HOMEPAGE CONTENT:
+"""
+${webContent}
+"""
+
+Guidelines for Output:
+Return the results STRICTLY as a raw JSON object with the following structure:
+{
+  "targetLocation": "Country Name (e.g. India, United States, United Kingdom, Canada)",
+  "competitors": [
+    "competitor1.com",
+    "competitor2.com",
+    "competitor3.com"
+  ]
+}
+Ensure you output ONLY the raw valid JSON. Do not include markdown code block formatting (like \`\`\`json) or any additional explanation outside the JSON.`;
+
+        const discRes = await queryModel("gemini", discoveryPrompt, "You are a JSON generator. Respond ONLY with valid JSON.");
+        let cleanedDisc = discRes.text.trim();
+        if (cleanedDisc.startsWith("```")) {
+          cleanedDisc = cleanedDisc.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+        }
+        
+        let parsedDisc;
+        try {
+          parsedDisc = JSON.parse(cleanedDisc);
+        } catch {
+          const startIdx = cleanedDisc.indexOf("{");
+          const endIdx = cleanedDisc.lastIndexOf("}");
+          if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+            parsedDisc = JSON.parse(cleanedDisc.slice(startIdx, endIdx + 1));
+          }
+        }
+
+        if (parsedDisc && parsedDisc.targetLocation) {
+          location = parsedDisc.targetLocation;
+        }
+        if (parsedDisc && Array.isArray(parsedDisc.competitors)) {
+          competitorsFromMeta = parsedDisc.competitors;
+        }
+
+        // Save metadata block back to the project record in the database
+        const metadataBlock = `\n---\nMETADATA: ${JSON.stringify({
+          location,
+          competitors: competitorsFromMeta,
+        })}`;
+        const newDesc = cleanDesc ? `${cleanDesc}${metadataBlock}` : `Market audience targeted: ${location}. Generated based on selection.${metadataBlock}`;
+        
+        await supabase
+          .from("projects")
+          .update({ brand_description: newDesc })
+          .eq("id", projectId);
+          
+        console.log(`[PromptGenerator] Auto-discovered metadata saved: location=${location}, competitors=${competitorsFromMeta.join(", ")}`);
+      } catch (discErr) {
+        console.warn(`[PromptGenerator] Auto-discovery failed for project ${projectId}:`, discErr);
+      }
     }
 
     // 3. Prompt for model
