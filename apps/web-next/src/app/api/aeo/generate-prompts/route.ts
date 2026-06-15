@@ -56,15 +56,8 @@ async function callLLM(prompt: string, maxTokens = 2000) {
   // Fallback to pollinations if OpenRouter is unavailable
   if (!text) {
     try {
-      console.log("[callLLM] Calling Pollinations AI fallback text generator (POST)...");
-      const res = await fetch("https://text.pollinations.ai/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-          model: "openai",
-        }),
-      });
+      const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
+      const res = await fetch(pollinationsUrl);
       if (res.ok) {
         text = (await res.text()).trim();
       }

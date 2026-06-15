@@ -15,56 +15,32 @@ const GeneratePromptsWizardSchema = z.object({
 
 async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
-  if (openrouterKey) {
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openrouterKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://solospider.ai",
-          "X-Title": "SoloSpider",
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 2500,
-          temperature: 0.7,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.choices?.[0]?.message?.content?.trim();
-        if (text) return text;
-      } else {
-        console.warn(`[GeneratePromptsWizard] OpenRouter failed with status ${response.status}: ${await response.text()}`);
-      }
-    } catch (err) {
-      console.warn("[GeneratePromptsWizard] OpenRouter fetch failed, falling back to Pollinations:", err);
-    }
+  if (!openrouterKey) {
+    throw new Error("OPENROUTER_API_KEY is not defined in environment");
   }
 
-  // Fallback to Pollinations AI
-  console.log("[GeneratePromptsWizard] Calling Pollinations AI fallback text generator (POST)...");
-  try {
-    const res = await fetch("https://text.pollinations.ai/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        messages: [{ role: "user", content: prompt }],
-        model: "openai",
-      }),
-    });
-    if (res.ok) {
-      return (await res.text()).trim();
-    } else {
-      const errorText = await res.text().catch(() => "");
-      throw new Error(`Pollinations responded with status ${res.status}: ${errorText}`);
-    }
-  } catch (err: any) {
-    throw new Error(`Both OpenRouter and Pollinations fallback failed: ${err.message || err}`);
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${openrouterKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://solospider.ai",
+      "X-Title": "SoloSpider",
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 2500,
+      temperature: 0.7,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenRouter responded with status ${response.status}: ${await response.text()}`);
   }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content?.trim() || "";
 }
 
 export async function POST(request: NextRequest) {
@@ -128,7 +104,25 @@ Guidelines:
 
 Format the output strictly as raw JSON. Do not include markdown code block formatting (like \`\`\`json) or any additional text.`;
 
-    const llmResponse = await callOpenRouter(promptText);
+    let llmResponse = "";
+    try {
+      llmResponse = await callOpenRouter(promptText);
+    } catch (err: any) {
+      console.warn("[GeneratePromptsWizard] OpenRouter failed, trying Pollinations fallback:", err?.message || err);
+      try {
+        const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`;
+        const res = await fetch(pollinationsUrl);
+        if (res.ok) {
+          llmResponse = (await res.text()).trim();
+        } else {
+          throw new Error(`Pollinations responded with status ${res.status}`);
+        }
+      } catch (fallbackErr: any) {
+        console.error("[GeneratePromptsWizard] Fallback also failed:", fallbackErr);
+        throw new Error(`AI prompt generation failed: ${err?.message || err}. (Fallback error: ${fallbackErr?.message || fallbackErr})`);
+      }
+    }
+
     let cleanedText = llmResponse.trim();
     if (cleanedText.startsWith("```")) {
       cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
