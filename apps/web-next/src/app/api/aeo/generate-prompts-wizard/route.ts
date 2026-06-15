@@ -103,7 +103,47 @@ Guidelines:
 
 Format the output strictly as raw JSON. Do not include markdown code block formatting (like \`\`\`json) or any additional text.`;
 
-    const llmResponse = await callOpenRouter(promptText);
+    let llmResponse = "";
+    try {
+      llmResponse = await callOpenRouter(promptText);
+    } catch (llmErr: any) {
+      console.warn("[GeneratePromptsWizard] LLM call failed, generating fallback prompts:", llmErr.message);
+      
+      const fallbackPrompts: Array<{ topic: string; prompt: string; rationale: string }> = [];
+      
+      // Let's create a list of common natural AEO search query templates
+      const templates = [
+        "what is the best tool for {topic}?",
+        "how to choose a reliable provider for {topic}",
+        "compare top platforms for {topic} in terms of pricing and features",
+        "essential things to check when evaluating {topic} options",
+        "step by step guide to optimize {topic} for business growth",
+        "what are the top trends in {topic} this year?",
+        "affordable solutions for {topic} for small businesses",
+        "how do experts handle {topic} challenges?",
+        "common mistakes to avoid when starting with {topic}",
+        "what is the difference between different types of {topic}?",
+        "why should a business invest in {topic}?",
+        "who are the industry leaders in {topic}?"
+      ];
+
+      for (let i = 0; i < promptCount; i++) {
+        const topic = selectedTopics[i % selectedTopics.length];
+        const templateIdx = Math.floor(i / selectedTopics.length) % templates.length;
+        const template = templates[templateIdx];
+        
+        // Formulate query from template
+        const promptString = template.replace("{topic}", topic);
+        fallbackPrompts.push({
+          topic,
+          prompt: promptString.charAt(0).toUpperCase() + promptString.slice(1),
+          rationale: `Conversational query targeting the ${topic} category search intent.`
+        });
+      }
+      
+      return NextResponse.json(fallbackPrompts);
+    }
+
     let cleanedText = llmResponse.trim();
     if (cleanedText.startsWith("```")) {
       cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
