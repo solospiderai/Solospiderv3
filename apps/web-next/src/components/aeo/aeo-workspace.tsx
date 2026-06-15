@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import { buildCompetitorComparePrompts, buildDefaultAeoPrompts, seedAeoPrompts } from "@/lib/aeoPrompts";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isNonUserPage } from "@/lib/seo-utils";
 import { 
   Brain, FileText, Link2, Compass, TrendingUp, Sparkles, Play, Plus, 
   Loader2, CheckCircle2, AlertCircle, ShieldAlert, Cpu, BarChart3, 
@@ -585,7 +586,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       const modelCount = gap.models.size;
       const score = Math.min(100, competitorCount * 25 + modelCount * 20);
 
-      const crawled = crawledPagesQuery.data || [];
+      const crawled = (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url));
       const keywords = gap.prompt.toLowerCase().split(" ").filter(w => w.length > 4);
       const contentExists = crawled.some(p => {
         const titleLower = String(p.title || "").toLowerCase();

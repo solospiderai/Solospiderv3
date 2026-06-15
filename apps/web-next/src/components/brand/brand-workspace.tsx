@@ -24,7 +24,7 @@ export function BrandWorkspace() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <BrandProfileCard project={activeProject} />
         <VisualIdentityCard project={activeProject} />
-        <BrandVoiceCard />
+        <BrandVoiceCard project={activeProject} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
@@ -32,7 +32,7 @@ export function BrandWorkspace() {
           <BrandSummary project={activeProject} />
         </div>
         <div className="lg:col-span-6">
-          <CompetitorSnapshot />
+          <CompetitorSnapshot project={activeProject} />
         </div>
         <div className="lg:col-span-3">
           <BrandQuickActions />

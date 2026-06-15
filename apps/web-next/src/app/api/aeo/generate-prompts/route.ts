@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { readJson } from "@/server/api";
 import { createClient } from "@supabase/supabase-js";
+import { isNonUserPage } from "@/lib/seo-utils";
 
 export const runtime = "nodejs";
 
@@ -118,13 +119,17 @@ export async function POST(request: NextRequest) {
       .from("crawled_pages" as any)
       .select("url, title, meta_desc, h1")
       .eq("project_id", projectId)
-      .limit(15);
+      .limit(100);
+
+    const userFacingPages = (pages || [])
+      .filter((p: any) => !isNonUserPage(p.url))
+      .slice(0, 15);
 
     let webContent = "";
-    if (pages && pages.length > 0) {
-      webContent = pages.map(p => `* URL: ${p.url}\n  Title: ${p.title || ""}\n  H1: ${p.h1 || ""}\n  Description: ${p.meta_desc || ""}`).join("\n");
+    if (userFacingPages.length > 0) {
+      webContent = userFacingPages.map(p => `* URL: ${p.url}\n  Title: ${p.title || ""}\n  H1: ${p.h1 || ""}\n  Description: ${p.meta_desc || ""}`).join("\n");
     } else {
-      console.log(`[GeneratePromptsAPI] No crawled pages in database. Fetching homepage ${domain} dynamically...`);
+      console.log(`[GeneratePromptsAPI] No user-facing crawled pages in database. Fetching homepage ${domain} dynamically...`);
       try {
         let cleanUrl = domain.trim();
         if (!/^https?:\/\//i.test(cleanUrl)) {

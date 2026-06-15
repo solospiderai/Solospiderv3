@@ -8,6 +8,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 import { 
   LayoutDashboard, 
   Fingerprint, 
@@ -58,6 +59,37 @@ export function AppShell({ children }: { children: ReactNode }) {
     currentPlan, 
     projectLimit 
   } = useProjects();
+
+  const qc = useQueryClient();
+  const [autoGenRunning, setAutoGenRunning] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeProject?.id && !autoGenRunning) {
+      const isPlaceholder = !activeProject.brand_description || 
+        (activeProject.brand_description.includes("Market audience targeted:") && 
+         activeProject.brand_description.includes("Generated based on selection."));
+      if (isPlaceholder) {
+        setAutoGenRunning(activeProject.id);
+        fetch("/api/jobs/generate-brand-summary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: activeProject.id }),
+        })
+          .then(async (res) => {
+            if (res.ok) {
+              await qc.invalidateQueries({ queryKey: ["projects"] });
+              toast.success("✨ Brand profile details auto-refreshed successfully!");
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to auto-generate brand summary:", err);
+          })
+          .finally(() => {
+            setAutoGenRunning(null);
+          });
+      }
+    }
+  }, [activeProject?.id, activeProject?.brand_description, qc]);
 
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);

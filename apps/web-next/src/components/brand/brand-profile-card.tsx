@@ -18,27 +18,51 @@ const getDisplayUrl = (url?: string | null) => {
   return url.replace(/^https?:\/\//i, "").replace(/\/$/, "");
 };
 
+const parseMetadata = (brandDescription?: string | null) => {
+  if (!brandDescription) return null;
+  const parts = brandDescription.split("\n---\nMETADATA: ");
+  if (parts.length > 1) {
+    try {
+      return JSON.parse(parts[1]);
+    } catch (e) {
+      console.warn("Failed to parse metadata:", e);
+    }
+  }
+  return null;
+};
+
 const inferBrandDetails = (project: Project | null) => {
-  const domain = project?.domain || "";
-  const name = project?.name || project?.brand_name || "";
-  const desc = project?.brand_description || "";
+  const meta = parseMetadata(project?.brand_description);
+  
+  let industry = meta?.industry || "";
+  let category = meta?.category || "";
+  let targetAudience = meta?.targetAudience || "";
 
-  let industry = "Software & Technology";
-  let category = "SaaS Growth Platform";
-  let targetAudience = "Founders, Marketers, Growth Teams at SMBs";
+  if (!industry) {
+    const domain = project?.domain || "";
+    const name = project?.name || project?.brand_name || "";
+    const desc = project?.brand_description || "";
+    const domainLower = domain.toLowerCase();
+    const nameLower = name.toLowerCase();
+    const descLower = desc.toLowerCase();
 
-  const domainLower = domain.toLowerCase();
-  const nameLower = name.toLowerCase();
-  const descLower = desc.toLowerCase();
-
-  if (domainLower.includes("venue") || nameLower.includes("venue") || descLower.includes("venue") || descLower.includes("event") || descLower.includes("hospitality")) {
-    industry = "Event Management & Hospitality";
-    category = "Corporate Venue Discovery & Event Scheduling";
-    targetAudience = "Event Planners, Corporate Hosts, Venue Operators & Coordinators";
-  } else if (domainLower.includes("scale") || nameLower.includes("scale") || descLower.includes("agency") || descLower.includes("marketing")) {
-    industry = "Marketing & Advertising";
-    category = "Growth Marketing & SEO Automation Agency";
-    targetAudience = "B2B SaaS Founders, E-commerce Brands, CMOs & Growth Leaders";
+    if (domainLower.includes("venue") || nameLower.includes("venue") || descLower.includes("venue") || descLower.includes("event") || descLower.includes("hospitality")) {
+      industry = "Event Management & Hospitality";
+      category = "Corporate Venue Discovery & Event Scheduling";
+      targetAudience = "Event Planners, Corporate Hosts, Venue Operators & Coordinators";
+    } else if (domainLower.includes("fraganote") || nameLower.includes("fraganote") || descLower.includes("perfume") || descLower.includes("fragrance")) {
+      industry = "Fragrance & Cosmetics";
+      category = "Premium Perfumery & Luxury Fragrances";
+      targetAudience = "Perfume Enthusiasts, Premium Gift Shoppers, Men & Women seeking premium scents";
+    } else if (domainLower.includes("scale") || nameLower.includes("scale") || descLower.includes("agency") || descLower.includes("marketing")) {
+      industry = "Marketing & Advertising";
+      category = "Growth Marketing & SEO Automation Agency";
+      targetAudience = "B2B SaaS Founders, E-commerce Brands, CMOs & Growth Leaders";
+    } else {
+      industry = "Software & Technology";
+      category = "SaaS Growth Platform";
+      targetAudience = "Founders, Marketers, Growth Teams at SMBs";
+    }
   }
 
   return { industry, category, targetAudience };

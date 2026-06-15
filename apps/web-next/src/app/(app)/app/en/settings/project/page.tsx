@@ -71,10 +71,25 @@ export default function ProjectSettingsPage() {
         .map(c => c.trim().toLowerCase())
         .filter(Boolean);
 
-      const metadataBlock = `\n---\nMETADATA: ${JSON.stringify({
+      let existingMeta: any = {};
+      if (activeProject?.brand_description) {
+        const parts = activeProject.brand_description.split("\n---\nMETADATA: ");
+        if (parts.length > 1) {
+          try {
+            existingMeta = JSON.parse(parts[1]);
+          } catch (e) {
+            console.warn("Failed to parse metadata in settings page:", e);
+          }
+        }
+      }
+
+      const mergedMeta = {
+        ...existingMeta,
         location: location.trim(),
         competitors: parsedComps,
-      })}`;
+      };
+
+      const metadataBlock = `\n---\nMETADATA: ${JSON.stringify(mergedMeta)}`;
 
       const cleanNewDesc = description.trim();
       const updatedDesc = cleanNewDesc ? `${cleanNewDesc}${metadataBlock}` : metadataBlock;

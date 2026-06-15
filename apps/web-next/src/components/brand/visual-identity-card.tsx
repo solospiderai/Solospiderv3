@@ -18,6 +18,17 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
     setLogoAttempt(0);
   }, [project?.id]);
   
+  const rawDesc = project?.brand_description || "";
+  let meta: any = null;
+  const parts = rawDesc.split("\n---\nMETADATA: ");
+  if (parts.length > 1) {
+    try {
+      meta = JSON.parse(parts[1]);
+    } catch (e) {
+      console.warn("Failed to parse metadata in visual identity:", e);
+    }
+  }
+
   const cleanDomain = project?.domain ? project.domain.replace(/^(https?:\/\/)+/, '').replace(/^www\./, '').replace(/\/$/, '') : null;
   const faviconUrl = project?.favicon_url || (cleanDomain ? `https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128` : null);
 
@@ -25,6 +36,9 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
     const urls = [];
     if (project?.brand_logo_url) {
       urls.push(project.brand_logo_url);
+    }
+    if (meta?.logoUrl) {
+      urls.push(meta.logoUrl);
     }
     if (cleanDomain) {
       urls.push(`https://logo.clearbit.com/${cleanDomain}`);
@@ -82,6 +96,72 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
+
+  // Resolve dynamic colors, fonts, and styles based on metadata or brand fallbacks
+  const domainLower = (project?.domain || "").toLowerCase();
+  const nameLower = (project?.brand_name || project?.name || "").toLowerCase();
+  const descLower = rawDesc.toLowerCase();
+
+  let finalColors = [
+    { hex: "#6366F1", label: "#6366F1" },
+    { hex: "#4F46E5", label: "#4F46E5" },
+    { hex: "#EC4899", label: "#EC4899" },
+    { hex: "#10B981", label: "#10B981" },
+    { hex: "#0F172A", label: "#0F172A" },
+    { hex: "#F8FAFC", label: "#F8FAFC", border: true },
+  ];
+
+  if (meta?.colors && Array.isArray(meta.colors) && meta.colors.length >= 6) {
+    finalColors = [
+      { hex: meta.colors[0], label: meta.colors[0] },
+      { hex: meta.colors[1], label: meta.colors[1] },
+      { hex: meta.colors[2], label: meta.colors[2] },
+      { hex: meta.colors[3], label: meta.colors[3] },
+      { hex: meta.colors[4], label: meta.colors[4] },
+      { hex: meta.colors[5], label: meta.colors[5], border: true },
+    ];
+  } else if (domainLower.includes("fraganote") || nameLower.includes("fraganote") || descLower.includes("perfume") || descLower.includes("fragrance")) {
+    finalColors = [
+      { hex: "#D4AF37", label: "#D4AF37" },
+      { hex: "#1A0F0A", label: "#1A0F0A" },
+      { hex: "#7E57C2", label: "#7E57C2" },
+      { hex: "#C59B27", label: "#C59B27" },
+      { hex: "#2C1E18", label: "#2C1E18" },
+      { hex: "#FDFBF7", label: "#FDFBF7", border: true },
+    ];
+  } else if (domainLower.includes("venue") || nameLower.includes("venue") || descLower.includes("event") || descLower.includes("hospitality")) {
+    finalColors = [
+      { hex: "#FF6B6B", label: "#FF6B6B" },
+      { hex: "#E0A96D", label: "#E0A96D" },
+      { hex: "#1A2238", label: "#1A2238" },
+      { hex: "#2C5E3B", label: "#2C5E3B" },
+      { hex: "#343A40", label: "#343A40" },
+      { hex: "#F8F9FA", label: "#F8F9FA", border: true },
+    ];
+  }
+
+  let primaryFont = "Inter";
+  let secondaryFont = "Poppins";
+
+  if (meta?.fonts?.primary) {
+    primaryFont = meta.fonts.primary;
+    secondaryFont = meta.fonts.secondary || "Inter";
+  } else if (domainLower.includes("fraganote") || nameLower.includes("fraganote") || descLower.includes("perfume") || descLower.includes("fragrance")) {
+    primaryFont = "Playfair Display";
+    secondaryFont = "Montserrat";
+  } else if (domainLower.includes("venue") || nameLower.includes("venue") || descLower.includes("event") || descLower.includes("hospitality")) {
+    primaryFont = "Lora";
+    secondaryFont = "Open Sans";
+  }
+
+  let designStyles = ["Modern", "Clean", "Tech-forward", "Minimal", "AI-native"];
+  if (meta?.designStyles && Array.isArray(meta.designStyles) && meta.designStyles.length > 0) {
+    designStyles = meta.designStyles;
+  } else if (domainLower.includes("fraganote") || nameLower.includes("fraganote") || descLower.includes("perfume") || descLower.includes("fragrance")) {
+    designStyles = ["Elegant", "Luxurious", "Sensory", "Minimalist", "Classic"];
+  } else if (domainLower.includes("venue") || nameLower.includes("venue") || descLower.includes("event") || descLower.includes("hospitality")) {
+    designStyles = ["Sophisticated", "Warm", "Vibrant", "Professional", "Bespoke"];
+  }
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 h-full">
@@ -153,14 +233,7 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
       <div className="mb-6">
         <span className="text-xs font-semibold text-slate-500 block mb-3">Color Palette</span>
         <div className="flex gap-2">
-          {[
-            { hex: "#6366F1", label: "#6366F1" },
-            { hex: "#4F46E5", label: "#4F46E5" },
-            { hex: "#EC4899", label: "#EC4899" },
-            { hex: "#10B981", label: "#10B981" },
-            { hex: "#0F172A", label: "#0F172A" },
-            { hex: "#F8FAFC", label: "#F8FAFC", border: true },
-          ].map((color, i) => (
+          {finalColors.map((color, i) => (
             <div key={i} className="flex-1">
               <div 
                 className={`h-10 rounded-md mb-1.5 ${color.border ? 'border border-slate-200' : ''}`}
@@ -179,14 +252,14 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
             <div className="flex-1 flex items-center gap-2 p-2 px-2.5 border border-slate-200 rounded-lg min-w-0">
               <span className="font-serif text-lg font-bold shrink-0">Aa</span>
               <div className="flex flex-col min-w-0 overflow-hidden">
-                <span className="text-[10px] font-bold text-slate-900 leading-none truncate">Inter</span>
+                <span className="text-[10px] font-bold text-slate-900 leading-none truncate">{primaryFont}</span>
                 <span className="text-[8px] text-slate-500 truncate">(Primary)</span>
               </div>
             </div>
             <div className="flex-1 flex items-center gap-2 p-2 px-2.5 border border-slate-200 rounded-lg min-w-0">
               <span className="font-sans text-lg font-bold shrink-0">Aa</span>
               <div className="flex flex-col min-w-0 overflow-hidden">
-                <span className="text-[10px] font-bold text-slate-900 leading-none truncate">Poppins</span>
+                <span className="text-[10px] font-bold text-slate-900 leading-none truncate">{secondaryFont}</span>
                 <span className="text-[8px] text-slate-500 truncate">(Secondary)</span>
               </div>
             </div>
@@ -195,7 +268,7 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
         <div className="flex-1">
           <span className="text-xs font-semibold text-slate-500 block mb-3">Design Style</span>
           <div className="flex flex-wrap gap-2">
-            {["Modern", "Clean", "Tech-forward", "Minimal", "AI-native"].map((tag, i) => (
+            {designStyles.map((tag, i) => (
               <span key={i} className="px-2 py-1 bg-indigo-50 text-indigo-600 rounded text-[10px] font-semibold">
                 {tag}
               </span>

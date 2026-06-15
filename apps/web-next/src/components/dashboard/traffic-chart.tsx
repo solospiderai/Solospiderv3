@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isNonUserPage } from "@/lib/seo-utils";
 
 const data = [
   { name: 'May 12', organic: 22000, paid: 11000 },
@@ -37,7 +38,7 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
     },
   });
 
-  const hasData = (crawledPagesQuery.data || []).length > 0;
+  const hasData = (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url)).length > 0;
 
   const chartData = useMemo(() => {
     const dataPoints = [];

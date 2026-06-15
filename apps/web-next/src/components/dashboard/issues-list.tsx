@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { isNonUserPage } from "@/lib/seo-utils";
 
 interface CrawledPage {
   id: string;
@@ -48,7 +49,9 @@ export function IssuesList() {
     },
   });
 
-  const pages = crawledPagesQuery.data || [];
+  const pages = useMemo(() => {
+    return (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url));
+  }, [crawledPagesQuery.data]);
 
   const computedIssues = useMemo(() => {
     if (pages.length === 0) {
@@ -115,7 +118,23 @@ export function IssuesList() {
     }
 
     // 5. Missing H1
-    const missingH1 = pages.filter((p) => !p.h1 || p.h1.trim() === "").length;
+    let meta: any = null;
+    if (activeProject?.brand_description) {
+      const parts = activeProject.brand_description.split("\n---\nMETADATA: ");
+      if (parts.length > 1) {
+        try {
+          meta = JSON.parse(parts[1]);
+        } catch {}
+      }
+    }
+
+    const missingH1 = pages.filter((p) => {
+      const isHomepage = activeProject?.domain && p.url.replace(/\/$/, "") === activeProject.domain.replace(/\/$/, "");
+      const hasLogo = activeProject?.brand_logo_url || meta?.logoUrl;
+      if (isHomepage && hasLogo) return false;
+      return !p.h1 || p.h1.trim() === "";
+    }).length;
+
     if (missingH1 > 0) {
       list.push({
         id: "missing-h1",

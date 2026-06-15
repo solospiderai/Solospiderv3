@@ -47,6 +47,42 @@ function extractSitemapUrls(xml: string): string[] {
   return [...new Set(urls)];
 }
 
+function isNonUserPage(url: string): boolean {
+  const clean = url.split("?")[0].split("#")[0].toLowerCase();
+  
+  // 1. File extension check
+  const assetExtensions = [
+    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".ico",
+    ".css", ".js", ".json", ".xml", ".txt",
+    ".pdf", ".zip", ".rar", ".tar", ".gz",
+    ".mp4", ".mp3", ".wav", ".avi", ".mov",
+    ".woff", ".woff2", ".ttf", ".eot",
+    ".md"
+  ];
+  if (assetExtensions.some(ext => clean.endsWith(ext) || clean.includes(ext + "/"))) {
+    return true;
+  }
+
+  // 2. Specific path/keyword checks for non-user pages
+  const nonUserKeywords = [
+    "/wp-json",
+    "/feed",
+    "/rss",
+    "/atom",
+    "sitemap",
+    "xmlrpc.php",
+    "/wp-admin",
+    "/wp-includes",
+    "/wp-content"
+  ];
+  
+  if (nonUserKeywords.some(kw => clean.includes(kw))) {
+    return true;
+  }
+
+  return false;
+}
+
 function extractLinks(html: string, base: string, origin: string): string[] {
   const urls: string[] = [];
   const re = /href=["']([^"'#?]+)["']/gi;
@@ -54,7 +90,12 @@ function extractLinks(html: string, base: string, origin: string): string[] {
   while ((m = re.exec(html)) !== null) {
     try {
       const abs = new URL(m[1], base).href;
-      if (abs.startsWith(origin)) urls.push(abs.split("?")[0].replace(/\/$/, ""));
+      if (abs.startsWith(origin)) {
+        const clean = abs.split("?")[0].replace(/\/$/, "");
+        if (!isNonUserPage(clean)) {
+          urls.push(clean);
+        }
+      }
     } catch { /* skip */ }
   }
   return [...new Set(urls)];
@@ -81,7 +122,21 @@ function parseMeta(html: string): Omit<CrawledPageData, "url" | "status_code" | 
   const meta_desc = metaM ? decodeHtmlEntities(metaM[1].trim().slice(0, 500)) : null;
 
   const h1M = /<h1[^>]*>([\s\S]*?)<\/h1>/i.exec(html);
-  const h1  = h1M ? decodeHtmlEntities(h1M[1].replace(/<[^>]+>/g, "").trim().slice(0, 250)) : null;
+  let h1 = null;
+  if (h1M) {
+    let h1Text = h1M[1].replace(/<[^>]+>/g, " ").trim();
+    if (!h1Text) {
+      const imgAltM = /<img[^>]+alt=["']([^"']*)["']/i.exec(h1M[1]);
+      if (imgAltM) {
+        h1Text = imgAltM[1].trim() || "Logo";
+      } else if (h1M[1].includes("<img") || h1M[1].includes("<svg")) {
+        h1Text = "Logo / Brand Header";
+      } else {
+        h1Text = "Brand Header";
+      }
+    }
+    h1 = decodeHtmlEntities(h1Text.slice(0, 250));
+  }
 
   const text       = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   const word_count = text.trim().split(" ").filter(Boolean).length;
@@ -139,7 +194,7 @@ export async function discoverUrls(
               sitemapsToProcess.push(u);
             }
           } else {
-            if (!pageUrls.includes(uClean)) {
+            if (!isNonUserPage(uClean) && !pageUrls.includes(uClean)) {
               pageUrls.push(uClean);
               if (pageUrls.length >= maxPages) break;
             }
@@ -153,13 +208,42 @@ export async function discoverUrls(
   if (foundSitemap && pageUrls.length > 0) {
     pageUrls.forEach(u => queue.push({ url: u, source: "sitemap" }));
   } else {
-    // Fallback: crawl homepage
-    const page = await fetchPage(website);
-    if (page) {
-      const links = extractLinks(page.html, website, origin).slice(0, maxPages);
-      links.forEach(u => queue.push({ url: u, source: "crawl" }));
-      queue.unshift({ url: website.replace(/\/$/, ""), source: "crawl" });
+    // Fallback: BFS crawl starting from homepage
+    const startUrl = website.replace(/\/$/, "");
+    const discovered = new Set<string>([startUrl]);
+    const crawlQueue = [startUrl];
+    const visited = new Set<string>();
+    let fetchedCount = 0;
+    const maxDiscoveryFetches = 15;
+
+    while (crawlQueue.length > 0 && discovered.size < maxPages && fetchedCount < maxDiscoveryFetches) {
+      const currentUrl = crawlQueue.shift()!;
+      if (visited.has(currentUrl)) continue;
+      visited.add(currentUrl);
+
+      fetchedCount++;
+      const page = await fetchPage(currentUrl);
+      if (page && page.status < 400) {
+        const links = extractLinks(page.html, currentUrl, origin);
+        for (const link of links) {
+          const cleanLink = link.replace(/\/$/, "");
+          if (cleanLink.startsWith(origin) && !discovered.has(cleanLink)) {
+            discovered.add(cleanLink);
+
+            // Only enqueue for BFS link extraction if it's likely an HTML page
+            if (!isNonUserPage(cleanLink)) {
+              crawlQueue.push(cleanLink);
+            }
+
+            if (discovered.size >= maxPages) break;
+          }
+        }
+      }
     }
+
+    discovered.forEach(u => {
+      queue.push({ url: u, source: "crawl" });
+    });
   }
 
   // Deduplicate

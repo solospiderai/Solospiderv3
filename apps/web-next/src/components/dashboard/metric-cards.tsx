@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { HelpCircle } from "lucide-react";
+import { isNonUserPage } from "@/lib/seo-utils";
 
 interface CrawledPage {
   id: string;
@@ -182,7 +183,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
 
   // Filter crawled pages by the selected time range
   const filteredPages = useMemo(() => {
-    const pages = crawledPagesQuery.data || [];
+    const pages = (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url));
     if (!timeRange) return pages;
     
     const cutoff = new Date();
@@ -204,8 +205,8 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
   }, [crawledPagesQuery.data, timeRange]);
 
   // Fallback to overall pages for score computation to avoid sudden drop to 0 if there are no crawls in the active filter
-  const pagesForCalculation = filteredPages.length > 0 ? filteredPages : (crawledPagesQuery.data || []);
-  const scaleCount = filteredPages.length > 0 ? filteredPages.length : (crawledPagesQuery.data || []).length;
+  const pagesForCalculation = filteredPages.length > 0 ? filteredPages : (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url));
+  const scaleCount = pagesForCalculation.length;
 
   const { seoScore, subtitle, color } = useMemo(() => {
     const pages = pagesForCalculation;
@@ -226,7 +227,23 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     });
     const duplicateTitles = pages.filter((p: CrawledPage) => p.title && titleCounts[p.title.trim().toLowerCase()] > 1);
     const missingDescs = pages.filter((p: CrawledPage) => !p.meta_desc || p.meta_desc.trim() === "");
-    const missingH1s = pages.filter((p: CrawledPage) => !p.h1 || p.h1.trim() === "");
+
+    let meta: any = null;
+    if (activeProject?.brand_description) {
+      const parts = activeProject.brand_description.split("\n---\nMETADATA: ");
+      if (parts.length > 1) {
+        try {
+          meta = JSON.parse(parts[1]);
+        } catch {}
+      }
+    }
+
+    const missingH1s = pages.filter((p: CrawledPage) => {
+      const isHomepage = activeProject?.domain && p.url.replace(/\/$/, "") === activeProject.domain.replace(/\/$/, "");
+      const hasLogo = activeProject?.brand_logo_url || meta?.logoUrl;
+      if (isHomepage && hasLogo) return false;
+      return !p.h1 || p.h1.trim() === "";
+    });
 
     const brokenPct = brokenPages.length / total;
     const missingTitlePct = missingTitles.length / total;
