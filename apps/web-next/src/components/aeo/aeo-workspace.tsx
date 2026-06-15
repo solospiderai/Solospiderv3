@@ -7,13 +7,13 @@ import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
 import { buildCompetitorComparePrompts, buildDefaultAeoPrompts, seedAeoPrompts } from "@/lib/aeoPrompts";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { isNonUserPage } from "@/lib/seo-utils";
+import { isNonUserPage, copyToClipboard } from "@/lib/seo-utils";
 import { 
   Brain, FileText, Link2, Compass, TrendingUp, Sparkles, Play, Plus, 
   Loader2, CheckCircle2, AlertCircle, ShieldAlert, Cpu, BarChart3, 
   Layers, Database, Calendar, Clock, Smile, Frown, HelpCircle,
   Globe, ExternalLink, Search, Code2, ChevronDown, ChevronRight, Zap, RefreshCw,
-  Edit2, Trash2
+  Edit2, Trash2, Copy
 } from "lucide-react";
 
 type AeoView = "overview" | "prompt-generation" | "crawler" | "opportunities" | "citations" | "heatmap" | "fanouts" | "referrals";
@@ -228,6 +228,19 @@ function AeoTrendChart({
   );
 }
 
+function getSeededRandom(seedStr: string) {
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = seedStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  let t = Math.abs(hash) + 0x6D2B79F5;
+  return function() {
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
 export function AeoWorkspace({ view }: { view: AeoView }) {
   const qc = useQueryClient();
   const { activeProject } = useProjects();
@@ -238,6 +251,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
   const [crawlerFilterSchema, setCrawlerFilterSchema] = useState<"all" | "faq" | "howto" | "no-schema">("all");
   const [crawlerExpandedId, setCrawlerExpandedId] = useState<string | null>(null);
   const [crawlerMaxPages, setCrawlerMaxPages] = useState(50);
+  const [workspacePromptLimit, setWorkspacePromptLimit] = useState(25);
   const [crawling, setCrawling] = useState(false);
   const [openBriefId, setOpenBriefId] = useState<string | null>(null);
   const [activeGeoTab, setActiveGeoTab] = useState<Record<string, "authority" | "readability" | "structure">>({});
@@ -460,11 +474,12 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       const dateString = date.toISOString().slice(0, 10);
 
       for (const model of models) {
-        const baseSessions = Math.round(aeoScore * (0.8 + Math.random() * 0.4));
+        const rand = getSeededRandom(activeProject.id + "-" + i + "-" + model);
+        const baseSessions = Math.round(aeoScore * (0.8 + rand() * 0.4));
         if (baseSessions > 0) {
           const sessions = Math.max(5, baseSessions);
-          const conversions = Math.round(sessions * (0.05 + Math.random() * 0.1));
-          const path = paths[Math.floor(Math.random() * paths.length)];
+          const conversions = Math.round(sessions * (0.05 + rand() * 0.1));
+          const path = paths[Math.floor(rand() * paths.length)];
           generated.push({
             id: "mock-ref-" + i + "-" + model,
             source: model,
@@ -477,7 +492,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       }
     }
     return generated;
-  }, [referralsQuery.data, analysisQuery.data?.overall_score]);
+  }, [referralsQuery.data, analysisQuery.data?.overall_score, activeProject?.id]);
 
   const totalReferralSessions = useMemo(() => {
     return referralsData.reduce((sum, r) => sum + (r.sessions || 0), 0);
@@ -958,7 +973,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ projectId: activeProject.id }),
+        body: JSON.stringify({ projectId: activeProject.id, limit: workspacePromptLimit }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to generate prompts");
@@ -1041,7 +1056,6 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
     }
   };
 
-  // Tab Details & Active highlighting configuration
   const navTabs = [
     { id: "overview", label: "Overview", href: "/app/en/aeo/overview" },
     { id: "prompt-generation", label: "Prompt Lab", href: "/app/en/aeo/prompt-generation" },
@@ -1060,12 +1074,34 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       </div>
       <div className="space-y-1.5">
         <h3 className="text-base font-black text-slate-800">Awaiting AEO Scan Completion</h3>
-        <p className="text-xs text-slate-550 max-w-sm mx-auto leading-relaxed font-semibold">
+        <p className="text-xs text-slate-555 max-w-sm mx-auto leading-relaxed font-semibold">
           Please run and complete an active scan from the Overview tab first to populate this section with live analysis.
         </p>
       </div>
     </div>
   );
+
+  const showScanLoadingOrPlaceholder = (
+    isScanActive ? (
+      <div className="text-center py-16 bg-white border border-slate-150 rounded-2xl shadow-sm space-y-4">
+        <div className="h-14 w-14 rounded-2xl bg-violet-50 flex items-center justify-center mx-auto">
+          <Loader2 className="h-7 w-7 text-violet-600 animate-spin" />
+        </div>
+        <div className="space-y-1.5">
+          <h3 className="text-base font-black text-slate-800 animate-pulse">AI Engine Scan in Progress...</h3>
+          <p className="text-xs text-slate-550 max-w-sm mx-auto leading-relaxed font-semibold">
+            SoloSpider is scanning the conversational search engines in real-time. This can take 1–2 minutes.
+          </p>
+          {runQuery.data && (
+            <p className="text-[11px] text-violet-600 font-bold">
+              Progress: {runQuery.data.completed || 0} / {runQuery.data.total || 0} prompts scanned
+            </p>
+          )}
+        </div>
+      </div>
+    ) : awaitingScanPlaceholder
+  );
+
 
   const tabNavigation = (
     <div className="flex flex-wrap gap-1.5 bg-slate-100/60 p-1.5 rounded-2xl border border-slate-200/50 w-fit">
@@ -1105,7 +1141,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         <div className="text-right">
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Current Project Context</p>
           <p className="text-base font-black text-slate-800 mt-0.5">
-            {activeProject.brand_name || activeProject.name}
+            {activeProject?.brand_name || activeProject?.name}
           </p>
         </div>
       </div>
@@ -1114,49 +1150,73 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       {tabNavigation}
 
       {/* Metrics Dashboard Row */}
-      {runQuery.data?.status === "done" && (
+      {Boolean(activeProject) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 animate-in fade-in duration-300">
           {/* Prompts metric */}
           <Link href="/app/en/aeo/prompt-generation" className="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600 shrink-0">
               <FileText className="h-6 w-6" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Active Prompts</p>
-              <h3 className="text-2xl font-black text-slate-900 mt-0.5">{promptsQuery.data?.length || 0}</h3>
+              <h3 className="text-2xl font-black text-slate-900 mt-0.5">
+                {promptsQuery.isLoading || isScanActive || runQuery.isLoading ? (
+                  <span className="inline-block w-8 h-6 bg-slate-200 animate-pulse rounded-md" />
+                ) : (
+                  promptsQuery.data?.length || 0
+                )}
+              </h3>
             </div>
           </Link>
-
+ 
           {/* Citations metric */}
           <Link href="/app/en/aeo/citations" className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 shrink-0">
               <Link2 className="h-6 w-6" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Citations</p>
-              <h3 className="text-2xl font-black text-slate-900 mt-0.5">{citationsQuery.data?.length || 0}</h3>
+              <h3 className="text-2xl font-black text-slate-900 mt-0.5">
+                {citationsQuery.isLoading || isScanActive || runQuery.isLoading ? (
+                  <span className="inline-block w-8 h-6 bg-slate-200 animate-pulse rounded-md" />
+                ) : (
+                  citationsQuery.data?.length || 0
+                )}
+              </h3>
             </div>
           </Link>
-
+ 
           {/* Fanouts metric */}
           <Link href="/app/en/aeo/fanouts" className="rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-500/5 to-orange-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600 shrink-0">
               <Compass className="h-6 w-6" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Query Fanouts</p>
-              <h3 className="text-2xl font-black text-slate-900 mt-0.5">{fanoutsQuery.data?.length || 0}</h3>
+              <h3 className="text-2xl font-black text-slate-900 mt-0.5">
+                {fanoutsQuery.isLoading || isScanActive || runQuery.isLoading ? (
+                  <span className="inline-block w-8 h-6 bg-slate-200 animate-pulse rounded-md" />
+                ) : (
+                  fanoutsQuery.data?.length || 0
+                )}
+              </h3>
             </div>
           </Link>
-
+ 
           {/* Referrals metric */}
           <Link href="/app/en/aeo/referrals" className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-500/5 to-blue-500/5 p-5 flex items-center gap-4 shadow-sm hover:scale-[1.02] duration-300">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shrink-0">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-650 shrink-0">
               <TrendingUp className="h-6 w-6" />
             </div>
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-400">AI Referrals</p>
-              <h3 className="text-2xl font-black text-slate-900 mt-0.5">{totalReferralSessions}</h3>
+              <h3 className="text-2xl font-black text-slate-900 mt-0.5">
+                {referralsQuery.isLoading || analysisQuery.isLoading || isScanActive || runQuery.isLoading ? (
+                  <span className="inline-block w-12 h-6 bg-slate-200 animate-pulse rounded-md" />
+                ) : (
+                  totalReferralSessions
+                )}
+              </h3>
             </div>
           </Link>
         </div>
@@ -1192,6 +1252,18 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Count:</span>
+              <select
+                value={workspacePromptLimit}
+                onChange={(e) => setWorkspacePromptLimit(Number(e.target.value))}
+                className="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2 py-1 text-slate-700 focus:outline-none cursor-pointer"
+              >
+                {[10, 15, 20, 25, 30, 40, 50].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
             <button
               type="button"
               onClick={handleGenerateAIPrompts}
@@ -1509,7 +1581,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                 </span>
               </div>
               <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
-                {(resultsQuery.data || []).slice(0, 20).map((row, idx) => {
+                {(resultsQuery.data || []).filter((row: any) => row.brand_mentioned).slice(0, 20).map((row, idx) => {
                   const info = getModelInfo(row.model);
                   return (
                     <div
@@ -1724,7 +1796,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
               <Database className="h-4 w-4 text-indigo-600" /> Recent Prompt Scan Logs
             </h3>
             <div className="space-y-2">
-              {(resultsQuery.data || []).slice(0, 10).map((row) => {
+              {(resultsQuery.data || []).filter((row: any) => row.brand_mentioned).slice(0, 10).map((row) => {
                 const info = getModelInfo(row.model);
                 return (
                   <div key={row.id} className="rounded-xl border border-slate-100 bg-slate-50/50 p-4 text-xs font-semibold flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50 duration-200">
@@ -1851,8 +1923,21 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                             {row.topic || "general"}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 break-words max-w-xs text-slate-800 font-medium leading-relaxed">
-                          "{row.prompt}"
+                        <td className="px-4 py-3.5 break-words max-w-xs text-slate-800 font-medium leading-relaxed group">
+                          <div className="flex items-start justify-between gap-2">
+                            <span>"{row.prompt}"</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                copyToClipboard(row.prompt);
+                                toast.success("Prompt copied to clipboard!");
+                              }}
+                              className="p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors shrink-0"
+                              title="Copy Prompt"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </td>
                         <td className="px-4 py-3.5 text-right font-black text-slate-900">
                           {row.searchVolume.toLocaleString()}
@@ -2466,7 +2551,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       )}
 
       {view === "opportunities" && (
-        runQuery.data?.status !== "done" ? awaitingScanPlaceholder : (
+        runQuery.data?.status !== "done" ? showScanLoadingOrPlaceholder : (
           <div className="space-y-6 mt-2">
             {/* Header */}
             <div className="rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-2">
@@ -2674,7 +2759,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       )}
 
       {view === "citations" && (
-        runQuery.data?.status !== "done" ? awaitingScanPlaceholder : (
+        runQuery.data?.status !== "done" ? showScanLoadingOrPlaceholder : (
           <div className="rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-50 pb-2.5 flex items-center gap-1.5">
             <Link2 className="h-4 w-4 text-emerald-600" /> AEO Cited Links & References
@@ -2732,7 +2817,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       )}
 
       {view === "heatmap" && (
-        runQuery.data?.status !== "done" ? awaitingScanPlaceholder : (
+        runQuery.data?.status !== "done" ? showScanLoadingOrPlaceholder : (
           <div className="rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-slate-900 border-b border-slate-50 pb-2.5 flex items-center gap-1.5">
             <Layers className="h-4 w-4 text-purple-600" /> AI Visibility Grid (Heatmap)
@@ -2785,7 +2870,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       )}
 
       {view === "fanouts" && (
-        runQuery.data?.status !== "done" ? awaitingScanPlaceholder : (
+        runQuery.data?.status !== "done" ? showScanLoadingOrPlaceholder : (
           <div className="rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-5">
           <div className="border-b border-slate-50 pb-3 flex items-center justify-between">
             <div>
@@ -2888,7 +2973,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       )}
 
       {view === "referrals" && (
-        runQuery.data?.status !== "done" ? awaitingScanPlaceholder : (
+        runQuery.data?.status !== "done" ? showScanLoadingOrPlaceholder : (
           <div className="space-y-6 mt-2">
             {/* AI Referrals Table */}
             <div className="rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-4">
@@ -2971,7 +3056,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                       <span>REGEX PARAMETER</span>
                       <button 
                         onClick={() => {
-                          navigator.clipboard.writeText("chatgpt\\.com|chat\\.openai\.com|perplexity\.ai|claude\.ai|gemini\.google\.com|copilot\.microsoft\.com|deepseek\.com|you\.com|meta\.ai|poe\.com");
+                          copyToClipboard("chatgpt\\.com|chat\\.openai\\.com|perplexity\\.ai|claude\\.ai|gemini\\.google\\.com|copilot\\.microsoft\\.com|deepseek\\.com|you\\.com|meta\\.ai|poe\\.com");
                           toast.success("AI Regex copied to clipboard!");
                         }}
                         className="text-violet-600 hover:text-violet-700"

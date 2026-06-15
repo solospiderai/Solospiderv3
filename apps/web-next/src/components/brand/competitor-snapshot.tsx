@@ -106,24 +106,26 @@ export function CompetitorSnapshot({ project }: { project: Project | null }) {
         <table className="w-full text-left text-xs">
           <thead>
             <tr className="text-slate-400 font-semibold border-b border-slate-100">
-              <th className="pt-2 pb-3 font-semibold">Competitor</th>
-              <th className="pt-2 pb-3 font-semibold">Positioning</th>
-              <th className="pt-2 pb-3 font-semibold">Strengths</th>
-              <th className="pt-2 pb-3 font-semibold">Share of Voice</th>
+              <th className="pt-2 pb-3 pr-4 font-semibold">Competitor</th>
+              <th className="pt-2 pb-3 pr-4 font-semibold">Positioning</th>
+              <th className="pt-2 pb-3 pr-4 font-semibold">Strengths</th>
+              <th className="pt-2 pb-3 pr-4 font-semibold">Share of Voice</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-50">
             {compList.map((comp, i) => (
               <tr key={i}>
-                <td className="py-3 flex items-center gap-2 font-bold text-slate-800">
-                  <div className="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center text-[10px] text-slate-500">
-                    {comp.logo}
+                <td className="py-3 pr-4 font-bold text-slate-800">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center text-[10px] text-slate-500">
+                      {comp.logo}
+                    </div>
+                    {comp.name}
                   </div>
-                  {comp.name}
                 </td>
-                <td className="py-3 text-slate-600 font-medium">{comp.positioning}</td>
-                <td className="py-3 text-slate-600 font-medium">{comp.strengths}</td>
-                <td className="py-3">
+                <td className="py-3 pr-4 text-slate-600 font-medium">{comp.positioning}</td>
+                <td className="py-3 pr-4 text-slate-600 font-medium">{comp.strengths}</td>
+                <td className="py-3 pr-4">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-700 w-6">{comp.share}%</span>
                     <div className="w-16 h-1.5 bg-indigo-50 rounded-full">

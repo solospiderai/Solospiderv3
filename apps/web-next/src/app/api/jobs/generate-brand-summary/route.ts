@@ -190,6 +190,15 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
     if (srcLower.includes("banner") || srcLower.includes("hero") || srcLower.includes("slide")) score -= 10;
     if (srcLower.endsWith(".svg")) score += 3;
 
+    // Social media / helper / badge penalties
+    const socialExcluded = [
+      "facebook", "instagram", "twitter", "linkedin", "youtube", "pinterest", "tiktok", "threads",
+      "stripe", "trustpilot", "visa", "paypal", "app-store", "google-play"
+    ];
+    if (socialExcluded.some(platform => srcLower.includes(platform) || altLower.includes(platform) || idLower.includes(platform) || classLower.includes(platform))) {
+      score -= 80;
+    }
+
     // Position bonus (first 12,000 characters)
     if (match.index < 12000) score += 5;
 
@@ -218,6 +227,34 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
   }
 
   return null;
+}
+
+function extractColorsFromHtml(html: string): string[] {
+  const hexRegex = /#([A-Fa-f0-9]{6})\b/gi;
+  const colorCounts: Record<string, number> = {};
+  let match;
+  while ((match = hexRegex.exec(html)) !== null) {
+    const hex = match[0].toLowerCase();
+    
+    // Filter out whites, blacks, and neutral background grays
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    
+    // Check if grayscale/neutral: differences between R, G, B are all very small (e.g. within 15)
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    if (max - min < 15) {
+      continue;
+    }
+    
+    colorCounts[hex] = (colorCounts[hex] || 0) + 1;
+  }
+  
+  return Object.entries(colorCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => entry[0])
+    .slice(0, 10);
 }
 
 export async function POST(request: NextRequest) {
@@ -282,6 +319,10 @@ export async function POST(request: NextRequest) {
     }
 
     const logoUrl = homepageHtml ? findLogoUrl(homepageHtml, cleanUrl, project.brand_name || project.name, project.domain) : null;
+    const extractedColors = homepageHtml ? extractColorsFromHtml(homepageHtml) : [];
+    const colorGroundingText = extractedColors.length > 0
+      ? `\nExtracted Style Colors: Here are some of the main hex colors found on their homepage to guide your color choice: ${extractedColors.join(", ")}.\n`
+      : "";
 
     let crawledContext = "";
     if (homepageText) {
@@ -302,6 +343,7 @@ Company Details:
 - Name: "${project.brand_name || project.name}"
 - Website: "${project.domain}"
 - Tagline: "${project.brand_tagline || ""}"
+${colorGroundingText}
 
 Crawled Website Context:
 ${crawledContext}

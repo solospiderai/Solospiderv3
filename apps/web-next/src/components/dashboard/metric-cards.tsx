@@ -31,8 +31,23 @@ const impressionsData = [
 const backlinksData = [
   { value: 5 }, { value: 7 }, { value: 6 }, { value: 8 }, { value: 9 }, { value: 10 }, { value: 12 },
 ];
-
-export function CircularProgress({ value, label, subtitle, color, isPositive, percentage }: { value: number, label: string, subtitle: string, color: string, isPositive?: boolean, percentage?: string }) {
+export function CircularProgress({ 
+  value, 
+  label, 
+  subtitle, 
+  color, 
+  isPositive, 
+  percentage,
+  tooltipContent
+}: { 
+  value: number, 
+  label: string, 
+  subtitle: string, 
+  color: string, 
+  isPositive?: boolean, 
+  percentage?: string,
+  tooltipContent?: React.ReactNode
+}) {
   const radius = 35;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (value / 100) * circumference;
@@ -44,9 +59,9 @@ export function CircularProgress({ value, label, subtitle, color, isPositive, pe
         <div className="relative">
           <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-650 transition-colors" />
           <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-900 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
-            {label === "AI Visibility Score" 
+            {tooltipContent || (label === "AI Visibility Score" 
               ? "Your brand's recommendation share across AI search engines. Run an active scan in AEO Workspace to update."
-              : "Your overall technical SEO health based on page crawl results."}
+              : "Your overall technical SEO health based on page crawl results.")}
           </div>
         </div>
       </div>
@@ -97,12 +112,38 @@ export function CircularProgress({ value, label, subtitle, color, isPositive, pe
   );
 }
 
-export function TrendCard({ label, value, trend, trendValue, color, data, gradientId }: { label: string, value: string, trend: 'up' | 'down', trendValue: string, color: string, data: any[], gradientId: string }) {
+export function TrendCard({ 
+  label, 
+  value, 
+  trend, 
+  trendValue, 
+  color, 
+  data, 
+  gradientId,
+  tooltipContent
+}: { 
+  label: string, 
+  value: string, 
+  trend: 'up' | 'down', 
+  trendValue: string, 
+  color: string, 
+  data: any[], 
+  gradientId: string,
+  tooltipContent?: React.ReactNode
+}) {
   const isPositive = trend === 'up';
   return (
     <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] hover:scale-[1.02] duration-300 transition-all">
+      <div className="group relative flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+        <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h3>
+        <div className="relative">
+          <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-650 transition-colors" />
+          <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-900 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
+            {tooltipContent}
+          </div>
+        </div>
+      </div>
       <div>
-        <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest mb-2.5">{label}</h3>
         <div className="flex items-center gap-3">
           <span className="text-3xl font-black text-slate-900 tracking-tight">{value}</span>
           <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5 ${
@@ -139,7 +180,6 @@ export function TrendCard({ label, value, trend, trendValue, color, data, gradie
     </div>
   );
 }
-
 interface MetricCardsProps {
   timeRange: string;
 }
@@ -208,11 +248,21 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
   const pagesForCalculation = filteredPages.length > 0 ? filteredPages : (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url));
   const scaleCount = pagesForCalculation.length;
 
-  const { seoScore, subtitle, color } = useMemo(() => {
+  const { seoScore, subtitle, color, brokenPagesCount, missingTitlesCount, duplicateTitlesCount, missingDescsCount, missingH1sCount, totalCalculatedCount } = useMemo(() => {
     const pages = pagesForCalculation;
     const total = pages.length;
     if (total === 0) {
-      return { seoScore: 0, subtitle: "No Crawls", color: "#94a3b8" };
+      return { 
+        seoScore: 0, 
+        subtitle: "No Crawls", 
+        color: "#94a3b8",
+        brokenPagesCount: 0,
+        missingTitlesCount: 0,
+        duplicateTitlesCount: 0,
+        missingDescsCount: 0,
+        missingH1sCount: 0,
+        totalCalculatedCount: 0
+      };
     }
 
     const brokenPages = pages.filter((p: CrawledPage) => p.status_code && p.status_code !== 200);
@@ -262,12 +312,26 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     const subtitle = score >= 80 ? "Great!" : score >= 60 ? "Good" : "Needs Work";
     const color = score >= 80 ? "#10b981" : score >= 60 ? "#3b82f6" : "#ef4444";
 
-    return { seoScore: score, subtitle, color };
-  }, [pagesForCalculation]);
+    return { 
+      seoScore: score, 
+      subtitle, 
+      color,
+      brokenPagesCount: brokenPages.length,
+      missingTitlesCount: missingTitles.length,
+      duplicateTitlesCount: duplicateTitles.length,
+      missingDescsCount: missingDescs.length,
+      missingH1sCount: missingH1s.length,
+      totalCalculatedCount: total
+    };
+  }, [pagesForCalculation, activeProject?.brand_description, activeProject?.domain, activeProject?.brand_logo_url]);
+
+  const totalPageCount = useMemo(() => {
+    return (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url)).length;
+  }, [crawledPagesQuery.data]);
 
   const estimated = useMemo(() => {
-    return estimateDomainMetrics(activeProject?.domain || "", scaleCount);
-  }, [activeProject?.domain, scaleCount]);
+    return estimateDomainMetrics(activeProject?.domain || "", totalPageCount);
+  }, [activeProject?.domain, totalPageCount]);
 
   const multiplier = useMemo(() => {
     if (timeRange === "today") return 0.033;
@@ -306,10 +370,28 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
   const sparklineBacklinks = useMemo(() => {
     return estimated.sparklineBacklinks.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
   }, [estimated.sparklineBacklinks, multiplier]);
-
   const aeoScore = aeoAnalysisQuery.data?.overall_score ?? 0;
   const aeoSubtitle = aeoScore >= 80 ? "Optimized" : aeoScore >= 50 ? "Moderate" : aeoScore > 0 ? "Poor" : "No Data";
   const aeoColor = aeoScore >= 80 ? "#f97316" : aeoScore >= 50 ? "#3b82f6" : aeoScore > 0 ? "#ef4444" : "#94a3b8";
+
+  const seoTooltipContent = useMemo(() => {
+    if (totalPageCount === 0) {
+      return "Your overall technical SEO health based on page crawl results. No pages crawled yet.";
+    }
+    return (
+      <div className="space-y-1 text-left">
+        <p className="font-bold border-b border-slate-700 pb-1 mb-1">Score breakdown:</p>
+        <p>• Broken Pages: {brokenPagesCount} (-40 max)</p>
+        <p>• Missing Titles: {missingTitlesCount} (-20 max)</p>
+        <p>• Duplicate Titles: {duplicateTitlesCount} (-15 max)</p>
+        <p>• Missing Meta Descs: {missingDescsCount} (-15 max)</p>
+        <p>• Missing H1 Tags: {missingH1sCount} (-10 max)</p>
+        <p className="text-[9px] text-slate-400 mt-1.5 italic border-t border-slate-800 pt-1 font-semibold">
+          Calculated across {totalCalculatedCount} crawled pages.
+        </p>
+      </div>
+    );
+  }, [brokenPagesCount, missingTitlesCount, duplicateTitlesCount, missingDescsCount, missingH1sCount, totalCalculatedCount, totalPageCount]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -321,6 +403,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           color={color} 
           percentage={scaleCount > 0 ? "8" : undefined} 
           isPositive={true} 
+          tooltipContent={seoTooltipContent}
         />
       </div>
       <div className="md:col-span-1">
@@ -332,6 +415,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           color="#10b981" 
           data={sparklineTraffic}
           gradientId="trafficGradient"
+          tooltipContent="Estimated monthly organic search visits to your domain. This scales automatically as more pages are crawled."
         />
       </div>
       <div className="md:col-span-1">
@@ -343,6 +427,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           color="#8b5cf6" 
           data={sparklineImpressions}
           gradientId="impressionsGradient"
+          tooltipContent="Estimated monthly views of your site's links in search engine result pages (SERPs)."
         />
       </div>
       <div className="md:col-span-1">
@@ -354,6 +439,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           color="#3b82f6" 
           data={sparklineBacklinks}
           gradientId="backlinksGradient"
+          tooltipContent="Estimated volume of incoming links to your domain from external reference sites."
         />
       </div>
       <div className="md:col-span-1">
@@ -364,6 +450,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           color={aeoColor} 
           percentage={aeoScore > 0 ? "14" : undefined} 
           isPositive={true} 
+          tooltipContent="Percentage of conversational scans where your brand is recommended or cited as an authority."
         />
       </div>
     </div>

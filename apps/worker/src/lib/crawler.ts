@@ -220,7 +220,7 @@ export async function discoverUrls(
     const crawlQueue = [startUrl];
     const visited = new Set<string>();
     let fetchedCount = 0;
-    const maxDiscoveryFetches = 15;
+    const maxDiscoveryFetches = Math.max(15, maxPages * 2);
 
     while (crawlQueue.length > 0 && discovered.size < maxPages && fetchedCount < maxDiscoveryFetches) {
       const currentUrl = crawlQueue.shift()!;

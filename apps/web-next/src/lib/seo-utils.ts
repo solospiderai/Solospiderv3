@@ -240,12 +240,15 @@ export function getTrafficChartData(
   const paidRatio = 0.05 + ((hash % 20) / 100);
   const trendDir = (hash % 2 === 0) ? 1 : -1;
 
+  // Daily base traffic is monthly traffic divided by 30
+  const dailyBaseTraffic = traffic / 30;
+
   if (timeRange === "today") {
     const hours = [8, 10, 12, 14, 16, 18, 20];
     for (let i = 0; i < hours.length; i++) {
       const h = hours[i];
-      // Hourly traffic ranges around traffic/30
-      const hourlyTraffic = Math.round((traffic / 30) * (0.8 + Math.sin(i * 1.2) * 0.25));
+      // Hourly traffic ranges around daily / 6
+      const hourlyTraffic = Math.round((dailyBaseTraffic / 6) * (0.8 + Math.sin(i * 1.2) * 0.25));
       const hourlyPaid = Math.round(hourlyTraffic * paidRatio);
       dataPoints.push({
         name: `${h}:00`,
@@ -260,7 +263,7 @@ export function getTrafficChartData(
       d.setDate(now.getDate() - i);
       const name = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
       const change = (Math.sin(hash + i) * 0.12) - (trendDir * i * 0.006);
-      const organic = Math.round(traffic * (1 + change));
+      const organic = Math.round(dailyBaseTraffic * (1 + change));
       const paid = Math.round(organic * paidRatio);
       dataPoints.push({
         name,
@@ -275,7 +278,7 @@ export function getTrafficChartData(
       d.setDate(now.getDate() - i);
       const name = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
       const change = (Math.sin(hash + i / 2) * 0.18) - (trendDir * i * 0.003);
-      const organic = Math.round(traffic * (1 + change));
+      const organic = Math.round(dailyBaseTraffic * (1 + change));
       const paid = Math.round(organic * paidRatio);
       dataPoints.push({
         name,
@@ -290,7 +293,7 @@ export function getTrafficChartData(
       d.setDate(now.getDate() - i);
       const name = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
       const change = (Math.sin(hash + i * 2) * 0.08) - (trendDir * i * 0.012);
-      const organic = Math.round(traffic * (1 + change));
+      const organic = Math.round(dailyBaseTraffic * (1 + change));
       const paid = Math.round(organic * paidRatio);
       dataPoints.push({
         name,
@@ -301,4 +304,31 @@ export function getTrafficChartData(
   }
 
   return dataPoints;
+}
+
+/**
+ * Copies a given text string to the clipboard with a robust fallback for insecure/development domains
+ */
+export function copyToClipboard(text: string): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text);
+      return true;
+    } else {
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.setAttribute("readonly", "");
+      el.style.position = "absolute";
+      el.style.left = "-9999px";
+      document.body.appendChild(el);
+      el.select();
+      const success = document.execCommand("copy");
+      document.body.removeChild(el);
+      return success;
+    }
+  } catch (err) {
+    console.error("Clipboard copy fallback failed: ", err);
+    return false;
+  }
 }

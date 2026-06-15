@@ -9,7 +9,12 @@ const ACTIVE_PROJECT_KEY = "solospider.next.activeProjectId";
 
 export function useProjects() {
   const qc = useQueryClient();
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
+  const [activeProjectId, setActiveProjectId] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return window.localStorage.getItem(ACTIVE_PROJECT_KEY);
+    }
+    return null;
+  });
 
   const projectsQuery = useQuery({
     queryKey: ["projects"],
@@ -34,11 +39,6 @@ export function useProjects() {
 
   const projects = (projectsQuery.data || []) as Project[];
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(ACTIVE_PROJECT_KEY);
-    if (stored) setActiveProjectId(stored);
-  }, []);
 
   useEffect(() => {
     if (projects.length === 0) return;

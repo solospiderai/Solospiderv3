@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 
 const GeneratePromptsSchema = z.object({
   projectId: z.string().uuid(),
+  limit: z.number().optional().default(25),
 });
 
 function getSupabaseAdmin() {
@@ -73,10 +74,10 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = GeneratePromptsSchema.safeParse(await readJson(request));
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid projectId parameter" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
     }
 
-    const { projectId } = parsed.data;
+    const { projectId, limit = 25 } = parsed.data;
     const supabase = getSupabaseAdmin();
 
     // 1. Fetch project details
@@ -127,7 +128,7 @@ export async function POST(request: NextRequest) {
 
     let webContent = "";
     if (userFacingPages.length > 0) {
-      webContent = userFacingPages.map(p => `* URL: ${p.url}\n  Title: ${p.title || ""}\n  H1: ${p.h1 || ""}\n  Description: ${p.meta_desc || ""}`).join("\n");
+      webContent = userFacingPages.map(p => `* URL: ${p.url}\n  Title: "${p.title || ""}"\n  H1: "${p.h1 || ""}"\n  Description: "${p.meta_desc || ""}"`).join("\n");
     } else {
       console.log(`[GeneratePromptsAPI] No user-facing crawled pages in database. Fetching homepage ${domain} dynamically...`);
       try {
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     // 3. Build Prompt
     const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.
-Your task is to analyze the following business details, crawled homepage content, and target market context to generate a comprehensive list of exactly 25 highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
+Your task is to analyze the following business details, crawled homepage content, and target market context to generate a comprehensive list of exactly ${limit} highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
 
 Business Information (For niche context only):
 - Brand Name: "${brandName}"
@@ -174,7 +175,7 @@ Crawled Website Content:
 ${webContent}
 
 Guidelines for generating prompts:
-1. Generate exactly 25 search prompts. Do not generate less or more.
+1. Generate exactly ${limit} search prompts. Do not generate less or more.
 2. Group the prompts logically under 6-8 key unbranded search-phrase keywords/topics relevant to the brand's industry (e.g. 'best budget friendly perfumes', 'long lasting fragrance for women', 'perfume vs eau de toilette', 'perfume sampler sets', 'perfume gift ideas for men'). 
 3. CRITICAL: ALL GENERATED PROMPTS MUST BE COMPLETELY UNBRANDED. Do NOT include our brand name "${brandName}", our domain "${domain}", or the names of the competitors (like ${competitorsFromMeta.join(", ")}) in any of the prompts. They must be organic category/industry queries that real users would search (e.g. "perfumes under $50 that smell luxurious", "how do I choose a signature scent", "What are some highly recommended fragrances known for lasting all day?", "Compare perfume and EDT for longevity").
 4. The queries must read naturally like queries typed or spoken by real users in "${location}" (e.g. including local search terms, pricing in local currency like INR if location is India, or targeting localized intent).
