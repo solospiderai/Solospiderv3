@@ -461,51 +461,77 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
     const rawData = referralsQuery.data || [];
     if (rawData.length > 0) return rawData;
 
+    const scanResults = resultsQuery.data || [];
     const aeoScore = analysisQuery.data?.overall_score || 0;
-    if (aeoScore <= 0) return [];
+    if (aeoScore <= 0 && scanResults.length === 0) return [];
 
-    // Calculate baseline estimated organic traffic of this domain to scale AI referrals realistically
-    const est = estimateDomainMetrics(activeProject?.domain || "", 50);
-    const domainTraffic = est.organicTraffic || 500;
+    // Group scan results by model and day
+    const mentionsByModelDay = new Map<string, { model: string; date: string; count: number }>();
+    
+    for (const res of scanResults) {
+      if (!res.brand_mentioned) continue;
+      const dateStr = String(res.scanned_at || "").slice(0, 10) || new Date().toISOString().slice(0, 10);
+      const key = `${res.model}__${dateStr}`;
+      
+      const cur = mentionsByModelDay.get(key) || { model: res.model, date: dateStr, count: 0 };
+      cur.count += 1;
+      mentionsByModelDay.set(key, cur);
+    }
 
-    const models = ["chatgpt", "gemini", "perplexity", "claude"];
     const paths = ["/", "/features", "/pricing", "/about"];
     const generated = [];
+    let idx = 0;
 
-    for (let i = 0; i < 5; i++) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const dateString = date.toISOString().slice(0, 10);
-
-      for (const model of models) {
-        const rand = getSeededRandom(activeProject.id + "-" + i + "-" + model);
+    // If we have actual scan result mentions, generate traffic directly based on AEO visibility frequency
+    if (mentionsByModelDay.size > 0) {
+      for (const [_, item] of mentionsByModelDay.entries()) {
+        const rand = getSeededRandom(activeProject.id + "-" + item.date + "-" + item.model);
         
-        // AI referrals generally represent 1% to 10% of standard organic search traffic depending on visibility score
-        const aiShare = 0.01 + (aeoScore / 100) * 0.09; 
-        const dailyBrandAeoTraffic = (domainTraffic * aiShare) / 30;
+        // Each brand mention in AI drives a simulated 15-35 visitor clicks (sessions)
+        const sessionsPerMention = Math.round(15 + rand() * 20); 
+        const sessions = item.count * sessionsPerMention;
+        const conversions = Math.round(sessions * (0.05 + rand() * 0.1));
+        const path = paths[Math.floor(rand() * paths.length)];
 
-        const baseSessions = Math.max(
-          Math.round(aeoScore * (0.8 + rand() * 0.4)),
-          Math.round(dailyBrandAeoTraffic * (0.8 + rand() * 0.4))
-        );
+        generated.push({
+          id: "sim-ref-" + idx++,
+          source: item.model,
+          landing_path: path,
+          sessions,
+          conversions,
+          event_date: item.date,
+        });
+      }
+    } else if (aeoScore > 0) {
+      // Fallback in case we have a score but no active query detail rows loaded yet
+      const models = ["chatgpt", "gemini", "perplexity", "claude"];
+      for (let i = 0; i < 5; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateString = date.toISOString().slice(0, 10);
 
-        if (baseSessions > 0) {
-          const sessions = Math.max(5, baseSessions);
-          const conversions = Math.round(sessions * (0.05 + rand() * 0.1));
-          const path = paths[Math.floor(rand() * paths.length)];
-          generated.push({
-            id: "mock-ref-" + i + "-" + model,
-            source: model,
-            landing_path: path,
-            sessions,
-            conversions,
-            event_date: dateString,
-          });
+        for (const model of models) {
+          const rand = getSeededRandom(activeProject.id + "-" + i + "-" + model);
+          const baseSessions = Math.round(aeoScore * (0.8 + rand() * 0.4));
+          if (baseSessions > 0) {
+            const sessions = Math.max(5, baseSessions);
+            const conversions = Math.round(sessions * (0.05 + rand() * 0.1));
+            const path = paths[Math.floor(rand() * paths.length)];
+            generated.push({
+              id: "mock-ref-" + i + "-" + model,
+              source: model,
+              landing_path: path,
+              sessions,
+              conversions,
+              event_date: dateString,
+            });
+          }
         }
       }
     }
+
     return generated;
-  }, [referralsQuery.data, analysisQuery.data?.overall_score, activeProject?.id, activeProject?.domain]);
+  }, [referralsQuery.data, resultsQuery.data, analysisQuery.data?.overall_score, activeProject?.id]);
 
   const totalReferralSessions = useMemo(() => {
     return referralsData.reduce((sum, r) => sum + (r.sessions || 0), 0);
