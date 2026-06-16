@@ -58,10 +58,20 @@ export function getRedisConnection() {
 }
 
 export function getQueues() {
+  const env = getServerEnv();
+  const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
+
+  if (globalForQueues.solospiderQueues) {
+    const existingPrefix = globalForQueues.solospiderQueues.crawlQueue.opts.prefix;
+    if (existingPrefix !== prefix) {
+      console.log(`[Queues] Queue prefix mismatch detected (expected: ${prefix}, existing: ${existingPrefix}). Recreating queues...`);
+      Object.values(globalForQueues.solospiderQueues).forEach(q => q.close().catch(() => {}));
+      globalForQueues.solospiderQueues = undefined;
+    }
+  }
+
   if (!globalForQueues.solospiderQueues) {
     const connection = getRedisConnection();
-    const env = getServerEnv();
-    const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
     globalForQueues.solospiderQueues = {
       crawlQueue: new Queue<CrawlJobData>("crawl", { connection, prefix, defaultJobOptions }),
       promptScanQueue: new Queue<PromptScanJobData>("prompt-scan", {

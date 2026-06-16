@@ -16,7 +16,7 @@ export interface CrawledPageData {
 }
 
 const CRAWL_UA = "SoloSpider-Crawler/1.0 (+https://solospider.ai/bot)";
-const TIMEOUT  = 8_000; // ms
+const TIMEOUT  = 4_000; // ms
 
 async function fetchPage(url: string): Promise<{ html: string; status: number } | null> {
   const controller = new AbortController();

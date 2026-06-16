@@ -34,6 +34,7 @@ async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-
           "Content-Type": "application/json",
           "HTTP-Referer": "https://solospider.ai",
           "X-Title": "SoloSpider",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         },
         body: JSON.stringify({
           model: model,

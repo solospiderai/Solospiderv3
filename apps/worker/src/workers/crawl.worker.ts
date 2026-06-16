@@ -5,7 +5,7 @@ import { discoverUrls, crawlPage, type CrawledPageData } from "../lib/crawler.js
 import { generateAndSaveAiPrompts } from "../lib/prompt-generator.js";
 import { CrawlJobData, promptScanQueue } from "../queues.js";
 
-const BATCH_SIZE = 5;
+const BATCH_SIZE = 10;
 
 async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   const { project_id, website, max_pages = 50, run_id } = job.data;
@@ -18,10 +18,11 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
       .from("crawl_runs")
       .insert({ project_id, status: "running" })
       .select("id").single();
-    if (error) throw error;
+    if (error) throw new Error(`Supabase insert failed: ${error.message}`);
     runId = data.id as string;
   } else {
-    await supabase.from("crawl_runs").update({ status: "running" }).eq("id", runId);
+    const { error } = await supabase.from("crawl_runs").update({ status: "running" }).eq("id", runId);
+    if (error) throw new Error(`Supabase update failed: ${error.message}`);
   }
 
   // Clear any existing crawled pages from previous runs to prevent contamination
@@ -68,7 +69,8 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     console.error("[CrawlWorker] Failed to update sitemap metadata:", err);
   }
 
-  await supabase.from("crawl_runs").update({ pages_found: urlQueue.length }).eq("id", runId);
+  const { error: pagesFoundErr } = await supabase.from("crawl_runs").update({ pages_found: urlQueue.length }).eq("id", runId);
+  if (pagesFoundErr) throw new Error(`Supabase update pages_found failed: ${pagesFoundErr.message}`);
   await job.updateProgress(15);
 
   // ── 3. Crawl in batches ─────────────────────────────────────────────────────
@@ -99,9 +101,10 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     if (error) console.warn(`[CrawlWorker] Upsert error: ${error.message}`);
 
     pagesCrawled += batch.length;
-    await supabase.from("crawl_runs")
+    const { error: pagesCrawledErr } = await supabase.from("crawl_runs")
       .update({ pages_crawled: pagesCrawled })
       .eq("id", runId);
+    if (pagesCrawledErr) throw new Error(`Supabase update pages_crawled failed: ${pagesCrawledErr.message}`);
 
     // Report progress (15%–95% range)
     const pct = 15 + Math.round((pagesCrawled / urlQueue.length) * 80);
@@ -109,11 +112,12 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   }
 
   // ── 4. Mark complete ────────────────────────────────────────────────────────
-  await supabase.from("crawl_runs").update({
+  const { error: completeErr } = await supabase.from("crawl_runs").update({
     status: "done",
     pages_crawled: pagesCrawled,
     finished_at: new Date().toISOString(),
   }).eq("id", runId);
+  if (completeErr) throw new Error(`Supabase finalize crawl run failed: ${completeErr.message}`);
 
   await job.updateProgress(100);
 
@@ -138,7 +142,7 @@ export function startCrawlWorker() {
   const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
   const worker = new Worker<CrawlJobData>("crawl", processCrawlJob, {
     connection: redis as any,
-    concurrency: 2, // max 2 simultaneous crawl jobs
+    concurrency: 4, // max 4 simultaneous crawl jobs
     prefix,
   });
 
