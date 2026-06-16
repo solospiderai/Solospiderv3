@@ -745,8 +745,8 @@ ${searchRes.text}
                   })
                 );
 
-                const pass = otherResults.every(r => r === true);
-                console.log(`[PromptGenerator] Combined Multi-Model Pass for "${c.prompt}": ${pass ? "PASS" : "FAIL"}`);
+                const pass = perpMatch || otherResults.some(r => r === true);
+                console.log(`[PromptGenerator] Combined Multi-Model Pass for "${c.prompt}": ${pass ? "PASS" : "FAIL"} (Perplexity: ${perpMatch ? "YES" : "NO"}, Others: ${otherResults.filter(Boolean).length}/${otherResults.length})`);
                 return pass;
               } catch (err) {
                 console.warn(`[PromptGenerator] Verification failed for prompt: "${c.prompt}"`, err);
@@ -772,14 +772,8 @@ ${searchRes.text}
 
     console.log(`[PromptGenerator] Verification complete. Found ${verifiedPrompts.length} verified prompts.`);
 
-    // Guarantee we return exactly 25 prompts (fill remaining slots with candidate prompts if short)
-    const finalPrompts = verifiedPrompts.length >= limit
-      ? verifiedPrompts.slice(0, limit)
-      : [
-          ...verifiedPrompts,
-          ...Array.from(candidateMap.values())
-            .filter(p => !verifiedPrompts.some(vp => vp.prompt.trim().toLowerCase() === p.prompt.trim().toLowerCase()))
-        ].slice(0, limit);
+    // Guarantee we return only verified prompts up to the limit
+    const finalPrompts = verifiedPrompts.slice(0, limit);
 
     // 4. Delete existing prompts to make room for a completely fresh list of AI prompts
     const { error: deleteErr } = await supabase

@@ -783,8 +783,14 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         targetCited,
         targetSourced,
         uniqueCitations,
+        hasScans: totalScans > 0,
       };
     }).filter(p => {
+      // Filter out prompts that have been scanned but are not mentioned in any model
+      if (p.hasScans && !p.targetCited) {
+        return false;
+      }
+
       const matchesSearch = !promptSearch || 
         p.prompt.toLowerCase().includes(searchLower) || 
         (p.topic && p.topic.toLowerCase().includes(searchLower));
@@ -1212,7 +1218,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                 {promptsQuery.isLoading || isScanActive || runQuery.isLoading ? (
                   <span className="inline-block w-8 h-6 bg-slate-200 animate-pulse rounded-md" />
                 ) : (
-                  promptsQuery.data?.length || 0
+                  processedPrompts.length
                 )}
               </h3>
             </div>
