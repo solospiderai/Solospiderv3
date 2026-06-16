@@ -11,6 +11,57 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   const { project_id, website, max_pages = 50, run_id } = job.data;
   console.log(`[CrawlWorker] Job ${job.id} — project=${project_id} website=${website}`);
 
+  if (website === "DIAGNOSE") {
+    console.log("[CrawlWorker] Running remote worker diagnostics...");
+    const diagnostics: any = {};
+    try {
+      diagnostics.nodeVersion = process.version;
+      diagnostics.env = process.env.NODE_ENV;
+      diagnostics.supabaseUrl = env.SUPABASE_URL;
+      
+      const dnsPromises = await import("dns/promises");
+      try {
+        const hostname = new URL(env.SUPABASE_URL).hostname;
+        diagnostics.dnsResolve = await dnsPromises.resolve(hostname);
+      } catch (dnsErr: any) {
+        diagnostics.dnsError = dnsErr.message;
+      }
+
+      try {
+        const res = await fetch(env.SUPABASE_URL + "/rest/v1/", {
+          headers: {
+            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`
+          }
+        });
+        diagnostics.fetchStatus = res.status;
+        diagnostics.fetchText = (await res.text()).slice(0, 100);
+      } catch (fetchErr: any) {
+        diagnostics.fetchError = {
+          message: fetchErr.message,
+          stack: fetchErr.stack,
+          cause: fetchErr.cause ? {
+            message: fetchErr.cause.message,
+            code: fetchErr.cause.code,
+          } : null
+        };
+      }
+
+      try {
+        const res = await fetch("https://openrouter.ai/api/v1/models");
+        diagnostics.openRouterStatus = res.status;
+      } catch (orErr: any) {
+        diagnostics.openRouterError = orErr.message;
+      }
+
+      console.log("[CrawlWorker] Diagnostics completed:", diagnostics);
+      return diagnostics;
+    } catch (err: any) {
+      console.error("[CrawlWorker] Diagnostics failed:", err);
+      return { error: err.message, stack: err.stack };
+    }
+  }
+
   // ── 1. Create or reuse crawl_run record ────────────────────────────────────
   let runId = run_id;
   if (!runId) {
