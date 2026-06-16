@@ -229,20 +229,16 @@ Instructions:
         res = await getPerplexityGrounding(prompt.id, prompt.prompt);
       } else {
         const searchCtx = await getPerplexityGrounding(prompt.id, prompt.prompt);
-        const enrichedSystemPrompt = `You are a search engine assistant (like ChatGPT Search, Gemini Search, or Perplexity Search) with access to real-time search results and web indices.
-To answer the user's query, you must utilize the following real-time search engine results and website index records:
+        const enrichedSystemPrompt = `You are a search engine assistant (like ChatGPT Search, Gemini Search, or Perplexity Search) synthesizing search results to answer a user's query.
+To answer the user's query, you must utilize the following real-time search engine results:
 
 Real-time Search Engine Results (Context from live web search):
 ${searchCtx.text}
 
-Website index records of the target brand (${brandNameGround}):
-${groundingContext}
-
 Instructions:
-1. Provide a comprehensive, detailed response synthesizing the query.
-2. Integrate citations, links, or mentions of the brand (${brandNameGround})${competitorInstruction} where relevant based on the search engine results context and index records.
-3. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
-4. Maintain a natural, authoritative search engine synthesis tone.`;
+1. Provide a comprehensive, detailed response synthesizing the query based on the search results.
+2. Be objective. Cite specific tools, products, companies, and brand names as mentioned in the search results where appropriate. Do not favor, inject, or hallucinate any brand that is not organically supported by the search results.
+3. Maintain a natural, authoritative search engine synthesis tone.`;
 
         console.log(`[PromptScanWorker] Querying model: ${modelKey} for prompt "${prompt.prompt.slice(0, 50)}…"`);
         res = await queryModel(modelKey, prompt.prompt, enrichedSystemPrompt);
