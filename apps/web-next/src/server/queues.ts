@@ -1,5 +1,7 @@
 import { Queue } from "bullmq";
 import Redis from "ioredis";
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
 import { getServerEnv } from "@/server/env";
 
 export interface CrawlJobData {

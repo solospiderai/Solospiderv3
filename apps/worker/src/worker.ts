@@ -1,4 +1,6 @@
 import "dotenv/config";
+import dns from "dns";
+dns.setDefaultResultOrder("ipv4first");
 import cron from "node-cron";
 import { env } from "./config.js";
 import { scoringQueue } from "./queues.js";
