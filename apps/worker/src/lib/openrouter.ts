@@ -11,6 +11,36 @@ export const MODEL_MAP: Record<string, string> = {
   deepseek:   "deepseek/deepseek-chat",
 };
 
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  retries = 3,
+  delay = 1000
+): Promise<Response> {
+  try {
+    const res = await fetch(url, options);
+    // Retry on rate limit (429) or server error (5xx)
+    if (!res.ok && (res.status === 429 || res.status >= 500) && retries > 0) {
+      console.warn(`[OpenRouter] HTTP ${res.status}. Retrying in ${delay}ms... (${retries} retries left)`);
+      await new Promise(r => setTimeout(r, delay));
+      return fetchWithRetry(url, options, retries - 1, delay * 2);
+    }
+    return res;
+  } catch (err) {
+    if (retries > 0) {
+      console.warn(`[OpenRouter] Request failed: ${err instanceof Error ? err.message : String(err)}. Retrying in ${delay}ms... (${retries} retries left)`);
+      await new Promise(r => setTimeout(r, delay));
+      
+      // Recreate options with a fresh timeout signal if abort signal was used
+      const newOptions = { ...options };
+      newOptions.signal = AbortSignal.timeout(20000);
+      
+      return fetchWithRetry(url, newOptions, retries - 1, delay * 2);
+    }
+    throw err;
+  }
+}
+
 export async function queryModel(
   modelKey: string,
   prompt: string,
@@ -21,7 +51,7 @@ export async function queryModel(
   if (!modelId) throw new Error(`Unknown model key: ${modelKey}`);
 
   const start = Date.now();
-  const res = await fetch(`${BASE_URL}/chat/completions`, {
+  const res = await fetchWithRetry(`${BASE_URL}/chat/completions`, {
     method: "POST",
     signal: AbortSignal.timeout(20000),
     headers: {
