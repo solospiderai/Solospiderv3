@@ -71,6 +71,42 @@ async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-
   return text;
 }
 
+function isValidUnbrandedPrompt(prompt: string, brandName: string, domain: string, competitors: string[]): boolean {
+  const p = prompt.toLowerCase();
+  
+  // Clean brand name and check if prompt contains it
+  const brand = brandName.toLowerCase().trim();
+  if (brand && p.includes(brand)) return false;
+
+  // Clean domain and check if prompt contains the full domain or domain name
+  const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+  const domainName = cleanDomain.split("/")[0];
+  if (domainName && p.includes(domainName)) return false;
+
+  // Extract keywords from domain name (excluding common TLDs)
+  const domainParts = domainName.split(".");
+  const commonTlds = new Set(["com", "org", "net", "edu", "gov", "co", "in", "io", "ai", "info", "biz", "us", "uk", "ca", "de", "fr", "ac"]);
+  const domainKeywords = domainParts.filter(part => part && part.length > 2 && !commonTlds.has(part));
+  
+  for (const kw of domainKeywords) {
+    if (kw.length >= 4 && p.includes(kw)) return false;
+  }
+
+  // Check competitors
+  for (const comp of competitors) {
+    const cleanComp = comp.toLowerCase().trim();
+    if (!cleanComp) continue;
+    if (p.includes(cleanComp)) return false;
+    
+    // Check competitor base name (e.g. competitor name without .com)
+    const compParts = cleanComp.split(".");
+    const compName = compParts[0];
+    if (compName && compName.length >= 4 && p.includes(compName)) return false;
+  }
+
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const parsed = GeneratePromptsSchema.safeParse(await readJson(request));
@@ -167,7 +203,7 @@ export async function POST(request: NextRequest) {
       console.log("[GeneratePromptsAPI] Crawled content is empty or JS blocked. Performing Perplexity search fallback...");
       try {
         const searchInfo = await callLLM(
-          `Search the web for: site:${cleanDomainName} OR "${brandName}". Find details about its campus, location, departments, programs, courses, and unique details. Respond with a clear summary of facts about this website/organization.`,
+          `Search the web for: site:${cleanDomainName} OR "${brandName}". Find details about this brand/organization, including its core offerings, services, products, business category, target audience, location, and key features. Respond with a detailed and objective summary of facts about this website/organization.`,
           2000,
           "perplexity/sonar"
         );
@@ -257,7 +293,7 @@ Format your output strictly as a raw JSON array. Do not include markdown code bl
     }
 
     const newRows = promptsArray
-      .filter((p: any) => p && p.prompt)
+      .filter((p: any) => p && p.prompt && isValidUnbrandedPrompt(p.prompt, brandName, domain, competitorsFromMeta))
       .map((p: any) => ({
         project_id: projectId,
         topic: (p.topic || "General").trim(),

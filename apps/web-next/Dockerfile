@@ -14,6 +14,7 @@ RUN npm run build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
+RUN apk add --no-cache ca-certificates
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000

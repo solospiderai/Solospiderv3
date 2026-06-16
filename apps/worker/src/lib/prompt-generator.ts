@@ -315,6 +315,42 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
   return null;
 }
 
+function isValidUnbrandedPrompt(prompt: string, brandName: string, domain: string, competitors: string[]): boolean {
+  const p = prompt.toLowerCase();
+  
+  // Clean brand name and check if prompt contains it
+  const brand = brandName.toLowerCase().trim();
+  if (brand && p.includes(brand)) return false;
+
+  // Clean domain and check if prompt contains the full domain or domain name
+  const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+  const domainName = cleanDomain.split("/")[0];
+  if (domainName && p.includes(domainName)) return false;
+
+  // Extract keywords from domain name (excluding common TLDs)
+  const domainParts = domainName.split(".");
+  const commonTlds = new Set(["com", "org", "net", "edu", "gov", "co", "in", "io", "ai", "info", "biz", "us", "uk", "ca", "de", "fr", "ac"]);
+  const domainKeywords = domainParts.filter(part => part && part.length > 2 && !commonTlds.has(part));
+  
+  for (const kw of domainKeywords) {
+    if (kw.length >= 4 && p.includes(kw)) return false;
+  }
+
+  // Check competitors
+  for (const comp of competitors) {
+    const cleanComp = comp.toLowerCase().trim();
+    if (!cleanComp) continue;
+    if (p.includes(cleanComp)) return false;
+    
+    // Check competitor base name (e.g. competitor name without .com)
+    const compParts = cleanComp.split(".");
+    const compName = compParts[0];
+    if (compName && compName.length >= 4 && p.includes(compName)) return false;
+  }
+
+  return true;
+}
+
 export async function generateAndSaveAiPrompts(projectId: string) {
   try {
     console.log(`[PromptGenerator] Generating AEO prompts for project ${projectId}...`);
@@ -404,7 +440,7 @@ export async function generateAndSaveAiPrompts(projectId: string) {
       try {
         const searchInfo = await queryModel(
           "perplexity",
-          `Search the web for: site:${domain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0]} OR "${brandName}". Find details about its campus, location, departments, programs, courses, and unique details. Respond with a clear summary of facts about this website/organization.`
+          `Search the web for: site:${domain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0]} OR "${brandName}". Find details about this brand/organization, including its core offerings, services, products, business category, target audience, location, and key features. Respond with a detailed and objective summary of facts about this website/organization.`
         );
         if (searchInfo && searchInfo.text) {
           webContent = searchInfo.text;
@@ -646,11 +682,15 @@ Format your output STRICTLY as a raw JSON array. Do not include markdown code bl
           continue;
         }
 
-        // Filter out duplicates and add to candidateMap
+        // Filter out duplicates, branded prompts, and add to candidateMap
         const newCandidates = promptsArray.filter((p: any) => {
           if (!p || !p.prompt) return false;
           const norm = p.prompt.trim().toLowerCase();
           if (candidateMap.has(norm)) return false;
+          if (!isValidUnbrandedPrompt(p.prompt, brandName, domain, competitorsFromMeta)) {
+            console.log(`[PromptGenerator] Skipping branded prompt: "${p.prompt}"`);
+            return false;
+          }
           candidateMap.set(norm, p);
           return true;
         });
