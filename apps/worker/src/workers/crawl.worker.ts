@@ -18,6 +18,19 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
       diagnostics.nodeVersion = process.version;
       diagnostics.env = process.env.NODE_ENV;
       diagnostics.supabaseUrl = env.SUPABASE_URL;
+
+      // Check raw process.env keys (masked for safety)
+      const rawKeys: Record<string, string> = {};
+      const sensitiveKeys = ["SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "REDIS_URL", "OPENROUTER_API_KEY", "WORKER_SECRET"];
+      sensitiveKeys.forEach(key => {
+        const val = process.env[key];
+        if (val) {
+          rawKeys[key] = val.length > 8 ? `${val.slice(0, 4)}...${val.slice(-4)} (len: ${val.length})` : `**** (len: ${val.length})`;
+        } else {
+          rawKeys[key] = "MISSING";
+        }
+      });
+      diagnostics.rawEnvKeys = rawKeys;
       
       const dnsPromises = await import("dns/promises");
       try {
