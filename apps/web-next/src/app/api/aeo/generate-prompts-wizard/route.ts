@@ -51,6 +51,42 @@ async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash",
   return data.choices?.[0]?.message?.content?.trim() || "";
 }
 
+function isValidUnbrandedPrompt(prompt: string, brandName: string, domain: string, competitors: string[]): boolean {
+  const p = prompt.toLowerCase();
+  
+  // Clean brand name and check if prompt contains it
+  const brand = brandName.toLowerCase().trim();
+  if (brand && p.includes(brand)) return false;
+
+  // Clean domain and check if prompt contains the full domain or domain name
+  const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+  const domainName = cleanDomain.split("/")[0];
+  if (domainName && p.includes(domainName)) return false;
+
+  // Extract keywords from domain name (excluding common TLDs)
+  const domainParts = domainName.split(".");
+  const commonTlds = new Set(["com", "org", "net", "edu", "gov", "co", "in", "io", "ai", "info", "biz", "us", "uk", "ca", "de", "fr", "ac"]);
+  const domainKeywords = domainParts.filter(part => part && part.length > 2 && !commonTlds.has(part));
+  
+  for (const kw of domainKeywords) {
+    if (kw.length >= 4 && p.includes(kw)) return false;
+  }
+
+  // Check competitors
+  for (const comp of competitors) {
+    const cleanComp = comp.toLowerCase().trim();
+    if (!cleanComp) continue;
+    if (p.includes(cleanComp)) return false;
+    
+    // Check competitor base name (e.g. competitor name without .com)
+    const compParts = cleanComp.split(".");
+    const compName = compParts[0];
+    if (compName && compName.length >= 4 && p.includes(compName)) return false;
+  }
+
+  return true;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const parsed = GeneratePromptsWizardSchema.safeParse(await readJson(request));
@@ -100,7 +136,7 @@ export async function POST(request: NextRequest) {
       console.log("[GeneratePromptsWizard] Direct homepage fetch was empty or JS blocked. Executing Perplexity web search fallback...");
       try {
         const searchInfo = await callOpenRouter(
-          `Search the web for: site:${cleanDomainName} OR "${brandName}". Find details about its campus, location, departments, programs, courses, and unique details. Respond with a clear summary of facts about this website/organization.`,
+          `Search the web for: site:${cleanDomainName} OR "${brandName}". Find details about this brand/organization, including its core offerings, services, products, business category, target audience, location, and key features. Respond with a detailed and objective summary of facts about this website/organization.`,
           "perplexity/sonar"
         );
         if (searchInfo) {
@@ -185,8 +221,10 @@ Format the output strictly as raw JSON. Do not include markdown code block forma
       throw new Error("AI did not return a valid array of prompts");
     }
 
-    // Limit to requested limit if necessary
-    const finalPrompts = promptsArray.slice(0, limit);
+    // Filter and limit to requested limit if necessary
+    const finalPrompts = promptsArray
+      .filter((p: any) => p && p.prompt && isValidUnbrandedPrompt(p.prompt, brandName, domain, competitors))
+      .slice(0, limit);
     return NextResponse.json(finalPrompts);
   } catch (error: any) {
     console.error("[GeneratePromptsWizard] Error:", error);
