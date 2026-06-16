@@ -110,23 +110,8 @@ export async function POST(request: NextRequest) {
         console.error("[GeneratePromptsWizard] Web search fallback failed:", searchErr?.message || searchErr);
       }
     }
-
-    const verifiedPrompts: any[] = [];
-    const candidateMap = new Map<string, any>();
-    
-    let iterations = 0;
-    const maxIterations = 3;
-
-    while (verifiedPrompts.length < limit && iterations < maxIterations) {
-      iterations++;
-      const remainingNeeded = limit - verifiedPrompts.length;
-      // Generate double the remaining needed to ensure we have a surplus of candidates
-      const batchToGenerate = Math.max(remainingNeeded * 2, 15);
-      
-      console.log(`[GeneratePromptsWizard] Iteration ${iterations}: Need ${remainingNeeded} more verified prompts. Generating batch of ${batchToGenerate}...`);
-
-      const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.
-Your task is to analyze the following business details, crawled homepage content, and selected keyword topics to generate a pool of exactly ${batchToGenerate} highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
+    const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.
+Your task is to analyze the following business details, crawled homepage content, and selected keyword topics to generate exactly ${limit} highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
 
 Business Information (For niche context only):
 - Brand Name: "${brandName}"
@@ -147,157 +132,60 @@ Guidelines to ensure search engines retrieve and show our website "${domain}" wi
    - Specific details, achievements, or unique features that belong directly to this organization.
    - Do not generate generic questions. Focus on extremely specific aspects of the site's content so that search engines are forced to cite this website as the primary source.
 3. Group the prompts under the selected focus topics: [${selectedTopics.join(", ")}].
-4. Do NOT duplicate or repeat any of these queries we have already generated in previous attempts:
-[${Array.from(candidateMap.keys()).map(p => `"${p}"`).join(", ")}]
-5. Return the result STRICTLY as a valid JSON array of objects. Each object MUST contain these fields:
+4. Return the result STRICTLY as a valid JSON array of objects. Each object MUST contain these fields:
    - "topic": string (must match one of the focus topics exactly)
    - "prompt": string (the exact conversational prompt)
-   - "rationale": string (always set this to empty string "" to save space and prevent token truncation)
+   - "rationale": string (always set this to empty string "")
 
-Format the output strictly as raw JSON. Do not include markdown code block formatting (like \`\`\`json) or any additional text.`;
+Format the output strictly as raw JSON. Do not include markdown code block formatting (like triple backticks or JSON tags) or any additional text.`;
 
-      let llmResponse = "";
+    let llmResponse = "";
+    try {
+      llmResponse = await callOpenRouter(promptText);
+    } catch (err: any) {
+      console.warn("[GeneratePromptsWizard] OpenRouter failed, trying Pollinations fallback:", err?.message || err);
       try {
-        llmResponse = await callOpenRouter(promptText);
-      } catch (err: any) {
-        console.warn("[GeneratePromptsWizard] OpenRouter failed, trying Pollinations fallback:", err?.message || err);
-        try {
-          const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`;
-          const res = await fetch(pollinationsUrl);
-          if (res.ok) {
-            llmResponse = (await res.text()).trim();
-          } else {
-            throw new Error(`Pollinations responded with status ${res.status}`);
-          }
-        } catch (fallbackErr: any) {
-          console.error("[GeneratePromptsWizard] Fallback also failed:", fallbackErr);
-          break;
-        }
-      }
-
-      let cleanedText = llmResponse.trim();
-      if (cleanedText.startsWith("```")) {
-        cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-      }
-
-      let promptsArray = [];
-      try {
-        promptsArray = JSON.parse(cleanedText);
-      } catch {
-        const startIdx = cleanedText.indexOf("[");
-        const endIdx = cleanedText.lastIndexOf("]");
-        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-          try {
-            promptsArray = JSON.parse(cleanedText.slice(startIdx, endIdx + 1));
-          } catch (err) {
-            console.error("Failed to parse AI prompts response in iteration:", err);
-            continue;
-          }
+        const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`;
+        const res = await fetch(pollinationsUrl);
+        if (res.ok) {
+          llmResponse = (await res.text()).trim();
         } else {
-          console.error("Invalid array format from AI model in iteration");
-          continue;
+          throw new Error(`Pollinations responded with status ${res.status}`);
         }
-      }
-
-      if (!Array.isArray(promptsArray) || promptsArray.length === 0) {
-        console.warn("AI did not return a valid array of prompts in iteration");
-        continue;
-      }
-
-      // Filter out duplicates and add to candidateMap
-      const newCandidates = promptsArray.filter((p: any) => {
-        if (!p || !p.prompt) return false;
-        const norm = p.prompt.trim().toLowerCase();
-        if (candidateMap.has(norm)) return false;
-        candidateMap.set(norm, p);
-        return true;
-      });
-
-      console.log(`[GeneratePromptsWizard] Verifying ${newCandidates.length} new candidate prompts...`);
-      const CONCURRENCY = 4;
-      for (let i = 0; i < newCandidates.length; i += CONCURRENCY) {
-        const batch = newCandidates.slice(i, i + CONCURRENCY);
-        const results = await Promise.all(
-          batch.map(async (c: any) => {
-            try {
-              console.log(`[GeneratePromptsWizard] Verifying prompt: "${c.prompt}"`);
-              
-              // Query Perplexity (Search)
-              const searchRes = await callOpenRouter(
-                `Search for: "${c.prompt}". Respond objectively. Make sure to cite source URLs.`,
-                "perplexity/sonar"
-              );
-              const searchText = searchRes.toLowerCase();
-              
-              const perpMatch = searchText.includes(cleanDomainName) || 
-                                (domainDomainWord.length >= 4 && searchText.includes(domainDomainWord)) || 
-                                searchText.includes(cleanBrand);
-
-              console.log(`[GeneratePromptsWizard] Perplexity verification for "${c.prompt}": ${perpMatch ? "PASS" : "FAIL"}`);
-              if (!perpMatch) return false;
-
-              // Ground ChatGPT, Gemini, and Claude using the Perplexity Search response context
-              const otherModels = ["chatgpt", "gemini", "claude"];
-              const otherResults = await Promise.all(
-                otherModels.map(async (modelKey) => {
-                  try {
-                    const groundingPrompt = `You are a search engine assistant answering a query based ONLY on the following search results. Ensure you mention or cite the relevant sources:
----
-${searchRes}
----`;
-                    
-                    const modelRes = await callOpenRouter(
-                      c.prompt,
-                      MODEL_MAP[modelKey],
-                      groundingPrompt
-                    );
-                    const modelText = modelRes.toLowerCase();
-                    const isMatch = modelText.includes(cleanDomainName) || 
-                                    (domainDomainWord.length >= 4 && modelText.includes(domainDomainWord)) || 
-                                    modelText.includes(cleanBrand);
-                    console.log(`[GeneratePromptsWizard] ${modelKey} verification for "${c.prompt}": ${isMatch ? "PASS" : "FAIL"}`);
-                    return isMatch;
-                  } catch (e: any) {
-                    console.warn(`[GeneratePromptsWizard] Grounded model ${modelKey} check failed:`, e?.message || e);
-                    return false;
-                  }
-                })
-              );
-
-              const pass = otherResults.every(r => r === true);
-              console.log(`[GeneratePromptsWizard] Combined Multi-Model Pass for "${c.prompt}": ${pass ? "PASS" : "FAIL"}`);
-              return pass;
-            } catch (err) {
-              console.warn(`[GeneratePromptsWizard] Verification failed for prompt: "${c.prompt}"`, err);
-              return false;
-            }
-          })
-        );
-
-        batch.forEach((c: any, idx: number) => {
-          if (results[idx]) {
-            verifiedPrompts.push(c);
-          }
-        });
-
-        if (verifiedPrompts.length >= limit) {
-          break;
-        }
+      } catch (fallbackErr: any) {
+        console.error("[GeneratePromptsWizard] Fallback also failed:", fallbackErr);
+        throw new Error(`AI prompt generation failed: ${err?.message || err}. (Fallback error: ${fallbackErr?.message || fallbackErr})`);
       }
     }
 
-    console.log(`[GeneratePromptsWizard] Verification complete. Found ${verifiedPrompts.length} verified prompts.`);
+    let cleanedText = llmResponse.trim();
+    if (cleanedText.startsWith("```")) {
+      cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+    }
 
-    // Guarantee we return exactly the requested limit of prompts (e.g. 25 or 40)
-    // We fill the remaining slots with candidate prompts if verified count is below the limit
-    const finalPrompts = verifiedPrompts.length >= limit
-      ? verifiedPrompts.slice(0, limit)
-      : [
-          ...verifiedPrompts,
-          ...Array.from(candidateMap.values())
-            .filter(p => !verifiedPrompts.some(vp => vp.prompt.trim().toLowerCase() === p.prompt.trim().toLowerCase()))
-        ].slice(0, limit);
+    let promptsArray = [];
+    try {
+      promptsArray = JSON.parse(cleanedText);
+    } catch {
+      const startIdx = cleanedText.indexOf("[");
+      const endIdx = cleanedText.lastIndexOf("]");
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        try {
+          promptsArray = JSON.parse(cleanedText.slice(startIdx, endIdx + 1));
+        } catch (err) {
+          throw new Error("Failed to parse AI prompts response as JSON array");
+        }
+      } else {
+        throw new Error("Invalid array format from AI model");
+      }
+    }
 
+    if (!Array.isArray(promptsArray) || promptsArray.length === 0) {
+      throw new Error("AI did not return a valid array of prompts");
+    }
+
+    // Limit to requested limit if necessary
+    const finalPrompts = promptsArray.slice(0, limit);
     return NextResponse.json(finalPrompts);
   } catch (error: any) {
     console.error("[GeneratePromptsWizard] Error:", error);
