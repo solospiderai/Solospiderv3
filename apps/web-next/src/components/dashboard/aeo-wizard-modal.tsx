@@ -420,7 +420,7 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                       </select>
                     </div>
                   </div>                  {/* Topics List */}
-                  <div className="mt-6 mb-8">
+                  <div className="mt-6 mb-8 pb-6">
                     <h4 className="text-sm font-bold uppercase text-slate-800 tracking-wider text-center mb-6">Select Topics to Track</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {discoveredTopics.map((item) => {
@@ -457,6 +457,7 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                         );
                       })}
                     </div>
+                    <div className="h-6" />
                   </div>
                 </div>
               )}
