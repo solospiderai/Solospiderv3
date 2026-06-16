@@ -405,10 +405,10 @@ ${webContent}
 
 Guidelines for generating prompts:
 1. Generate exactly 25 search prompts. Do not generate less or more.
-2. Group the prompts logically under 6-8 key unbranded search-phrase keywords/topics relevant to the brand's industry (e.g. 'best budget friendly perfumes', 'long lasting fragrance for women', 'perfume vs eau de toilette', 'perfume sampler sets', 'perfume gift ideas for men'). 
-3. CRITICAL: ALL GENERATED PROMPTS MUST BE COMPLETELY UNBRANDED. Do NOT include our brand name "${brandName}", our domain "${domain}", or the names of the competitors (like ${competitorsFromMeta.join(", ")}) in any of the prompts. They must be organic category/industry queries that real users would search (e.g. "perfumes under $50 that smell luxurious", "how do I choose a signature scent", "What are some highly recommended fragrances known for lasting all day?", "Compare perfume and EDT for longevity").
+2. Group the prompts logically under 6-8 key search-phrase keywords/topics relevant to the brand's industry.
+3. CRITICAL: EVERY GENERATED PROMPT MUST EXPLICITLY MENTION OR INCLUDE our brand name "${brandName}" or our website domain "${domain}" to ensure that search engines retrieve and display information about our brand. They must be realistic user queries/prompts comparing, evaluating, reviewing, or exploring "${brandName}" in the context of the topic (e.g., "Is ${brandName} a reliable choice for [topic]?", "Compare ${brandName} vs alternatives for [topic]", "What are the reviews and experiences of using ${brandName} for [topic]?", "Where can I find pricing or contact details for ${brandName} for [topic]?").
 4. The queries must read naturally like queries typed or spoken by real users in "${location}" (e.g. including local search terms, pricing in local currency like INR if location is India, or targeting localized intent).
-5. Do NOT generate generic placeholder templates such as "Is [Brand] trustworthy?". Instead, customize them to the actual niche, features, and topics of the business (e.g. fragrance, construction procurement, venue booking, etc.) while keeping them unbranded.
+5. Do NOT generate generic placeholder templates such as "Is ${brandName} trustworthy?". Instead, customize them to the actual niche, features, and topics of the business (e.g. fragrance, construction procurement, venue booking, etc.) while incorporating our brand name "${brandName}" or domain "${domain}".
 
 6. Return the result strictly as a valid JSON array of objects. Each object MUST contain these fields:
    - "topic": string (lowercase, max 5 words, capitalized search-phrase keyword topic, e.g. 'best budget friendly perfumes')

@@ -4,7 +4,7 @@
   "private": true,
   "description": "SoloSpider AI Monorepo — Next.js app, BullMQ worker, Supabase",
   "scripts": {
-    "dev": "node dev.js",
+    "dev": "npx -y concurrently -n \"next,worker\" -c \"blue,magenta\" \"npm run dev:next\" \"npm run dev:worker\"",
     "build": "npm run build --prefix apps/web-next",
     "dev:next": "npm run dev --prefix apps/web-next",
     "build:next": "npm run build --prefix apps/web-next",
