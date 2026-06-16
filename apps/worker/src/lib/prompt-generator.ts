@@ -22,10 +22,39 @@ function decodeEntities(str: string): string {
 }
 
 function findLogoUrl(html: string, baseUrl: string, brandName: string, domainName: string): string | null {
-  // 1. Check og:logo
+  // 1. Check JSON-LD schema for logo (highly reliable, standard official logo)
+  const ldJsonRegex = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let ldMatch;
+  while ((ldMatch = ldJsonRegex.exec(html)) !== null) {
+    try {
+      const jsonText = ldMatch[1].trim();
+      const logoMatch = /"logo"\s*:\s*"([^"]+)"/i.exec(jsonText);
+      if (logoMatch) {
+        const logoUrl = logoMatch[1].trim();
+        if (logoUrl && !logoUrl.startsWith("@") && logoUrl.length > 2 && !logoUrl.startsWith("data:")) {
+          // If the JSON-LD logo is just a favicon, don't return it immediately
+          if (!logoUrl.toLowerCase().includes("favicon") && !logoUrl.toLowerCase().includes("icon-")) {
+            return decodeEntities(makeAbsolute(logoUrl, baseUrl));
+          }
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Check itemprop="logo" metadata
+  const itempropLogoM = /<[^>]+itemprop=["']logo["'][^>]+content=["']([^"']+)["']/i.exec(html)
+    ?? /<img[^>]+itemprop=["']logo["'][^>]+src=["']([^"']+)["']/i.exec(html);
+  if (itempropLogoM && !itempropLogoM[1].startsWith("data:")) {
+    const logoUrl = itempropLogoM[1].trim();
+    if (!logoUrl.toLowerCase().includes("favicon") && !logoUrl.toLowerCase().includes("icon-")) {
+      return decodeEntities(makeAbsolute(logoUrl, baseUrl));
+    }
+  }
+
+  // 3. Check og:logo
   const ogLogoM = /<meta[^>]+property=["']og:logo["'][^>]+content=["']([^"']+)["']/i.exec(html)
     ?? /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:logo["']/i.exec(html);
-  if (ogLogoM) return decodeEntities(makeAbsolute(ogLogoM[1], baseUrl));
+  if (ogLogoM && !ogLogoM[1].startsWith("data:")) return decodeEntities(makeAbsolute(ogLogoM[1], baseUrl));
 
   const brandLower = brandName.toLowerCase().trim();
   
@@ -38,19 +67,28 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
   // Extract images inside <nav> or <header> tags
   const headerImages = new Set<string>();
   const headerNavRegex = /<(nav|header)[^>]*>([\s\S]*?)<\/\1>/gi;
+  const headerNavRanges: { start: number; end: number }[] = [];
   let hnMatch;
   while ((hnMatch = headerNavRegex.exec(html)) !== null) {
+    headerNavRanges.push({ start: hnMatch.index, end: hnMatch.index + hnMatch[0].length });
     const content = hnMatch[2];
     const imgRegexInner = /<img\s+([^>]+)>/gi;
     let imgInnerMatch;
     while ((imgInnerMatch = imgRegexInner.exec(content)) !== null) {
       const srcMatch = /\bsrc=["']([^"']+)["']/i.exec(imgInnerMatch[1]);
       if (srcMatch) headerImages.add(srcMatch[1]);
+      // Also track lazy loaded src inside nav/header
+      const lazySrcMatch = /\b(?:data-src|data-lazy-src|data-original|srcset)=["']([^"'\s]+)["']/i.exec(imgInnerMatch[1]);
+      if (lazySrcMatch) {
+        const cleanLazy = lazySrcMatch[1].split(",")[0].trim().split(" ")[0];
+        if (cleanLazy) headerImages.add(cleanLazy);
+      }
     }
   }
 
   // Extract images inside homepage links
   const homepageImages = new Set<string>();
+  const homepageLinkRanges: { start: number; end: number; attrs: string }[] = [];
   const aRegex = /<a\s+([^>]*?)>([\s\S]*?)<\/a>/gi;
   let aMatch;
   while ((aMatch = aRegex.exec(html)) !== null) {
@@ -59,27 +97,65 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
     const hrefMatch = /\bhref=["']([^"']*)["']/i.exec(aAttrs);
     if (hrefMatch) {
       const href = hrefMatch[1].trim();
-      const isHomepageLink = href === "/" || href === "" || href === baseUrl || href === baseUrl + "/" || href.replace(/\/$/, "") === domainName.replace(/\/$/, "");
+      const isHomepageLink = href === "/" || href === "" || href === baseUrl || href === baseUrl + "/" || href.replace(/\/$/, "") === domainName.replace(/\/$/, "") || href.startsWith("/?") || href.startsWith("?");
       if (isHomepageLink) {
+        homepageLinkRanges.push({ start: aMatch.index, end: aMatch.index + aMatch[0].length, attrs: aAttrs });
         const imgRegexInner = /<img\s+([^>]+)>/gi;
         let imgInnerMatch;
         while ((imgInnerMatch = imgRegexInner.exec(aContent)) !== null) {
           const srcMatch = /\bsrc=["']([^"']+)["']/i.exec(imgInnerMatch[1]);
           if (srcMatch) homepageImages.add(srcMatch[1]);
+          const lazySrcMatch = /\b(?:data-src|data-lazy-src|data-original|srcset)=["']([^"'\s]+)["']/i.exec(imgInnerMatch[1]);
+          if (lazySrcMatch) {
+            const cleanLazy = lazySrcMatch[1].split(",")[0].trim().split(" ")[0];
+            if (cleanLazy) homepageImages.add(cleanLazy);
+          }
         }
       }
     }
   }
 
-  // 2. Scan all img tags
-  const imgRegex = /<img\s+([^>]*)\/>|<img\s+([^>]*?)>/gi;
   const candidates: { src: string; score: number }[] = [];
+
+  // Check apple-touch-icon (high quality favicon fallback)
+  const appleTouchIconM = /<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/i.exec(html)
+    ?? /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']apple-touch-icon["']/i.exec(html);
+  if (appleTouchIconM) {
+    const iconUrl = appleTouchIconM[1].trim();
+    if (iconUrl && !iconUrl.startsWith("data:")) {
+      candidates.push({ src: iconUrl, score: 15 }); // high score for touch icon fallback
+    }
+  }
+
+  // Check high resolution icons
+  const iconM = /<link[^>]+rel=["']icon["'][^>]+sizes=["'](?:192x192|96x96|32x32)["'][^>]+href=["']([^"']+)["']/i.exec(html)
+    ?? /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']icon["'][^>]+sizes=["'](?:192x192|96x96|32x32)["']/i.exec(html);
+  if (iconM) {
+    const iconUrl = iconM[1].trim();
+    if (iconUrl && !iconUrl.startsWith("data:")) {
+      candidates.push({ src: iconUrl, score: 8 });
+    }
+  }
+
+  // 4. Scan all img tags
+  const imgRegex = /<img\s+([^>]*)\/>|<img\s+([^>]*?)>/gi;
   let match;
   while ((match = imgRegex.exec(html)) !== null) {
     const imgAttrs = match[1] || match[2] || "";
     const srcMatch = /\bsrc=["']([^"']+)["']/i.exec(imgAttrs);
     if (!srcMatch) continue;
     const src = srcMatch[1];
+    
+    // Resolve lazy loading attributes if present
+    let realSrc = src;
+    const lazySrcMatch = /\b(?:data-src|data-lazy-src|data-original|data-fallback-src|srcset)=["']([^"'\s]+)["']/i.exec(imgAttrs);
+    if (lazySrcMatch) {
+      const candidateLazy = lazySrcMatch[1].split(",")[0].trim().split(" ")[0];
+      if (candidateLazy && !candidateLazy.startsWith("data:")) {
+        realSrc = candidateLazy;
+      }
+    }
+
     const altMatch = /\balt=["']([^"']+)["']/i.exec(imgAttrs);
     const alt = altMatch ? altMatch[1] : "";
     const idMatch = /\bid=["']([^"']+)["']/i.exec(imgAttrs);
@@ -88,7 +164,7 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
     const className = classMatch ? classMatch[1] : "";
 
     let score = 0;
-    const srcLower = src.toLowerCase();
+    const srcLower = realSrc.toLowerCase();
     const altLower = alt.toLowerCase().trim();
     const idLower = id.toLowerCase();
     const classLower = className.toLowerCase();
@@ -117,17 +193,100 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
     }
 
     // Structural matches
-    if (headerImages.has(src)) score += 12;
-    if (homepageImages.has(src)) score += 15;
+    if (headerImages.has(realSrc) || headerImages.has(src)) score += 12;
+    if (homepageImages.has(realSrc) || homepageImages.has(src)) score += 15;
 
     // Penalties
     if (srcLower.includes("favicon") || srcLower.includes("icon") || srcLower.includes("avatar")) score -= 10;
-    if (srcLower.includes("banner") || srcLower.includes("hero") || srcLower.includes("slide")) score -= 10;
+    if (srcLower.includes("banner") || srcLower.includes("hero") || srcLower.includes("slide")) score -= 15;
     if (srcLower.endsWith(".svg")) score += 3;
+
+    // Social media / platform penalties
+    const socialExcluded = [
+      "facebook", "instagram", "twitter", "linkedin", "youtube", "pinterest", "tiktok", "threads",
+      "stripe", "trustpilot", "visa", "paypal", "app-store", "google-play"
+    ];
+    if (socialExcluded.some(platform => srcLower.includes(platform) || altLower.includes(platform) || idLower.includes(platform) || classLower.includes(platform))) {
+      score -= 80;
+    }
+
+    // Data url penalty (placeholders)
+    if (realSrc.startsWith("data:")) score -= 50;
 
     // Position bonus (first 12,000 characters)
     if (match.index < 12000) score += 5;
 
+    candidates.push({ src: realSrc, score });
+  }
+
+  // 5. Scan inline SVG tags
+  const svgRegex = /<svg\b([^>]*?)>([\s\S]*?)<\/svg>/gi;
+  let svgMatch;
+  while ((svgMatch = svgRegex.exec(html)) !== null) {
+    const svgAttrs = svgMatch[1];
+    const svgContent = svgMatch[2];
+    const svgIndex = svgMatch.index;
+    const svgLength = svgMatch[0].length;
+    
+    // Skip inline SVGs that are too large (e.g. detailed graphics/maps) or too small (chevrons)
+    if (svgLength > 30000 || svgLength < 150) continue;
+
+    let score = 0;
+    const svgAttrsLower = svgAttrs.toLowerCase();
+    const svgContentLower = svgContent.toLowerCase();
+
+    // Check if inside header/nav
+    const insideHeaderNav = headerNavRanges.some(r => svgIndex >= r.start && (svgIndex + svgLength) <= r.end);
+    if (insideHeaderNav) score += 15;
+
+    // Check if inside homepage link
+    const parentLink = homepageLinkRanges.find(r => svgIndex >= r.start && (svgIndex + svgLength) <= r.end);
+    if (parentLink) {
+      score += 20;
+      const linkAttrsLower = parentLink.attrs.toLowerCase();
+      if (linkAttrsLower.includes("logo")) score += 15;
+      if (brandLower && linkAttrsLower.includes(brandLower)) score += 15;
+    }
+
+    if (svgAttrsLower.includes("logo")) score += 15;
+    if (svgAttrsLower.includes("brand")) score += 10;
+    if (brandLower && svgAttrsLower.includes(brandLower)) score += 15;
+
+    const titleM = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(svgContent);
+    if (titleM) {
+      const titleText = titleM[1].toLowerCase().trim();
+      if (titleText.includes("logo")) score += 25;
+      if (brandLower && titleText.includes(brandLower)) score += 25;
+    }
+
+    // Penalize utility SVGs and social icons
+    const socialExcluded = [
+      "facebook", "instagram", "twitter", "linkedin", "youtube", "pinterest", "tiktok", "threads",
+      "stripe", "trustpilot", "visa", "paypal", "app-store", "google-play"
+    ];
+    if (socialExcluded.some(platform => svgAttrsLower.includes(platform) || svgContentLower.includes(platform))) {
+      score -= 80;
+    }
+
+    const utilityKeywords = [
+      "search", "cart", "user", "bag", "menu", "close", "arrow", "phone", "mail",
+      "heart", "wishlist", "truck", "star", "magnifying", "chevron", "login"
+    ];
+    for (const keyword of utilityKeywords) {
+      if (svgAttrsLower.includes(keyword) || svgContentLower.includes(keyword)) {
+        score -= 40;
+      }
+    }
+
+    if (svgIndex < 15000) score += 5;
+
+    // SVG specific bonus if it seems to be a logo
+    if (score > 10) {
+      score += 10;
+    }
+
+    const base64Svg = Buffer.from(svgMatch[0].trim()).toString("base64");
+    const src = `data:image/svg+xml;base64,${base64Svg}`;
     candidates.push({ src, score });
   }
 
@@ -143,13 +302,14 @@ function findLogoUrl(html: string, baseUrl: string, brandName: string, domainNam
   // Fallback to og:image
   const ogImageM = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i.exec(html)
     ?? /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i.exec(html);
-  if (ogImageM) {
+  if (ogImageM && !ogImageM[1].startsWith("data:")) {
     return decodeEntities(makeAbsolute(ogImageM[1], baseUrl));
   }
 
-  // Final fallback: return first candidate image if exists
-  if (candidates.length > 0) {
-    return decodeEntities(makeAbsolute(candidates[0].src, baseUrl));
+  // Final fallback: return first candidate image if exists (excluding penalized non-SVG data urls)
+  const validFallback = candidates.find(c => !c.src.startsWith("data:") || c.src.startsWith("data:image/svg+xml"));
+  if (validFallback) {
+    return decodeEntities(makeAbsolute(validFallback.src, baseUrl));
   }
 
   return null;
@@ -236,6 +396,22 @@ export async function generateAndSaveAiPrompts(projectId: string) {
         }
       } catch (err: any) {
         console.warn(`[PromptGenerator] Dynamic homepage fetch failed: ${err?.message || err}`);
+      }
+    }
+
+    if (!webContent || webContent.includes("enable JavaScript") || webContent.length < 300) {
+      console.log("[PromptGenerator] Crawled content is empty or JS blocked. Performing Perplexity search fallback...");
+      try {
+        const searchInfo = await queryModel(
+          "perplexity",
+          `Search the web for: site:${domain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0]} OR "${brandName}". Find details about its campus, location, departments, programs, courses, and unique details. Respond with a clear summary of facts about this website/organization.`
+        );
+        if (searchInfo && searchInfo.text) {
+          webContent = searchInfo.text;
+          console.log(`[PromptGenerator] Web search fallback retrieved ${webContent.length} characters of context.`);
+        }
+      } catch (searchErr: any) {
+        console.error("[PromptGenerator] Web search fallback failed:", searchErr?.message || searchErr);
       }
     }
 
@@ -387,12 +563,32 @@ Respond ONLY with raw valid JSON. Do not include markdown code block formatting 
 
     if (!countErr && typeof count === "number" && count > 5) {
       console.log(`[PromptGenerator] Project ${projectId} already has ${count} custom prompts. Skipping AI prompt generation to preserve them.`);
+      await enqueueAutoScan(projectId, brandName, competitorsFromMeta);
       return;
     }
 
-    // 3. Prompt for model
-    const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.
-Your task is to analyze the following business details, crawled homepage content, and target market context to generate a comprehensive list of exactly 25 highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
+    // 3. Iterative prompt generation and verification loop
+    const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+    const cleanBrand = brandName.toLowerCase().trim();
+    const cleanDomainName = cleanDomain.split("/")[0]; // e.g. gandhinagaruni.ac.in
+    const domainDomainWord = cleanDomainName.split(".")[0]; // e.g. gandhinagaruni
+
+    const verifiedPrompts: any[] = [];
+    const candidateMap = new Map<string, any>();
+    
+    let iterations = 0;
+    const maxIterations = 3;
+    const limit = 25; // Worker default target
+
+    while (verifiedPrompts.length < limit && iterations < maxIterations) {
+      iterations++;
+      const remainingNeeded = limit - verifiedPrompts.length;
+      const batchToGenerate = Math.max(remainingNeeded * 2, 15);
+      
+      console.log(`[PromptGenerator] Iteration ${iterations}: Need ${remainingNeeded} more verified prompts. Generating batch of ${batchToGenerate}...`);
+
+      const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.
+Your task is to analyze the following business details, crawled homepage content, and target market context to generate a pool of exactly ${batchToGenerate} highly realistic, diverse, and natural conversational search queries (prompts) that buyers or clients located in "${location}" would search on conversational search engines (like ChatGPT Search, Gemini Search, Claude, or Perplexity) to discover, evaluate, compare, or research products/services in this vertical.
 
 Business Information (For niche context only):
 - Brand Name: "${brandName}"
@@ -404,44 +600,146 @@ Crawled Website Content:
 ${webContent}
 
 Guidelines for generating prompts:
-1. Generate exactly 25 search prompts. Do not generate less or more.
+1. Generate exactly ${batchToGenerate} search prompts.
 2. Group the prompts logically under 6-8 key search-phrase keywords/topics relevant to the brand's industry.
-3. CRITICAL: EVERY GENERATED PROMPT MUST EXPLICITLY MENTION OR INCLUDE our brand name "${brandName}" or our website domain "${domain}" to ensure that search engines retrieve and display information about our brand. They must be realistic user queries/prompts comparing, evaluating, reviewing, or exploring "${brandName}" in the context of the topic (e.g., "Is ${brandName} a reliable choice for [topic]?", "Compare ${brandName} vs alternatives for [topic]", "What are the reviews and experiences of using ${brandName} for [topic]?", "Where can I find pricing or contact details for ${brandName} for [topic]?").
-4. The queries must read naturally like queries typed or spoken by real users in "${location}" (e.g. including local search terms, pricing in local currency like INR if location is India, or targeting localized intent).
-5. Do NOT generate generic placeholder templates such as "Is ${brandName} trustworthy?". Instead, customize them to the actual niche, features, and topics of the business (e.g. fragrance, construction procurement, venue booking, etc.) while incorporating our brand name "${brandName}" or domain "${domain}".
+3. CRITICAL: EVERY GENERATED PROMPT MUST BE COMPLETELY UNBRANDED. Do NOT include our brand name "${brandName}", our domain "${domain}", or the names of the competitors (like ${competitorsFromMeta.join(", ")}) in any of the prompts. They must be organic category/industry queries that real users would search (e.g. "perfumes under $50 that smell luxurious", "how do I choose a signature scent", "What are some highly recommended fragrances known for lasting all day?", "Compare perfume and EDT for longevity").
+4. The prompts must be highly specific, localized, and long-tail (targeting unique features, exact locations, specific services, or niche topics found on the website's crawled homepage content) so that a search engine is highly likely to retrieve and cite our website "${domain}" based on its unique content.
+5. Do NOT duplicate or repeat any of these queries we have already generated in previous attempts:
+[${Array.from(candidateMap.keys()).map(p => `"${p}"`).join(", ")}]
+6. Do NOT generate generic placeholder templates such as "Is [Brand] trustworthy?". Instead, customize them to the actual niche, features, and topics of the business (e.g. fragrance, construction procurement, venue booking, etc.) while keeping them unbranded.
 
-6. Return the result strictly as a valid JSON array of objects. Each object MUST contain these fields:
+7. Return the result strictly as a valid JSON array of objects. Each object MUST contain these fields:
    - "topic": string (lowercase, max 5 words, capitalized search-phrase keyword topic, e.g. 'best budget friendly perfumes')
    - "prompt": string (the exact conversational search engine prompt)
-   - "rationale": string (1-sentence explaining why this prompt is important for AEO research)
+   - "rationale": string (always set this to empty string "" to save space and prevent token truncation)
 
 Format your output STRICTLY as a raw JSON array. Do not include markdown code block formatting (like \`\`\`json or backticks) or any additional text.`;
 
-    const res = await queryModel("gemini", promptText, "You are a JSON generator. Respond ONLY with valid JSON array.", 2500);
-    let cleanedText = res.text.trim();
-    if (cleanedText.startsWith("```")) {
-      cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-    }
-    let promptsArray = [];
-    try {
-      promptsArray = JSON.parse(cleanedText);
-    } catch {
-      const startIdx = cleanedText.indexOf("[");
-      const endIdx = cleanedText.lastIndexOf("]");
-      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-        const candidate = cleanedText.slice(startIdx, endIdx + 1);
-        try {
-          promptsArray = JSON.parse(candidate);
-        } catch (err) {
-          console.error("[PromptGenerator] Failed to parse candidate JSON:", err);
+      try {
+        const res = await queryModel("gemini", promptText, "You are a JSON generator. Respond ONLY with valid JSON array.", 3000);
+        let cleanedText = res.text.trim();
+        if (cleanedText.startsWith("```")) {
+          cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
         }
+        let promptsArray = [];
+        try {
+          promptsArray = JSON.parse(cleanedText);
+        } catch {
+          const startIdx = cleanedText.indexOf("[");
+          const endIdx = cleanedText.lastIndexOf("]");
+          if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+            const candidate = cleanedText.slice(startIdx, endIdx + 1);
+            try {
+              promptsArray = JSON.parse(candidate);
+            } catch (err) {
+              console.error("[PromptGenerator] Failed to parse candidate JSON:", err);
+              continue;
+            }
+          } else {
+            console.error("[PromptGenerator] Invalid array format from AI model in iteration");
+            continue;
+          }
+        }
+
+        if (!Array.isArray(promptsArray) || promptsArray.length === 0) {
+          console.warn("[PromptGenerator] AI did not return a valid array of prompts in iteration");
+          continue;
+        }
+
+        // Filter out duplicates and add to candidateMap
+        const newCandidates = promptsArray.filter((p: any) => {
+          if (!p || !p.prompt) return false;
+          const norm = p.prompt.trim().toLowerCase();
+          if (candidateMap.has(norm)) return false;
+          candidateMap.set(norm, p);
+          return true;
+        });
+
+        console.log(`[PromptGenerator] Verifying ${newCandidates.length} new candidate prompts...`);
+        const CONCURRENCY = 4;
+        for (let i = 0; i < newCandidates.length; i += CONCURRENCY) {
+          const batch = newCandidates.slice(i, i + CONCURRENCY);
+          const results = await Promise.all(
+            batch.map(async (c: any) => {
+              try {
+                console.log(`[PromptGenerator] Verifying prompt: "${c.prompt}"`);
+                
+                // Query Perplexity (Search)
+                const searchRes = await queryModel(
+                  "perplexity",
+                  `Search for: "${c.prompt}". Respond objectively. Make sure to cite source URLs.`
+                );
+                const searchText = searchRes.text.toLowerCase();
+                const perpMatch = searchText.includes(cleanDomainName) || 
+                                  (domainDomainWord.length >= 4 && searchText.includes(domainDomainWord)) || 
+                                  searchText.includes(cleanBrand);
+
+                console.log(`[PromptGenerator] Perplexity verification for "${c.prompt}": ${perpMatch ? "PASS" : "FAIL"}`);
+                if (!perpMatch) return false;
+
+                // Ground ChatGPT, Gemini, and Claude using Perplexity Search response context
+                const otherModels = ["chatgpt", "gemini", "claude"];
+                const otherResults = await Promise.all(
+                  otherModels.map(async (modelKey) => {
+                    try {
+                      const groundingPrompt = `You are a search engine assistant answering a query based ONLY on the following search results. Ensure you mention or cite the relevant sources:
+---
+${searchRes.text}
+---`;
+                      
+                      const modelRes = await queryModel(
+                        modelKey,
+                        c.prompt,
+                        groundingPrompt
+                      );
+                      const modelText = modelRes.text.toLowerCase();
+                      const isMatch = modelText.includes(cleanDomainName) || 
+                                      (domainDomainWord.length >= 4 && modelText.includes(domainDomainWord)) || 
+                                      modelText.includes(cleanBrand);
+                      console.log(`[PromptGenerator] ${modelKey} verification for "${c.prompt}": ${isMatch ? "PASS" : "FAIL"}`);
+                      return isMatch;
+                    } catch (e: any) {
+                      console.warn(`[PromptGenerator] Grounded model ${modelKey} check failed:`, e?.message || e);
+                      return false;
+                    }
+                  })
+                );
+
+                const pass = otherResults.every(r => r === true);
+                console.log(`[PromptGenerator] Combined Multi-Model Pass for "${c.prompt}": ${pass ? "PASS" : "FAIL"}`);
+                return pass;
+              } catch (err) {
+                console.warn(`[PromptGenerator] Verification failed for prompt: "${c.prompt}"`, err);
+                return false;
+              }
+            })
+          );
+
+          batch.forEach((c: any, idx: number) => {
+            if (results[idx]) {
+              verifiedPrompts.push(c);
+            }
+          });
+
+          if (verifiedPrompts.length >= limit) {
+            break;
+          }
+        }
+      } catch (err) {
+        console.error(`[PromptGenerator] Error in iteration ${iterations}:`, err);
       }
     }
 
-    if (!Array.isArray(promptsArray) || promptsArray.length === 0) {
-      console.warn("[PromptGenerator] AI did not return a valid array of prompts.");
-      return;
-    }
+    console.log(`[PromptGenerator] Verification complete. Found ${verifiedPrompts.length} verified prompts.`);
+
+    // Guarantee we return exactly 25 prompts (fill remaining slots with candidate prompts if short)
+    const finalPrompts = verifiedPrompts.length >= limit
+      ? verifiedPrompts.slice(0, limit)
+      : [
+          ...verifiedPrompts,
+          ...Array.from(candidateMap.values())
+            .filter(p => !verifiedPrompts.some(vp => vp.prompt.trim().toLowerCase() === p.prompt.trim().toLowerCase()))
+        ].slice(0, limit);
 
     // 4. Delete existing prompts to make room for a completely fresh list of AI prompts
     const { error: deleteErr } = await supabase
@@ -453,7 +751,7 @@ Format your output STRICTLY as a raw JSON array. Do not include markdown code bl
       console.warn(`[PromptGenerator] Failed to clear old prompts: ${deleteErr.message}`);
     }
 
-    const newRows = promptsArray
+    const newRows = finalPrompts
       .filter((p: any) => p && p.prompt)
       .map((p: any) => ({
         project_id: projectId,
@@ -472,7 +770,26 @@ Format your output STRICTLY as a raw JSON array. Do not include markdown code bl
     } else {
       console.log(`[PromptGenerator] No new AEO prompts to insert for project ${projectId}.`);
     }
+
+    await enqueueAutoScan(projectId, brandName, competitorsFromMeta);
   } catch (err) {
     console.error(`[PromptGenerator] Error generating AEO prompts:`, err);
+  }
+}
+
+async function enqueueAutoScan(projectId: string, brandName: string, competitors: string[]) {
+  try {
+    const { promptScanQueue } = await import("../queues.js");
+    console.log(`[PromptGenerator] Enqueuing automatic prompt scan for project ${projectId} (${brandName}) with competitors:`, competitors);
+    await promptScanQueue.add("prompt-scan", {
+      project_id: projectId,
+      brand_name: brandName,
+      models: ["chatgpt", "gemini", "perplexity", "claude"],
+      competitors: competitors,
+    }, {
+      jobId: `auto-scan-${projectId}-${Date.now()}`
+    });
+  } catch (scanErr) {
+    console.error("[PromptGenerator] Failed to enqueue automatic prompt scan:", scanErr);
   }
 }

@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import { redis } from "../config.js";
+import { redis, env } from "../config.js";
 import { supabase } from "../lib/supabase.js";
 import { discoverUrls, crawlPage, type CrawledPageData } from "../lib/crawler.js";
 import { generateAndSaveAiPrompts } from "../lib/prompt-generator.js";
@@ -115,50 +115,12 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     finished_at: new Date().toISOString(),
   }).eq("id", runId);
 
-  await job.updateProgress(95);
-  await generateAndSaveAiPrompts(project_id).catch(err => {
+  await job.updateProgress(100);
+
+  // Run prompt generation asynchronously in the background so that the crawl job finishes instantly
+  generateAndSaveAiPrompts(project_id).catch(err => {
     console.error("[CrawlWorker] Automatic prompt generation failed:", err);
   });
-
-  // Automatically trigger real-time grounded AEO model scan on the generated prompts
-  try {
-    const { data: project } = await supabase
-      .from("projects")
-      .select("brand_name, name, brand_description")
-      .eq("id", project_id)
-      .single();
-
-    if (project) {
-      const brandName = project.brand_name || project.name;
-      const rawDesc = project.brand_description || "";
-      let competitorsFromMeta: string[] = [];
-      const parts = rawDesc.split("\n---\nMETADATA: ");
-      if (parts.length > 1) {
-        try {
-          const meta = JSON.parse(parts[1]);
-          if (Array.isArray(meta.competitors)) {
-            competitorsFromMeta = meta.competitors;
-          }
-        } catch (e) {
-          console.warn("[CrawlWorker] Failed to parse project metadata:", e);
-        }
-      }
-
-      console.log(`[CrawlWorker] Enqueuing automatic prompt scan for project ${project_id} (${brandName}) with competitors:`, competitorsFromMeta);
-      await promptScanQueue.add("prompt-scan", {
-        project_id,
-        brand_name: brandName,
-        models: ["chatgpt", "gemini", "perplexity", "claude"],
-        competitors: competitorsFromMeta,
-      }, {
-        jobId: `auto-scan-${project_id}-${Date.now()}`
-      });
-    }
-  } catch (scanErr) {
-    console.error("[CrawlWorker] Failed to enqueue automatic prompt scan:", scanErr);
-  }
-
-  await job.updateProgress(100);
 
   const summary = {
     run_id: runId,
@@ -173,9 +135,11 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
 }
 
 export function startCrawlWorker() {
+  const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
   const worker = new Worker<CrawlJobData>("crawl", processCrawlJob, {
     connection: redis as any,
     concurrency: 2, // max 2 simultaneous crawl jobs
+    prefix,
   });
 
   worker.on("completed", (job) => console.log(`[CrawlWorker] ✅ Job ${job.id} completed`));

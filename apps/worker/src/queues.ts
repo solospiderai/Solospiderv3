@@ -1,5 +1,7 @@
 import { Queue } from "bullmq";
-import { redis } from "./config.js";
+import { redis, env } from "./config.js";
+
+const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
 
 // ── Job payload types ───────────────────────────────────────────────────────
 
@@ -39,11 +41,13 @@ const defaultJobOptions = {
 
 export const crawlQueue = new Queue<CrawlJobData>("crawl", {
   connection: redis as any,
+  prefix,
   defaultJobOptions,
 });
 
 export const promptScanQueue = new Queue<PromptScanJobData>("prompt-scan", {
   connection: redis as any,
+  prefix,
   defaultJobOptions: {
     ...defaultJobOptions,
     attempts: 2, // AI calls can be expensive, limit retries
@@ -52,10 +56,12 @@ export const promptScanQueue = new Queue<PromptScanJobData>("prompt-scan", {
 
 export const scoringQueue = new Queue<ScoringJobData>("scoring", {
   connection: redis as any,
+  prefix,
   defaultJobOptions,
 });
 
 export const publishQueue = new Queue<PublishJobData>("publish", {
   connection: redis as any,
+  prefix,
   defaultJobOptions,
 });

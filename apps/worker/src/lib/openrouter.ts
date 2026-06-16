@@ -23,6 +23,7 @@ export async function queryModel(
   const start = Date.now();
   const res = await fetch(`${BASE_URL}/chat/completions`, {
     method: "POST",
+    signal: AbortSignal.timeout(20000),
     headers: {
       Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",

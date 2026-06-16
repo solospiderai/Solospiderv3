@@ -68,6 +68,7 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
     }
     if (cleanDomain) {
       urls.push(`https://logo.clearbit.com/${cleanDomain}`);
+      urls.push(`https://www.google.com/s2/favicons?domain=${cleanDomain}&sz=128`);
     }
     if (logoAttempt < urls.length) {
       return urls[logoAttempt];
@@ -78,7 +79,23 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
   const currentLogoUrl = getLogoUrl();
 
   // Dynamic initials calculation for brand fallback
-  const brandName = project?.brand_name || project?.name || "Acme Solutions";
+  let brandName = project?.brand_name || project?.name || "Acme Solutions";
+  if (/^https?:\/\//i.test(brandName) || brandName.includes("/")) {
+    try {
+      let host = brandName;
+      if (!host.startsWith("http")) host = "http://" + host;
+      const parsedUrl = new URL(host);
+      let hostname = parsedUrl.hostname.replace(/^www\./, "");
+      const parts = hostname.split(".");
+      if (parts.length > 1) {
+        brandName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
+      } else {
+        brandName = hostname.charAt(0).toUpperCase() + hostname.slice(1);
+      }
+    } catch {
+      // fallback
+    }
+  }
   const initial = brandName.charAt(0).toUpperCase();
   const nameParts = brandName.split(/\s+/);
   const firstWord = nameParts[0]?.toLowerCase() || "acme";
@@ -200,9 +217,8 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
           <Edit2 className="w-3 h-3" /> Edit
         </Link>
       </div>
-
-      <div className="flex gap-8 mb-6">
-        <div className="flex-1">
+      <div className="flex gap-4 mb-6">
+        <div className="flex-1 min-w-0">
           <span className="text-xs font-semibold text-slate-500 block mb-3">Logo</span>
           <div className="h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center p-4 relative group">
             {isUploading ? (
@@ -221,17 +237,17 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
               />
             ) : (
               <div 
-                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity min-w-0 w-full"
                 onClick={() => fileInputRef.current?.click()}
                 title="Upload custom logo"
               >
-                <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-xl relative overflow-hidden group-hover:bg-indigo-700 transition-colors">
+                <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-black text-xl relative overflow-hidden group-hover:bg-indigo-700 transition-colors shrink-0">
                   <span className="group-hover:hidden">{initial}</span>
                   <UploadCloud className="w-5 h-5 hidden group-hover:block" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-lg font-black text-slate-900 leading-none">{firstWord}</span>
-                  {restWord && <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase">{restWord}</span>}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-sm md:text-base font-black text-slate-900 leading-none truncate">{firstWord}</span>
+                  {restWord && <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase truncate">{restWord}</span>}
                 </div>
               </div>
             )}

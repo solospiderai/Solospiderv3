@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import { redis } from "../config.js";
+import { redis, env } from "../config.js";
 import { supabase } from "../lib/supabase.js";
 import type { ScoringJobData } from "../queues.js";
 
@@ -79,9 +79,11 @@ async function processScoringJob(job: Job<ScoringJobData>): Promise<object> {
 }
 
 export function startScoringWorker() {
+  const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
   const worker = new Worker<ScoringJobData>("scoring", processScoringJob, {
     connection: redis as any,
     concurrency: 5,
+    prefix,
   });
 
   worker.on("completed", (job) => console.log(`[ScoringWorker] ✅ Job ${job.id} done`));

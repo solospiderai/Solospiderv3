@@ -60,14 +60,17 @@ export function getRedisConnection() {
 export function getQueues() {
   if (!globalForQueues.solospiderQueues) {
     const connection = getRedisConnection();
+    const env = getServerEnv();
+    const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
     globalForQueues.solospiderQueues = {
-      crawlQueue: new Queue<CrawlJobData>("crawl", { connection, defaultJobOptions }),
+      crawlQueue: new Queue<CrawlJobData>("crawl", { connection, prefix, defaultJobOptions }),
       promptScanQueue: new Queue<PromptScanJobData>("prompt-scan", {
         connection,
+        prefix,
         defaultJobOptions: { ...defaultJobOptions, attempts: 2 },
       }),
-      scoringQueue: new Queue<ScoringJobData>("scoring", { connection, defaultJobOptions }),
-      publishQueue: new Queue<PublishJobData>("publish", { connection, defaultJobOptions }),
+      scoringQueue: new Queue<ScoringJobData>("scoring", { connection, prefix, defaultJobOptions }),
+      publishQueue: new Queue<PublishJobData>("publish", { connection, prefix, defaultJobOptions }),
     };
   }
 

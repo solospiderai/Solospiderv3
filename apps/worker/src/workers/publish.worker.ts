@@ -478,9 +478,11 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
 }
 
 export function startPublishWorker() {
+  const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
   const worker = new Worker<PublishJobData>("publish", processPublishJob, {
     connection: redis as any,
     concurrency: 5,
+    prefix,
   });
 
   worker.on("completed", (job) => console.log(`[PublishWorker] ✅ Job ${job.id} done`));

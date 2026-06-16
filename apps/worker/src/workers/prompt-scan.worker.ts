@@ -1,5 +1,5 @@
 import { Worker, Job } from "bullmq";
-import { redis } from "../config.js";
+import { redis, env } from "../config.js";
 import { supabase } from "../lib/supabase.js";
 import { queryModel, MODEL_MAP } from "../lib/openrouter.js";
 import { parseCitations, extractCitationsFromText } from "../lib/citation-parser.js";
@@ -406,10 +406,11 @@ Instructions:
 }
 
 export function startPromptScanWorker() {
+  const prefix = env.NODE_ENV === "development" ? "dev" : "bull";
   const worker = new Worker<PromptScanJobData>(
     "prompt-scan",
     processPromptScanJob,
-    { connection: redis as any, concurrency: 1 } // serial — AI calls are expensive
+    { connection: redis as any, concurrency: 1, prefix } // serial — AI calls are expensive
   );
 
   worker.on("completed", (job) => console.log(`[PromptScanWorker] ✅ Job ${job.id} done`));

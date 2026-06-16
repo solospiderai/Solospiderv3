@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
    CRITICAL: If the currency is USD and TLD is generic (like .com) but the cities, physical venues, addresses, or services are situated in India (e.g. Mumbai, Bangalore, Delhi), the target location MUST be deduced as "India".
 2. DISCOVER exactly 6-8 relevant, high-volume search-phrase keywords/topics (representing unbranded keywords or query themes that actual customers use when looking for products or services in this niche, e.g. 'best budget friendly perfumes', 'long lasting fragrance for women', 'perfume vs eau de toilette', 'perfume sampler sets', 'perfume gift ideas for men') for conversational search engine optimization (AEO/GEO).
 3. IDENTIFY exactly 3 actual competitors of this brand (their brand names and website domain names, if possible).
+   CRITICAL FOR COMPETITORS: Verify carefully that each competitor is of the exact same business model, rank, and category as the target brand. For instance, if the website is a specific academic university, the competitors MUST be other actual, comparable higher-education universities in the same market or state, not boards, government databases, non-academic portals, or generic abbreviation domains like 'gtu'.
 
 Business Metadata:
 - Provided Brand Name: "${brandName}"
