@@ -21,8 +21,9 @@ const CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 
 const FALLBACK_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15";
 const TIMEOUT = 15_000; // 15 seconds — many real sites need 5-10s with DNS/TLS
 
-async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; status: number } | null> {
+async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; status: number; error?: string } | null> {
   const userAgents = [CHROME_UA, FALLBACK_UA];
+  let lastError: any = null;
   
   for (let attempt = 0; attempt <= retryCount; attempt++) {
     const ua = userAgents[attempt % userAgents.length];
@@ -45,17 +46,17 @@ async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; s
       const html = await res.text();
       clearTimeout(timer);
       return { html, status: res.status };
-    } catch (err) {
+    } catch (err: any) {
       clearTimeout(timer);
+      lastError = err;
       if (attempt < retryCount) {
         console.log(`[Crawler] Fetch attempt ${attempt + 1} failed for ${url}, retrying with different UA...`);
         await new Promise(r => setTimeout(r, 500)); // brief delay before retry
         continue;
       }
-      return null;
     }
   }
-  return null;
+  return { html: "", status: 0, error: lastError ? (lastError.message || String(lastError)) : "Unknown fetch error" };
 }
 
 function extractSitemapUrls(xml: string): string[] {
@@ -216,7 +217,7 @@ export async function discoverUrls(
 
     sitemapsFetchedCount++;
     const page = await fetchPage(sm);
-    if (page && page.status < 400) {
+    if (page && page.status < 400 && page.status > 0) {
       const extracted = extractSitemapUrls(page.html)
         .filter(u => u.startsWith(origin));
 
@@ -261,7 +262,7 @@ export async function discoverUrls(
 
       fetchedCount++;
       const page = await fetchPage(currentUrl);
-      if (page && page.status < 400) {
+      if (page && page.status < 400 && page.status > 0) {
         const links = extractLinks(page.html, currentUrl, origin);
         for (const link of links) {
           const cleanLink = link.replace(/\/$/, "");
@@ -300,12 +301,19 @@ export async function crawlPage(
 ): Promise<CrawledPageData> {
   const page = await fetchPage(url);
 
-  if (!page || page.status >= 400) {
+  if (!page || page.status >= 400 || page.status === 0) {
     // Honestly record failed pages — no fake data
     return {
-      url, title: null, meta_desc: null, h1: null,
-      word_count: 0, schema_types: [], has_faq_schema: false,
-      has_howto: false, status_code: page ? page.status : null, source,
+      url,
+      title: page?.error ? `Fetch Error: ${page.error}` : "Failed to load",
+      meta_desc: null,
+      h1: null,
+      word_count: 0,
+      schema_types: [],
+      has_faq_schema: false,
+      has_howto: false,
+      status_code: page ? (page.status || null) : null,
+      source,
     };
   }
 
