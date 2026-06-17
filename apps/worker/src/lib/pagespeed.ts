@@ -21,9 +21,11 @@ export async function getPageSpeedData(url: string): Promise<PageSpeedResult | n
       cleanUrl = "https://" + cleanUrl;
     }
 
-    console.log(`[PageSpeed] Fetching real Core Web Vitals for: ${cleanUrl}`);
-
-    const apiUrl = `${PSI_ENDPOINT}?url=${encodeURIComponent(cleanUrl)}&strategy=mobile&category=performance`;
+    const apiKey = process.env.PAGESPEED_API_KEY || process.env.GOOGLE_API_KEY;
+    let apiUrl = `${PSI_ENDPOINT}?url=${encodeURIComponent(cleanUrl)}&strategy=mobile&category=performance`;
+    if (apiKey) {
+      apiUrl += `&key=${apiKey}`;
+    }
     
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 60_000); // 60s timeout — PSI can be slow

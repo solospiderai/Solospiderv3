@@ -397,12 +397,13 @@ export async function generateAndSaveAiPrompts(projectId: string) {
     const domain = project.domain;
     const brandDescription = cleanDesc || project.brand_tagline || "a digital brand";
 
-    // 2. Fetch crawled pages to guide AI prompt generation
+    // 2. Fetch crawled pages to guide AI prompt generation — more pages = more specific prompts
     const { data: pages } = await supabase
       .from("crawled_pages" as any)
       .select("url, title, meta_desc, h1")
       .eq("project_id", projectId)
-      .limit(15);
+      .eq("status_code", 200)
+      .limit(30);
 
     let webContent = "";
     if (pages && pages.length > 0) {
@@ -572,7 +573,33 @@ Respond ONLY with raw valid JSON. Do not include markdown code block formatting 
         }
 
         const summary = parsedDisc.summary || "A premium and dedicated brand focused on high quality offerings.";
-        const metadataBlock = `\n---\nMETADATA: ${JSON.stringify(parsedDisc)}`;
+        
+        // CRITICAL: Read existing metadata and MERGE, don't overwrite
+        // The crawl worker may have already saved pageSpeed, trafficData, hasSitemap
+        const { data: existingProj } = await supabase
+          .from("projects")
+          .select("brand_description")
+          .eq("id", projectId)
+          .single();
+        
+        let existingMeta: any = {};
+        if (existingProj?.brand_description) {
+          const existingParts = existingProj.brand_description.split("\n---\nMETADATA: ");
+          if (existingParts.length > 1) {
+            try { existingMeta = JSON.parse(existingParts[1]) || {}; } catch {}
+          }
+        }
+        
+        // Merge: discovery data goes in, but preserve crawl-worker fields
+        const mergedMeta = {
+          ...parsedDisc,
+          // Preserve crawl-worker data if it exists
+          ...(existingMeta.pageSpeed ? { pageSpeed: existingMeta.pageSpeed } : {}),
+          ...(existingMeta.trafficData ? { trafficData: existingMeta.trafficData } : {}),
+          ...(existingMeta.hasSitemap !== undefined ? { hasSitemap: existingMeta.hasSitemap } : {}),
+        };
+        
+        const metadataBlock = `\n---\nMETADATA: ${JSON.stringify(mergedMeta)}`;
         const newDesc = `${summary}${metadataBlock}`;
         
         const updateData: any = { brand_description: newDesc };
@@ -585,7 +612,7 @@ Respond ONLY with raw valid JSON. Do not include markdown code block formatting 
           .update(updateData)
           .eq("id", projectId);
           
-        console.log(`[PromptGenerator] Auto-discovered metadata saved: location=${location}, competitors=${competitorsFromMeta.join(", ")}`);
+        console.log(`[PromptGenerator] Auto-discovered metadata saved (merged with existing): location=${location}, competitors=${competitorsFromMeta.join(", ")}`);
       } catch (discErr) {
         console.warn(`[PromptGenerator] Auto-discovery failed for project ${projectId}:`, discErr);
       }
@@ -638,14 +665,31 @@ ${webContent}
 Guidelines for generating prompts:
 1. Generate exactly ${batchToGenerate} search prompts.
 2. Group the prompts logically under 6-8 key search-phrase keywords/topics relevant to the brand's industry.
-3. CRITICAL: EVERY GENERATED PROMPT MUST BE COMPLETELY UNBRANDED. Do NOT include our brand name "${brandName}", our domain "${domain}", or the names of the competitors (like ${competitorsFromMeta.join(", ")}) in any of the prompts. They must be organic category/industry queries that real users would search (e.g. "perfumes under $50 that smell luxurious", "how do I choose a signature scent", "What are some highly recommended fragrances known for lasting all day?", "Compare perfume and EDT for longevity").
-4. The prompts must be highly specific, localized, and long-tail (targeting unique features, exact locations, specific services, or niche topics found on the website's crawled homepage content) so that a search engine is highly likely to retrieve and cite our website "${domain}" based on its unique content.
-5. Do NOT duplicate or repeat any of these queries we have already generated in previous attempts:
-[${Array.from(candidateMap.keys()).map(p => `"${p}"`).join(", ")}]
-6. Do NOT generate generic placeholder templates such as "Is [Brand] trustworthy?". Instead, customize them to the actual niche, features, and topics of the business (e.g. fragrance, construction procurement, venue booking, etc.) while keeping them unbranded.
+3. CRITICAL: EVERY GENERATED PROMPT MUST BE COMPLETELY UNBRANDED. Do NOT include our brand name "${brandName}", our domain "${domain}", or the names of the competitors (like ${competitorsFromMeta.join(", ")}) in any of the prompts. They must be organic category/industry queries that real users would search.
+4. CRITICAL FOR HIGH MENTION RATE: The prompts must be EXTREMELY specific and long-tail — they must target the EXACT topics, services, locations, and unique features found in the crawled website content above. Generic industry queries will NOT work.
 
-7. Return the result strictly as a valid JSON array of objects. Each object MUST contain these fields:
-   - "topic": string (lowercase, max 5 words, capitalized search-phrase keyword topic, e.g. 'best budget friendly perfumes')
+   GOOD prompts (highly specific, location-targeted, niche):
+   - "wealth management firms in Ahmedabad that offer Mini Office investment solutions"
+   - "best mutual fund advisors in Gujarat for NRI investors"
+   - "financial planning for early 30s professionals in India"
+   
+   BAD prompts (too generic, any website could rank):
+   - "what is wealth management"
+   - "how to invest in mutual funds"
+   - "financial planning tips"
+
+5. Generate prompts in these categories for maximum brand coverage:
+   a) 30% LOCATION-SPECIFIC queries: Include the city, state, or country from the website (e.g. "${location}") in the query
+   b) 30% SERVICE-SPECIFIC queries: Target the exact services/products mentioned on the crawled pages
+   c) 20% COMPARISON queries: "best [specific service] in [location]", "top [niche] companies for [specific need]"
+   d) 20% PROBLEM-SOLVING queries: Questions that the website's blog posts or service pages directly answer
+
+6. Do NOT duplicate or repeat any of these queries we have already generated in previous attempts:
+[${Array.from(candidateMap.keys()).map(p => `"${p}"`).join(", ")}]
+7. Do NOT generate generic placeholder templates such as "Is [Brand] trustworthy?". Instead, customize them to the actual niche, features, and topics of the business while keeping them unbranded.
+
+8. Return the result strictly as a valid JSON array of objects. Each object MUST contain these fields:
+   - "topic": string (lowercase, max 5 words, capitalized search-phrase keyword topic, e.g. 'wealth management ahmedabad')
    - "prompt": string (the exact conversational search engine prompt)
    - "rationale": string (always set this to empty string "" to save space and prevent token truncation)
 

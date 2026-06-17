@@ -20,6 +20,8 @@ const EnvSchema = z.object({
   TWITTER_REDIRECT_URI:     z.string().optional(),
   META_APP_ID:              z.string().optional(),
   META_APP_SECRET:          z.string().optional(),
+  PAGESPEED_API_KEY:        z.string().optional(),
+  GOOGLE_API_KEY:           z.string().optional(),
 });
 
 function loadEnv() {
