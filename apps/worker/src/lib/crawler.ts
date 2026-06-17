@@ -19,7 +19,7 @@ export interface CrawledPageData {
 // Real Chrome browser User-Agent — most sites block bot UAs
 const CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
 const FALLBACK_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15";
-const TIMEOUT = 15_000; // 15 seconds — many real sites need 5-10s with DNS/TLS
+const TIMEOUT = 30_000; // 30 seconds — many real sites need 5-10s with DNS/TLS, especially when crawled in batches
 
 async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; status: number; error?: string } | null> {
   const userAgents = [CHROME_UA, FALLBACK_UA];

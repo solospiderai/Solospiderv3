@@ -7,7 +7,7 @@ import { getPageSpeedData } from "../lib/pagespeed.js";
 import { estimateRealTraffic } from "../lib/traffic-estimator.js";
 import { CrawlJobData, promptScanQueue } from "../queues.js";
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 3;
 
 async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   const { project_id, website, max_pages = 50, run_id } = job.data;
