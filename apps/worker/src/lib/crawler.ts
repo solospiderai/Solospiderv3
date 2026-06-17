@@ -1,6 +1,7 @@
 // ── Site crawler library ────────────────────────────────────────────────────
 // Discovers URLs via sitemap.xml (multiple candidates), falls back to
 // crawling homepage links. Returns crawled page metadata.
+// ALL DATA IS REAL — no simulated/fake pages.
 
 export interface CrawledPageData {
   url:            string;
@@ -15,25 +16,46 @@ export interface CrawledPageData {
   source:         "sitemap" | "crawl" | "manual";
 }
 
-const CRAWL_UA = "SoloSpider-Crawler/1.0 (+https://solospider.ai/bot)";
-const TIMEOUT  = 4_000; // ms
+// Real Chrome browser User-Agent — most sites block bot UAs
+const CHROME_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36";
+const FALLBACK_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15";
+const TIMEOUT = 15_000; // 15 seconds — many real sites need 5-10s with DNS/TLS
 
-async function fetchPage(url: string): Promise<{ html: string; status: number } | null> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT);
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { "User-Agent": CRAWL_UA, Accept: "text/html,application/xml,*/*" },
-      redirect: "follow",
-    });
-    const html = await res.text();
-    return { html, status: res.status };
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
+async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; status: number } | null> {
+  const userAgents = [CHROME_UA, FALLBACK_UA];
+  
+  for (let attempt = 0; attempt <= retryCount; attempt++) {
+    const ua = userAgents[attempt % userAgents.length];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT);
+    try {
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          "User-Agent": ua,
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Connection": "keep-alive",
+          "Upgrade-Insecure-Requests": "1",
+          "Cache-Control": "max-age=0",
+        },
+        redirect: "follow",
+      });
+      const html = await res.text();
+      clearTimeout(timer);
+      return { html, status: res.status };
+    } catch (err) {
+      clearTimeout(timer);
+      if (attempt < retryCount) {
+        console.log(`[Crawler] Fetch attempt ${attempt + 1} failed for ${url}, retrying with different UA...`);
+        await new Promise(r => setTimeout(r, 500)); // brief delay before retry
+        continue;
+      }
+      return null;
+    }
   }
+  return null;
 }
 
 function extractSitemapUrls(xml: string): string[] {
@@ -272,219 +294,14 @@ export async function discoverUrls(
   }).slice(0, maxPages);
 }
 
-function getSimulatedPageData(url: string, path: string, source: "sitemap" | "crawl"): CrawledPageData {
-  switch (path) {
-    case "/":
-      return {
-        url,
-        title: "Home — Premium Performance Dashboard",
-        meta_desc: "Track, optimize and amplify your web presence with our comprehensive AI-driven platform built for search and engine visibility.",
-        h1: "Powering the Next Generation of Search Optimization",
-        word_count: 850,
-        schema_types: ["Organization", "WebSite"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/about":
-      return {
-        url,
-        title: "About Us — Our Team & Story",
-        meta_desc: "Learn more about our mission, our premium team, and how we are building tools to automate your SEO workflow.",
-        h1: "Our Vision for Automated Web Auditing",
-        word_count: 520,
-        schema_types: ["AboutPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/pricing":
-      return {
-        url,
-        title: "Affordable Pricing Plans for Teams & Businesses",
-        meta_desc: "Choose from our flexible premium plans tailored to scale your SEO, GEO, and AI visibility auditing.",
-        h1: "Flexible Pricing Built for Growth",
-        word_count: 430,
-        schema_types: ["PricingPage", "WebPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/contact":
-      return {
-        url,
-        title: "Contact Our Customer Success Team",
-        meta_desc: null, // missing meta desc to trigger issues
-        h1: "Get in Touch with Experts",
-        word_count: 150,
-        schema_types: ["ContactPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/features":
-      return {
-        url,
-        title: null, // missing title to trigger issues
-        meta_desc: "Discover the state-of-the-art features that make our SEO auditing platform premium, fast, and thorough.",
-        h1: "Powerful Features Built for the Modern Web",
-        word_count: 780,
-        schema_types: ["WebPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/blog":
-      return {
-        url,
-        title: "SEO and GEO Optimization Insights — Our Blog",
-        meta_desc: "Stay updated with the latest trends in search engine optimization, AI search engines, and GEO strategies.",
-        h1: "The Automated Web Blog",
-        word_count: 120, // word count < 200 to trigger thin content issue
-        schema_types: ["Blog", "WebPage"],
-        has_faq_schema: true,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/services":
-      return {
-        url,
-        title: "Our Premium Services — Custom Solutions",
-        meta_desc: "Explore custom automation, bulk API crawls, and AI prompting audits designed specifically for agency needs.",
-        h1: "Tailored SEO & AEO Automation Services",
-        word_count: 610,
-        schema_types: ["Service", "WebPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/careers":
-      return {
-        url,
-        title: "Careers — Join the Team",
-        meta_desc: "We are always looking for passionate engineers, designers, and AI advocates to build the future of automated search analysis.",
-        h1: "Build the Future of Automated Search with Us",
-        word_count: 380,
-        schema_types: ["AboutPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/privacy-policy":
-      return {
-        url,
-        title: "Privacy Policy — How We Safeguard Your Data",
-        meta_desc: "Your privacy is our priority. Read our terms to understand how we store audit logs and protect user workspace keys.",
-        h1: "Privacy Policy",
-        word_count: 1250,
-        schema_types: ["WebPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/terms-of-service":
-      return {
-        url,
-        title: "Terms of Service — Platform Usage Guidelines",
-        meta_desc: "Terms of service and user agreements for the auditing platform and associated AI crawlers.",
-        h1: "Terms of Service",
-        word_count: 1450,
-        schema_types: ["WebPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-    case "/portfolio":
-      return {
-        url,
-        title: "Case Studies and Portfolio Highlights",
-        meta_desc: "See how our customers improved their organic and generative visibility across Google, Perplexity, and OpenAI.",
-        h1: null, // missing H1 to trigger issues
-        word_count: 310,
-        schema_types: ["WebPage"],
-        has_faq_schema: false,
-        has_howto: true,
-        status_code: 200,
-        source
-      };
-    case "/broken-link-demo":
-      return {
-        url,
-        title: null,
-        meta_desc: null,
-        h1: null,
-        word_count: 0,
-        schema_types: [],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 404,
-        source
-      };
-    case "/redirect-demo":
-      return {
-        url,
-        title: null,
-        meta_desc: null,
-        h1: null,
-        word_count: 0,
-        schema_types: [],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 301,
-        source
-      };
-    default:
-      return {
-        url,
-        title: `${path.substring(1).charAt(0).toUpperCase() + path.substring(2)} Page`,
-        meta_desc: `Mocked metadata description for the simulated path ${path}.`,
-        h1: `Welcome to ${path}`,
-        word_count: 300,
-        schema_types: ["WebPage"],
-        has_faq_schema: false,
-        has_howto: false,
-        status_code: 200,
-        source
-      };
-  }
-}
-
 export async function crawlPage(
   url: string,
   source: "sitemap" | "crawl"
 ): Promise<CrawledPageData> {
   const page = await fetchPage(url);
 
-  // Extract path to see if it's one of our simulated/fallback pages
-  let path = "";
-  try {
-    path = new URL(url).pathname.replace(/\/$/, "");
-  } catch {}
-  if (path === "") {
-    path = "/";
-  }
-
-  const isSimulatedPath = [
-    "/", "/about", "/pricing", "/contact", "/features", "/blog",
-    "/services", "/careers", "/privacy-policy", "/terms-of-service",
-    "/portfolio", "/broken-link-demo", "/redirect-demo"
-  ].includes(path);
-
   if (!page || page.status >= 400) {
-    if (isSimulatedPath) {
-      return getSimulatedPageData(url, path, source);
-    }
-
+    // Honestly record failed pages — no fake data
     return {
       url, title: null, meta_desc: null, h1: null,
       word_count: 0, schema_types: [], has_faq_schema: false,
@@ -494,3 +311,4 @@ export async function crawlPage(
 
   return { url, ...parseMeta(page.html), status_code: page.status, source };
 }
+

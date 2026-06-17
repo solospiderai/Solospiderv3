@@ -42,9 +42,22 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
 
   const pageCount = (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url)).length;
 
+  // Parse real traffic data from project metadata
+  const realTrafficData = useMemo(() => {
+    if (!activeProject?.brand_description) return null;
+    const parts = (activeProject as any).brand_description.split("\n---\nMETADATA: ");
+    if (parts.length > 1) {
+      try {
+        const meta = JSON.parse(parts[1]);
+        return meta?.trafficData || null;
+      } catch { return null; }
+    }
+    return null;
+  }, [(activeProject as any)?.brand_description]);
+
   const chartData = useMemo(() => {
-    return getTrafficChartData(activeProject?.domain || "", pageCount, timeRange);
-  }, [activeProject?.domain, pageCount, timeRange]);
+    return getTrafficChartData(activeProject?.domain || "", pageCount, timeRange, realTrafficData);
+  }, [activeProject?.domain, pageCount, timeRange, realTrafficData]);
 
   const rangeLabel = timeRange === "today" 
     ? "Today" 

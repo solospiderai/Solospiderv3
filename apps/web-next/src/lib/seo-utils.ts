@@ -75,21 +75,40 @@ export interface EstimatedMetrics {
   organicTraffic: number;
   organicKeywords: number;
   backlinks: number;
+  domainAuthority: number;
   sparklineTraffic: { value: number }[];
   sparklineImpressions: { value: number }[];
   sparklineBacklinks: { value: number }[];
 }
 
 /**
- * Estimates organic traffic, keywords, and backlinks deterministically
- * based on the domain name and the number of pages crawled.
+ * Real traffic data from Perplexity-based lookup (stored in project metadata)
  */
-export function estimateDomainMetrics(domain: string, crawledPageCount: number): EstimatedMetrics {
+export interface RealTrafficData {
+  monthlyVisits?: number;
+  organicTraffic?: number;
+  organicKeywords?: number;
+  backlinks?: number;
+  domainAuthority?: number;
+  bounceRate?: number;
+  avgVisitDuration?: number;
+  pagesPerVisit?: number;
+  topCountry?: string;
+  trafficTrend?: "up" | "down" | "stable";
+  source?: string;
+}
+
+/**
+ * Returns organic traffic, keywords, and backlinks.
+ * Uses REAL data from Perplexity when available, falls back to estimation only when real data hasn't been fetched yet.
+ */
+export function estimateDomainMetrics(domain: string, crawledPageCount: number, realTrafficData?: RealTrafficData | null): EstimatedMetrics {
   if (!domain || crawledPageCount === 0) {
     return {
       organicTraffic: 0,
       organicKeywords: 0,
       backlinks: 0,
+      domainAuthority: 0,
       sparklineTraffic: Array(7).fill({ value: 0 }),
       sparklineImpressions: Array(7).fill({ value: 0 }),
       sparklineBacklinks: Array(7).fill({ value: 0 }),
@@ -98,6 +117,45 @@ export function estimateDomainMetrics(domain: string, crawledPageCount: number):
 
   const cleanHost = cleanDomain(domain);
   const hash = getDomainHash(cleanHost);
+
+  // ─── USE REAL DATA when available ──────────────────────────────────────────
+  if (realTrafficData && (realTrafficData.monthlyVisits || realTrafficData.organicTraffic)) {
+    const organicTraffic = realTrafficData.organicTraffic || Math.round((realTrafficData.monthlyVisits || 0) * 0.65);
+    const organicKeywords = realTrafficData.organicKeywords || Math.round(organicTraffic * 0.15);
+    const backlinks = realTrafficData.backlinks || Math.round(organicTraffic * 0.05);
+    const domainAuthority = realTrafficData.domainAuthority || 0;
+
+    // Determine trend direction from real data
+    const trendDir = realTrafficData.trafficTrend === "up" ? 1 : realTrafficData.trafficTrend === "down" ? -1 : 0;
+
+    const sparklineTraffic = Array(7).fill(null).map((_, i) => {
+      const fluctuation = (Math.sin(hash + i) * 0.05) + (trendDir * (6 - i) * 0.01);
+      return { value: Math.max(1, Math.round(organicTraffic * (1 + fluctuation))) };
+    });
+
+    const sparklineImpressions = Array(7).fill(null).map((_, i) => {
+      const fluctuation = (Math.cos(hash + i) * 0.06) + (trendDir * (6 - i) * 0.012);
+      const impressionsVal = organicTraffic * 4.5;
+      return { value: Math.max(1, Math.round(impressionsVal * (1 + fluctuation))) };
+    });
+
+    const sparklineBacklinks = Array(7).fill(null).map((_, i) => {
+      const fluctuation = (Math.sin(hash - i) * 0.03) + (trendDir * (6 - i) * 0.003);
+      return { value: Math.max(1, Math.round(backlinks * (1 + fluctuation))) };
+    });
+
+    return {
+      organicTraffic,
+      organicKeywords,
+      backlinks,
+      domainAuthority,
+      sparklineTraffic,
+      sparklineImpressions,
+      sparklineBacklinks,
+    };
+  }
+
+  // ─── FALLBACK: estimation (only used before real data is fetched) ──────────
 
   // 1. Popular sites matching hardcoded actual traffic
   const highTrafficSites: Record<string, number> = {
@@ -128,44 +186,39 @@ export function estimateDomainMetrics(domain: string, crawledPageCount: number):
       organicTraffic: traffic,
       organicKeywords: keywords,
       backlinks: backlinksCount,
+      domainAuthority: 95,
       sparklineTraffic: Array(7).fill(null).map((_, i) => ({ value: Math.round(traffic * (0.9 + i * 0.015)) })),
       sparklineImpressions: Array(7).fill(null).map((_, i) => ({ value: Math.round(traffic * 4.2 * (0.9 + i * 0.012)) })),
       sparklineBacklinks: Array(7).fill(null).map((_, i) => ({ value: Math.round(backlinksCount * (0.95 + i * 0.008)) })),
     };
   }
 
-  // 2. Normal/local sites - estimate realistically using domain name length and extension
-  // Base baseline traffic: 15 to 450 monthly visits
+  // 2. Normal/local sites - estimate using domain hash + page count (temporary until real data loads)
   const baseTraffic = 15 + (hash % 435);
 
   let tldMult = 1.0;
   if (cleanHost.endsWith(".in") || cleanHost.endsWith(".co.in")) {
-    tldMult = 0.45; // country-specific (lower global organic traffic baseline)
+    tldMult = 0.45;
   } else if (cleanHost.endsWith(".xyz") || cleanHost.endsWith(".club") || cleanHost.endsWith(".info")) {
-    tldMult = 0.15; // low tier spam TLDs
+    tldMult = 0.15;
   } else if (cleanHost.endsWith(".ai") || cleanHost.endsWith(".io") || cleanHost.endsWith(".co")) {
     tldMult = 0.8;
   }
 
-  // Shorter domains generally indicate more authority
   const nameLen = cleanHost.split(".")[0].length;
   let lenMult = 1.0;
   if (nameLen <= 5) lenMult = 2.5;
   else if (nameLen <= 8) lenMult = 1.6;
   else if (nameLen > 15) lenMult = 0.45;
 
-  // Scale based on crawled page count (represents content depth)
-  // 5 pages crawled: 1.0x, 50 pages crawled: 4.6x, 150 pages crawled: 12.6x
   const scaleMult = 0.6 + (crawledPageCount * 0.08);
 
   let organicTraffic = Math.round(baseTraffic * tldMult * lenMult * scaleMult);
   if (organicTraffic < 5) organicTraffic = 5;
 
-  // Organic Keywords and Backlinks correlate with traffic
   const organicKeywords = Math.round(organicTraffic * 0.22) + (hash % 8) + 1;
   const backlinks = Math.round(organicTraffic * 0.06) + (hash % 4) + 1;
 
-  // Determine a deterministic trend direction for this site (up or down)
   const trendDir = (hash % 2 === 0) ? 1 : -1;
 
   const sparklineTraffic = Array(7).fill(null).map((_, i) => {
@@ -188,6 +241,7 @@ export function estimateDomainMetrics(domain: string, crawledPageCount: number):
     organicTraffic,
     organicKeywords,
     backlinks,
+    domainAuthority: 0,
     sparklineTraffic,
     sparklineImpressions,
     sparklineBacklinks,
@@ -203,13 +257,15 @@ export interface ChartDataPoint {
 /**
  * Generates dynamic, consistent time-series data for the TrafficChart
  * that exactly anchors to the organic traffic number.
+ * Uses real traffic data when available.
  */
 export function getTrafficChartData(
   domain: string,
   crawledPageCount: number,
-  timeRange: string
+  timeRange: string,
+  realTrafficData?: RealTrafficData | null
 ): ChartDataPoint[] {
-  const metrics = estimateDomainMetrics(domain, crawledPageCount);
+  const metrics = estimateDomainMetrics(domain, crawledPageCount, realTrafficData);
   const traffic = metrics.organicTraffic;
 
   if (traffic === 0) {

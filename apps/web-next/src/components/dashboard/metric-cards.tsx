@@ -329,9 +329,22 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     return (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url)).length;
   }, [crawledPagesQuery.data]);
 
+  // Parse real traffic data from project metadata
+  const realTrafficData = useMemo(() => {
+    if (!activeProject?.brand_description) return null;
+    const parts = activeProject.brand_description.split("\n---\nMETADATA: ");
+    if (parts.length > 1) {
+      try {
+        const meta = JSON.parse(parts[1]);
+        return meta?.trafficData || null;
+      } catch { return null; }
+    }
+    return null;
+  }, [activeProject?.brand_description]);
+
   const estimated = useMemo(() => {
-    return estimateDomainMetrics(activeProject?.domain || "", totalPageCount);
-  }, [activeProject?.domain, totalPageCount]);
+    return estimateDomainMetrics(activeProject?.domain || "", totalPageCount, realTrafficData);
+  }, [activeProject?.domain, totalPageCount, realTrafficData]);
 
   const multiplier = useMemo(() => {
     if (timeRange === "today") return 0.033;

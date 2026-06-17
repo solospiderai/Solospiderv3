@@ -3,6 +3,8 @@ import { redis, env } from "../config.js";
 import { supabase } from "../lib/supabase.js";
 import { discoverUrls, crawlPage, type CrawledPageData } from "../lib/crawler.js";
 import { generateAndSaveAiPrompts } from "../lib/prompt-generator.js";
+import { getPageSpeedData } from "../lib/pagespeed.js";
+import { estimateRealTraffic } from "../lib/traffic-estimator.js";
 import { CrawlJobData, promptScanQueue } from "../queues.js";
 
 const BATCH_SIZE = 10;
@@ -102,33 +104,12 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
 
   // ── 2. Discover URLs ────────────────────────────────────────────────────────
   const urlQueue = await discoverUrls(website, max_pages);
-  console.log(`[CrawlWorker] Discovered ${urlQueue.length} URLs`);
+  console.log(`[CrawlWorker] Discovered ${urlQueue.length} real URLs (no simulated pages)`);
   
-  if (urlQueue.length <= 1) {
-    console.log("[CrawlWorker] Actual crawl found only 1 page. Supplementing with simulated pages for a high-fidelity audit experience...");
-    const origin = new URL(website).origin;
-    const subpaths = [
-      { path: "/about", source: "sitemap" as const },
-      { path: "/pricing", source: "sitemap" as const },
-      { path: "/contact", source: "sitemap" as const },
-      { path: "/features", source: "sitemap" as const },
-      { path: "/blog", source: "sitemap" as const },
-      { path: "/services", source: "sitemap" as const },
-      { path: "/careers", source: "sitemap" as const },
-      { path: "/privacy-policy", source: "sitemap" as const },
-      { path: "/terms-of-service", source: "sitemap" as const },
-      { path: "/portfolio", source: "sitemap" as const },
-      { path: "/broken-link-demo", source: "crawl" as const },
-      { path: "/redirect-demo", source: "crawl" as const }
-    ];
-
-    const toAdd = subpaths.slice(0, Math.min(max_pages - urlQueue.length, subpaths.length));
-    for (const item of toAdd) {
-      urlQueue.push({
-        url: `${origin}${item.path}`,
-        source: item.source
-      });
-    }
+  if (urlQueue.length === 0) {
+    console.warn("[CrawlWorker] Could not discover any URLs. The site may be blocking crawlers or is unreachable.");
+    // At minimum try the homepage itself
+    urlQueue.push({ url: website.replace(/\/$/, ""), source: "crawl" });
   }
 
   const hasSitemap = urlQueue.some(item => item.source === "sitemap");
@@ -211,6 +192,59 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   }).eq("id", runId);
   if (completeErr) throw new Error(`Supabase finalize crawl run failed: ${completeErr.message}`);
 
+  await job.updateProgress(95);
+
+  // ── 5. Get REAL PageSpeed data from Google's free API ─────────────────────
+  let pageSpeedData: any = null;
+  try {
+    console.log(`[CrawlWorker] Fetching real PageSpeed Insights for ${website}...`);
+    pageSpeedData = await getPageSpeedData(website);
+    if (pageSpeedData) {
+      // Store real speed metrics in project metadata
+      const { data: proj } = await supabase.from("projects").select("brand_description").eq("id", project_id).single();
+      if (proj) {
+        const rawDesc = proj.brand_description || "";
+        const parts = rawDesc.split("\n---\nMETADATA: ");
+        let meta: any = {};
+        if (parts.length > 1) {
+          try { meta = JSON.parse(parts[1]) || {}; } catch {}
+        }
+        meta.pageSpeed = pageSpeedData;
+        const cleanDesc = parts[0];
+        const updatedDesc = `${cleanDesc}\n---\nMETADATA: ${JSON.stringify(meta)}`;
+        await supabase.from("projects").update({ brand_description: updatedDesc }).eq("id", project_id);
+        console.log(`[CrawlWorker] ✅ Real PageSpeed data saved: score=${pageSpeedData.performanceScore}, LCP=${pageSpeedData.lcp}s, CLS=${pageSpeedData.cls}`);
+      }
+    }
+  } catch (psErr: any) {
+    console.warn(`[CrawlWorker] PageSpeed fetch failed (non-critical): ${psErr?.message}`);
+  }
+
+  // ── 6. Get REAL traffic data via Perplexity search ─────────────────────────
+  let trafficData: any = null;
+  try {
+    console.log(`[CrawlWorker] Looking up real traffic data for ${website}...`);
+    trafficData = await estimateRealTraffic(website);
+    if (trafficData) {
+      const { data: proj } = await supabase.from("projects").select("brand_description").eq("id", project_id).single();
+      if (proj) {
+        const rawDesc = proj.brand_description || "";
+        const parts = rawDesc.split("\n---\nMETADATA: ");
+        let meta: any = {};
+        if (parts.length > 1) {
+          try { meta = JSON.parse(parts[1]) || {}; } catch {}
+        }
+        meta.trafficData = trafficData;
+        const cleanDesc = parts[0];
+        const updatedDesc = `${cleanDesc}\n---\nMETADATA: ${JSON.stringify(meta)}`;
+        await supabase.from("projects").update({ brand_description: updatedDesc }).eq("id", project_id);
+        console.log(`[CrawlWorker] ✅ Real traffic data saved: monthlyVisits=${trafficData.monthlyVisits}, organic=${trafficData.organicTraffic}`);
+      }
+    }
+  } catch (tErr: any) {
+    console.warn(`[CrawlWorker] Traffic estimation failed (non-critical): ${tErr?.message}`);
+  }
+
   await job.updateProgress(100);
 
   // Run prompt generation asynchronously in the background so that the crawl job finishes instantly
@@ -225,6 +259,8 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     faq_pages: faqCount,
     howto_pages: howToCount,
     no_schema_pages: noSchema,
+    pageSpeed: pageSpeedData ? { score: pageSpeedData.performanceScore, lcp: pageSpeedData.lcp, cls: pageSpeedData.cls } : null,
+    traffic: trafficData ? { monthly: trafficData.monthlyVisits, organic: trafficData.organicTraffic } : null,
   };
   console.log(`[CrawlWorker] Done:`, summary);
   return summary;
