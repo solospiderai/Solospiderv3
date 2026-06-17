@@ -43,6 +43,11 @@ async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; s
       });
       const html = await res.text();
       clearTimeout(timer);
+      if (res.status === 429 && attempt < retryCount) {
+        console.log(`[Crawler] 429 rate limit encountered for ${url}. Waiting 2s before retry...`);
+        await new Promise(r => setTimeout(r, 2000));
+        continue;
+      }
       return { html, status: res.status };
     } catch (err: any) {
       clearTimeout(timer);
