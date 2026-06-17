@@ -162,7 +162,17 @@ export async function discoverUrls(
   website: string,
   maxPages: number
 ): Promise<Array<{ url: string; source: "sitemap" | "crawl" }>> {
-  const origin = new URL(website).origin;
+  let origin = "";
+  try {
+    let target = website.trim();
+    if (!/^https?:\/\//i.test(target)) {
+      target = "https://" + target;
+    }
+    origin = new URL(target).origin;
+  } catch (e) {
+    console.error(`[Crawler] Invalid website URL format: ${website}`, e);
+    origin = website.startsWith("http") ? website : `https://${website}`;
+  }
   const pageUrls: string[] = [];
   const sitemapsToProcess = [
     `${origin}/sitemap.xml`,
