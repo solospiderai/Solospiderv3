@@ -102,6 +102,8 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     }
   }
 
+  const runStartTime = new Date();
+
   // ── 1. Create or reuse crawl_run record ────────────────────────────────────
   let runId = run_id;
   if (!runId) {
@@ -114,15 +116,6 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   } else {
     const { error } = await supabase.from("crawl_runs").update({ status: "running" }).eq("id", runId);
     if (error) throw new Error(`Supabase update failed: ${error.message}`);
-  }
-
-  // Clear any existing crawled pages from previous runs to prevent contamination
-  const { error: clearErr } = await supabase
-    .from("crawled_pages")
-    .delete()
-    .eq("project_id", project_id);
-  if (clearErr) {
-    console.warn(`[CrawlWorker] Failed to clear old crawled pages: ${clearErr.message}`);
   }
 
   await job.updateProgress(5);
@@ -171,7 +164,7 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   if (pagesFoundErr) throw new Error(`Supabase update pages_found failed: ${pagesFoundErr.message}`);
   await job.updateProgress(15);
 
-  // ── 3. Crawl in batches ─────────────────────────────────────────────────────
+  // ── 3. Crawl sequentially to be polite & avoid rate-limiters ────────────────
   let pagesCrawled = 0;
   let faqCount = 0;
   let howToCount = 0;
@@ -179,9 +172,15 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
 
   for (let i = 0; i < urlQueue.length; i += BATCH_SIZE) {
     const batch = urlQueue.slice(i, i + BATCH_SIZE);
-    const batchData = await Promise.all(
-      batch.map(({ url, source }) => crawlPage(url, source))
-    );
+    
+    // Process each URL in the batch sequentially with a polite delay
+    const batchData: any[] = [];
+    for (const item of batch) {
+      const p = await crawlPage(item.url, item.source);
+      batchData.push(p);
+      // Polite 200ms delay between pages
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
 
     const rows = batchData.map(p => ({ ...p, project_id }));
 
@@ -209,13 +208,29 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     await job.updateProgress(pct);
   }
 
-  // ── 4. Mark complete ────────────────────────────────────────────────────────
+  // ── 4. Mark complete & Cleanup Outdated Pages ────────────────────────────────
   const { error: completeErr } = await supabase.from("crawl_runs").update({
     status: "done",
     pages_crawled: pagesCrawled,
     finished_at: new Date().toISOString(),
   }).eq("id", runId);
   if (completeErr) throw new Error(`Supabase finalize crawl run failed: ${completeErr.message}`);
+
+  // Delete pages that were NOT updated in this crawl run
+  try {
+    const { error: cleanupErr } = await supabase
+      .from("crawled_pages")
+      .delete()
+      .eq("project_id", project_id)
+      .lt("crawled_at", runStartTime.toISOString());
+    if (cleanupErr) {
+      console.warn(`[CrawlWorker] Failed to clean up old pages: ${cleanupErr.message}`);
+    } else {
+      console.log(`[CrawlWorker] Cleaned up outdated crawled pages.`);
+    }
+  } catch (err: any) {
+    console.error("[CrawlWorker] Failed to cleanup old crawled pages:", err.message);
+  }
 
   await job.updateProgress(95);
 
