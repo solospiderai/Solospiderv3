@@ -34,6 +34,10 @@ async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; s
         signal: controller.signal,
         headers: {
           "User-Agent": ua,
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.5",
+          "Upgrade-Insecure-Requests": "1",
+          "Cache-Control": "max-age=0",
         },
         redirect: "follow",
       });
@@ -197,6 +201,24 @@ export async function discoverUrls(
     `${origin}/sitemap.txt`,
     `${origin}/sitemap`,
   ];
+
+  // Try to discover sitemap URLs from robots.txt first
+  try {
+    const robotsPage = await fetchPage(`${origin}/robots.txt`);
+    if (robotsPage && robotsPage.status < 400 && robotsPage.status > 0) {
+      const re = /sitemap:\s*(https?:\/\/[^\s#]+)/gi;
+      let match: RegExpExecArray | null;
+      while ((match = re.exec(robotsPage.html)) !== null) {
+        const sUrl = match[1].trim();
+        if (sUrl && !sitemapsToProcess.includes(sUrl)) {
+          sitemapsToProcess.unshift(sUrl); // prioritize discovered sitemap
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`[Crawler] Failed to parse robots.txt sitemaps:`, err);
+  }
+
   const processedSitemaps = new Set<string>();
   const maxSitemapsToFetch = 15;
   let sitemapsFetchedCount = 0;
