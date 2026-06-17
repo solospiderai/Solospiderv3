@@ -23,6 +23,14 @@ const EnvSchema = z.object({
 });
 
 function loadEnv() {
+  // Trim trailing whitespaces / newlines from all process.env keys
+  for (const key of Object.keys(process.env)) {
+    const val = process.env[key];
+    if (typeof val === "string") {
+      process.env[key] = val.trim();
+    }
+  }
+
   // Fallback parsing: copy NEXT_PUBLIC_SUPABASE_URL to SUPABASE_URL if missing
   if (!process.env.SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL) {
     process.env.SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -80,6 +80,121 @@ const extractAllUrls = (text: string) => {
   return Array.from(uniqueUrls);
 };
 
+const DOMAIN_TO_BRAND: Record<string, string> = {
+  "amazon.in": "Amazon.in",
+  "amazon.com": "Amazon",
+  "reddit.com": "Reddit",
+  "flipkart.com": "Flipkart",
+  "myntra.com": "Myntra",
+  "walmart.com": "Walmart",
+  "youtube.com": "YouTube",
+  "wikipedia.org": "Wikipedia",
+  "nytimes.com": "New York Times",
+  "forbes.com": "Forbes",
+  "google.com": "Google",
+  "healthline.com": "Healthline",
+  "webmd.com": "WebMD",
+  "quora.com": "Quora",
+};
+
+const PLATFORMS = [
+  "amazon", "reddit", "flipkart", "myntra", "walmart", "youtube", 
+  "wikipedia", "quora", "google", "ebay", "pinterest", "facebook", 
+  "instagram", "twitter", "x.com"
+];
+
+const getDomain = (urlStr: string) => {
+  if (!urlStr) return "";
+  try {
+    let target = urlStr.trim();
+    if (!/^https?:\/\//i.test(target)) {
+      target = "https://" + target;
+    }
+    const url = new URL(target);
+    let hostname = url.hostname.toLowerCase();
+    if (hostname.startsWith("www.")) {
+      hostname = hostname.slice(4);
+    }
+    return hostname;
+  } catch (e) {
+    return "";
+  }
+};
+
+const getBrandFromCitation = (cit: any, targetDomain: string, targetBrandName: string) => {
+  const url = cit.metadata?.url || "";
+  const domain = getDomain(url);
+  
+  const targetDomainClean = targetDomain
+    ? targetDomain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/$/, "")
+    : "";
+    
+  if (targetDomainClean && domain.includes(targetDomainClean)) {
+    return targetBrandName || "Our Brand";
+  }
+  
+  for (const plat of PLATFORMS) {
+    if (domain.includes(plat)) {
+      if (plat === "amazon") {
+        return domain.endsWith(".in") ? "Amazon.in" : "Amazon";
+      }
+      if (plat === "reddit") return "Reddit";
+      if (plat === "flipkart") return "Flipkart";
+      if (plat === "myntra") return "Myntra";
+      if (plat === "walmart") return "Walmart";
+      return plat.charAt(0).toUpperCase() + plat.slice(1);
+    }
+  }
+  
+  if (DOMAIN_TO_BRAND[domain]) {
+    return DOMAIN_TO_BRAND[domain];
+  }
+  
+  if (domain) {
+    const parts = domain.split(".");
+    const mainPart = parts[0] === "co" || parts[0] === "com" ? parts[1] : parts[0];
+    if (mainPart) {
+      return mainPart
+        .split("-")
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(" ");
+    }
+  }
+  
+  if (cit.cited_title) {
+    const cleanTitle = cit.cited_title.split(/[|\-:]/)[0].trim();
+    if (cleanTitle.length > 0 && cleanTitle.length < 40) {
+      return cleanTitle;
+    }
+  }
+  
+  return domain || "Other Source";
+};
+
+const parseUrlDetails = (urlStr: string) => {
+  if (!urlStr) return { domain: "Unknown", path: "" };
+  try {
+    let target = urlStr.trim();
+    if (!/^https?:\/\//i.test(target)) {
+      target = "https://" + target;
+    }
+    const url = new URL(target);
+    let hostname = url.hostname.toLowerCase();
+    if (hostname.startsWith("www.")) {
+      hostname = hostname.slice(4);
+    }
+    let path = url.pathname;
+    if (path === "/") path = "";
+    if (path.length > 40) {
+      path = path.slice(0, 38) + "...";
+    }
+    return { domain: hostname, path };
+  } catch (e) {
+    return { domain: urlStr, path: "" };
+  }
+};
+
+
 function AeoTrendChart({
   title,
   data,
@@ -786,11 +901,6 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         hasScans: totalScans > 0,
       };
     }).filter(p => {
-      // Filter out prompts that have been scanned but are not mentioned in any model
-      if (p.hasScans && !p.targetCited) {
-        return false;
-      }
-
       const matchesSearch = !promptSearch || 
         p.prompt.toLowerCase().includes(searchLower) || 
         (p.topic && p.topic.toLowerCase().includes(searchLower));
@@ -953,6 +1063,111 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       .map(([day, models]) => ({ day, ...models }))
       .sort((a, b) => a.day.localeCompare(b.day));
   }, [citationShareTrend]);
+
+  const brandRanking = useMemo(() => {
+    const scanResults = resultsQuery.data || [];
+    const citations = citationsQuery.data || [];
+    if (scanResults.length === 0) return [];
+
+    const totalAnswers = scanResults.length;
+    const responseBrandsMap = new Map<string, Set<string>>();
+    const brandCounts: Record<string, number> = {};
+
+    for (const res of scanResults) {
+      const key = `${res.model}__${res.prompt_text.toLowerCase()}`;
+      if (!responseBrandsMap.has(key)) {
+        responseBrandsMap.set(key, new Set<string>());
+      }
+      if (res.brand_mentioned) {
+        const targetBrand = activeProject?.brand_name || activeProject?.name || "Our Brand";
+        responseBrandsMap.get(key)!.add(targetBrand);
+      }
+    }
+
+    for (const cit of citations) {
+      const key = `${cit.provider}__${cit.query.toLowerCase()}`;
+      const url = cit.metadata?.url || "";
+      const domain = getDomain(url);
+      if (!domain) continue;
+
+      let brand = getBrandFromCitation(cit, activeProject?.domain, activeProject?.brand_name || activeProject?.name);
+
+      if (!responseBrandsMap.has(key)) {
+        responseBrandsMap.set(key, new Set<string>());
+      }
+      responseBrandsMap.get(key)!.add(brand);
+    }
+
+    for (const [_, brandsSet] of responseBrandsMap.entries()) {
+      for (const brand of brandsSet) {
+        brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+      }
+    }
+
+    const ranking = Object.entries(brandCounts).map(([brand, count]) => {
+      const visibility = totalAnswers > 0 ? (count / totalAnswers) * 100 : 0;
+      return {
+        brand,
+        count,
+        visibility: parseFloat(visibility.toFixed(1)),
+      };
+    });
+
+    return ranking.sort((a, b) => b.visibility - a.visibility).slice(0, 10);
+  }, [resultsQuery.data, citationsQuery.data, activeProject?.domain, activeProject?.brand_name, activeProject?.name]);
+
+  const pageRanking = useMemo(() => {
+    const scanResults = resultsQuery.data || [];
+    const citations = citationsQuery.data || [];
+    if (scanResults.length === 0) return [];
+
+    const totalAnswers = scanResults.length;
+    const urlCounts: Record<string, { count: number; title: string }> = {};
+    const responseUrlsMap = new Map<string, Set<string>>();
+
+    for (const cit of citations) {
+      const url = cit.metadata?.url || "";
+      if (!url) continue;
+
+      let cleanUrl = url;
+      try {
+        const u = new URL(url);
+        cleanUrl = u.origin + u.pathname;
+      } catch(e) {}
+
+      const key = `${cit.provider}__${cit.query.toLowerCase()}`;
+      if (!responseUrlsMap.has(key)) {
+        responseUrlsMap.set(key, new Set<string>());
+      }
+      responseUrlsMap.get(key)!.add(cleanUrl);
+
+      if (!urlCounts[cleanUrl]) {
+        urlCounts[cleanUrl] = { count: 0, title: cit.cited_title || "" };
+      } else if (!urlCounts[cleanUrl].title && cit.cited_title) {
+        urlCounts[cleanUrl].title = cit.cited_title;
+      }
+    }
+
+    for (const [_, urlsSet] of responseUrlsMap.entries()) {
+      for (const url of urlsSet) {
+        if (urlCounts[url]) {
+          urlCounts[url].count += 1;
+        }
+      }
+    }
+
+    const ranking = Object.entries(urlCounts).map(([url, data]) => {
+      const citationRate = totalAnswers > 0 ? (data.count / totalAnswers) * 100 : 0;
+      return {
+        url,
+        title: data.title,
+        count: data.count,
+        citationRate: parseFloat(citationRate.toFixed(1)),
+      };
+    });
+
+    return ranking.sort((a, b) => b.citationRate - a.citationRate).slice(0, 10);
+  }, [resultsQuery.data, citationsQuery.data]);
 
   if (!activeProject) {
     return (
@@ -1845,6 +2060,129 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             </div>
           </div>
 
+          {/* Strongest Brands & Most-Cited Pages Section */}
+          <div className="md:col-span-3 space-y-4 pt-4">
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-slate-900 tracking-tight">These are the strongest brands for your topics</h3>
+              <p className="text-xs font-medium text-slate-550">Ranked by how often they appear in AI-generated answers across your topics.</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Visibility Ranking Card */}
+              <div className="rounded-2xl border border-slate-150 bg-white p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-55 pb-2.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-550 flex items-center gap-1">
+                    Visibility ranking
+                    <HelpCircle className="w-3.5 h-3.5 text-slate-350 cursor-help" title="Ranked by how often a brand is cited or mentioned across all query scans." />
+                  </h4>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Visibility</span>
+                </div>
+                
+                <div className="divide-y divide-slate-100/80">
+                  {brandRanking.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-xs font-semibold">
+                      No brand citations recorded. Run a scan first.
+                    </div>
+                  ) : (
+                    brandRanking.map((item, idx) => {
+                      const isTarget = item.brand === (activeProject.brand_name || activeProject.name);
+                      const domain = getDomain(item.brand);
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`flex items-center gap-3 py-3 px-2 rounded-xl transition-all duration-200 hover:bg-slate-50 ${
+                            isTarget ? "bg-violet-50/50 border border-violet-100/30" : ""
+                          }`}
+                        >
+                          <span className="text-[11px] font-extrabold text-slate-400 w-5 text-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-205">
+                            <img 
+                              src={`https://www.google.com/s2/favicons?sz=32&domain=${domain || item.brand}`} 
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
+                              className="w-3.5 h-3.5 object-contain"
+                              alt=""
+                            />
+                          </div>
+                          <span className={`text-xs flex-1 truncate ${isTarget ? "font-black text-violet-750" : "font-extrabold text-slate-700"}`}>
+                            {item.brand}
+                          </span>
+                          <span className="text-xs font-black text-slate-900 text-right">
+                            {item.visibility}%
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Most-Cited Pages Card */}
+              <div className="rounded-2xl border border-slate-150 bg-white p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-55 pb-2.5">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-555">
+                    Most-cited pages
+                  </h4>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Citation rate</span>
+                </div>
+                
+                <div className="divide-y divide-slate-100/80">
+                  {pageRanking.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400 text-xs font-semibold">
+                      No page citations recorded. Run a scan first.
+                    </div>
+                  ) : (
+                    pageRanking.map((item, idx) => {
+                      const { domain, path } = parseUrlDetails(item.url);
+                      const targetDomainClean = activeProject.domain
+                        ? activeProject.domain.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/$/, "")
+                        : "";
+                      const isTarget = targetDomainClean && domain.includes(targetDomainClean);
+                      return (
+                        <div 
+                          key={idx} 
+                          className={`flex items-center gap-3 py-3 px-2 rounded-xl transition-all duration-200 hover:bg-slate-50 ${
+                            isTarget ? "bg-violet-50/50 border border-violet-100/30" : ""
+                          }`}
+                        >
+                          <span className="text-[11px] font-extrabold text-slate-400 w-5 text-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-205">
+                            <img 
+                              src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`} 
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = "none";
+                              }}
+                              className="w-3.5 h-3.5 object-contain"
+                              alt=""
+                            />
+                          </div>
+                          <a 
+                            href={item.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs flex-1 truncate hover:underline"
+                            title={item.title || item.url}
+                          >
+                            <span className="font-extrabold text-slate-700">{domain}</span>
+                            <span className="text-slate-400 font-medium">{path}</span>
+                          </a>
+                          <span className="text-xs font-black text-slate-900 text-right">
+                            {item.citationRate}%
+                          </span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Full Width Recent Rows */}
           <div className="md:col-span-3 rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-4">
             <h3 className="text-sm font-bold text-slate-900 border-b border-slate-50 pb-2.5 flex items-center gap-1.5">
@@ -2042,10 +2380,17 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                                   href={cit.url || "#"}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="block text-[10px] text-violet-650 hover:underline font-bold truncate leading-tight flex items-center gap-1"
+                                  className="block text-[10px] text-violet-650 hover:underline font-bold truncate leading-tight flex items-center gap-1.5"
                                 >
-                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" />
-                                  {cit.title}
+                                  <img 
+                                    src={`https://www.google.com/s2/favicons?sz=32&domain=${getDomain(cit.url)}`}
+                                    onError={(e) => {
+                                      (e.target as HTMLElement).style.display = "none";
+                                    }}
+                                    className="w-3 h-3 rounded-full shrink-0 border border-slate-100 object-contain"
+                                    alt=""
+                                  />
+                                  <span className="truncate">{cit.title}</span>
                                 </a>
                               ))
                             ) : (

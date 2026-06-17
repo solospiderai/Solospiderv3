@@ -15,6 +15,14 @@ const ServerEnvSchema = z.object({
 });
 
 export function getServerEnv() {
+  // Trim trailing whitespaces / newlines from all process.env keys
+  for (const key of Object.keys(process.env)) {
+    const val = process.env[key];
+    if (typeof val === "string") {
+      process.env[key] = val.trim();
+    }
+  }
+
   const parsed = ServerEnvSchema.safeParse(process.env);
   if (!parsed.success) {
     const message = parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ");
