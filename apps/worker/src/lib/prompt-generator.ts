@@ -599,7 +599,6 @@ Respond ONLY with raw valid JSON. Do not include markdown code block formatting 
 
     if (!countErr && typeof count === "number" && count > 5) {
       console.log(`[PromptGenerator] Project ${projectId} already has ${count} custom prompts. Skipping AI prompt generation to preserve them.`);
-      await enqueueAutoScan(projectId, brandName, competitorsFromMeta);
       return;
     }
 
@@ -805,25 +804,13 @@ ${searchRes.text}
       console.log(`[PromptGenerator] No new AEO prompts to insert for project ${projectId}.`);
     }
 
-    await enqueueAutoScan(projectId, brandName, competitorsFromMeta);
+    // Scans are now triggered manually from AEO tab
+    console.log(`[PromptGenerator] Skipping automatic prompt scan for project ${projectId} — manual trigger is required.`);
   } catch (err) {
     console.error(`[PromptGenerator] Error generating AEO prompts:`, err);
   }
 }
 
 async function enqueueAutoScan(projectId: string, brandName: string, competitors: string[]) {
-  try {
-    const { promptScanQueue } = await import("../queues.js");
-    console.log(`[PromptGenerator] Enqueuing automatic prompt scan for project ${projectId} (${brandName}) with competitors:`, competitors);
-    await promptScanQueue.add("prompt-scan", {
-      project_id: projectId,
-      brand_name: brandName,
-      models: ["chatgpt", "gemini", "perplexity", "claude"],
-      competitors: competitors,
-    }, {
-      jobId: `auto-scan-${projectId}-${Date.now()}`
-    });
-  } catch (scanErr) {
-    console.error("[PromptGenerator] Failed to enqueue automatic prompt scan:", scanErr);
-  }
+  // Disabled automatic scan queuing to avoid progress loop resets in the UI
 }

@@ -97,13 +97,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract raw text clues from HTML (remove tags, script, style)
-    const textClues = htmlContent
+    let textClues = htmlContent
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
       .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ")
       .slice(0, 10000)
       .trim();
+
+    const cleanDomainName = url.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
+    if (!textClues || textClues.includes("enable JavaScript") || textClues.length < 300) {
+      console.log("[DiscoverTopics] Direct homepage fetch was empty or JS blocked. Executing Perplexity web search fallback...");
+      try {
+        const searchInfo = await callOpenRouter(
+          `Search the web for: site:${cleanDomainName} OR "${brandName || cleanDomainName}". Find details about this brand/organization, including its core offerings, services, products, business category, target audience, location, and key features. Respond with a detailed and objective summary of facts about this website/organization.`,
+          "perplexity/sonar"
+        );
+        if (searchInfo) {
+          textClues = searchInfo;
+          console.log(`[DiscoverTopics] Web search fallback retrieved ${textClues.length} characters of context.`);
+        }
+      } catch (searchErr: any) {
+        console.error("[DiscoverTopics] Web search fallback failed:", searchErr?.message || searchErr);
+      }
+    }
 
     const promptText = `You are a professional business analyst. Your task is to analyze the text content of a company's website homepage to:
 1. DEDUCE the primary target country/market location of this brand. Analyze visible text, addresses, contact details, cities mentioned, currencies, regional spelling conventions (e.g. UK vs US spelling), phone number formats, or venue locations listed on the page. 

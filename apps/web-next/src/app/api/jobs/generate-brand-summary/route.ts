@@ -20,7 +20,7 @@ function getSupabaseAdmin() {
   );
 }
 
-async function callLLM(prompt: string, maxTokens = 500) {
+async function callLLM(prompt: string, maxTokens = 500, model = "google/gemini-2.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   let text = "";
 
@@ -35,7 +35,7 @@ async function callLLM(prompt: string, maxTokens = 500) {
           "X-Title": "SoloSpider",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: model,
           messages: [{ role: "user", content: prompt }],
           max_tokens: maxTokens,
           temperature: 0.7,
@@ -467,6 +467,24 @@ export async function POST(request: NextRequest) {
         .replace(/\s+/g, " ")
         .slice(0, 8000)
         .trim();
+    }
+
+    const cleanDomainName = cleanUrl.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
+    if (!homepageText || homepageText.includes("enable JavaScript") || homepageText.length < 300) {
+      console.log("[generate-brand-summary] Direct homepage fetch was empty or JS blocked. Executing Perplexity web search fallback...");
+      try {
+        const searchInfo = await callLLM(
+          `Search the web for: site:${cleanDomainName} OR "${project.brand_name || project.name || cleanDomainName}". Find details about this brand/organization, including its core offerings, services, products, business category, target audience, location, and key features. Respond with a detailed and objective summary of facts about this website/organization.`,
+          1500,
+          "perplexity/sonar"
+        );
+        if (searchInfo) {
+          homepageText = searchInfo;
+          console.log(`[generate-brand-summary] Web search fallback retrieved ${homepageText.length} characters of context.`);
+        }
+      } catch (searchErr: any) {
+        console.error("[generate-brand-summary] Web search fallback failed:", searchErr?.message || searchErr);
+      }
     }
 
     const logoUrl = homepageHtml ? findLogoUrl(homepageHtml, cleanUrl, project.brand_name || project.name, project.domain) : null;
