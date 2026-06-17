@@ -698,12 +698,12 @@ export function SeoWorkspace() {
     const pages = crawledPages;
     const total = pages.length;
 
-    // A. Broken Pages
+    // A. Broken Pages — includes pages with null status (failed to fetch) AND non-200 status
     const brokenPages = pages
-      .filter((p) => p.status_code && p.status_code !== 200)
+      .filter((p) => !p.status_code || p.status_code !== 200)
       .map((p) => ({
         url: p.url,
-        detail: p.status_code ? `HTTP ${p.status_code}` : "Failed to load",
+        detail: p.status_code ? `HTTP ${p.status_code}` : "Failed to load — connection error or timeout",
       }));
 
     // B. Missing Titles (Successful pages only)
@@ -993,25 +993,32 @@ export function SeoWorkspace() {
     const minorCount = activeIssues.filter((i) => i.impact === "Minor").length;
     const passedCount = passedChecks.length;
 
-    // Base SEO score from crawls
+    // Base SEO score from crawls — properly penalize broken/unreachable pages
     let score = 100;
+    const successfulPages = pages.filter(p => p.status_code === 200).length;
     const brokenPct = brokenPages.length / total;
-    const missingTitlePct = missingTitles.length / total;
-    const duplicateTitlePct = duplicateTitles.length / total;
-    const longTitlePct = longTitles.length / total;
-    const missingDescPct = missingDescs.length / total;
-    const duplicateDescPct = duplicateDescs.length / total;
-    const missingH1Pct = missingH1s.length / total;
+    const missingTitlePct = total > 0 ? missingTitles.length / total : 0;
+    const duplicateTitlePct = total > 0 ? duplicateTitles.length / total : 0;
+    const longTitlePct = total > 0 ? longTitles.length / total : 0;
+    const missingDescPct = total > 0 ? missingDescs.length / total : 0;
+    const duplicateDescPct = total > 0 ? duplicateDescs.length / total : 0;
+    const missingH1Pct = total > 0 ? missingH1s.length / total : 0;
 
-    score -= Math.min(40, Math.round(brokenPct * 100));
-    score -= Math.min(20, Math.round(missingTitlePct * 60));
-    score -= Math.min(15, Math.round(duplicateTitlePct * 40));
-    score -= Math.min(10, Math.round(longTitlePct * 20));
-    score -= Math.min(15, Math.round(missingDescPct * 30));
-    score -= Math.min(10, Math.round(duplicateDescPct * 20));
-    score -= Math.min(10, Math.round(missingH1Pct * 20));
-    if (!hasSitemap) score -= 5;
-    score = Math.max(30, score);
+    // If ALL or most pages are broken, score should be very low
+    if (brokenPct >= 0.8) {
+      // >80% broken — catastrophic, cap score at 20
+      score = Math.round(20 * (1 - brokenPct));
+    } else {
+      score -= Math.min(60, Math.round(brokenPct * 120)); // up to -60 for broken pages
+      score -= Math.min(20, Math.round(missingTitlePct * 60));
+      score -= Math.min(15, Math.round(duplicateTitlePct * 40));
+      score -= Math.min(10, Math.round(longTitlePct * 20));
+      score -= Math.min(15, Math.round(missingDescPct * 30));
+      score -= Math.min(10, Math.round(duplicateDescPct * 20));
+      score -= Math.min(10, Math.round(missingH1Pct * 20));
+      if (!hasSitemap) score -= 5;
+    }
+    score = Math.max(0, Math.min(100, score));
 
     return {
       seoScore: score,

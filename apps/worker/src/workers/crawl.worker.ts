@@ -69,6 +69,31 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
         diagnostics.openRouterError = orErr.message;
       }
 
+      // Test fetching Google
+      try {
+        const res = await fetch("https://google.com");
+        diagnostics.googleStatus = res.status;
+      } catch (err: any) {
+        diagnostics.googleError = err.message;
+      }
+
+      // Test fetching Finarray
+      try {
+        const res = await fetch("https://finarraywealth.com", {
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+          }
+        });
+        diagnostics.finarrayStatus = res.status;
+        diagnostics.finarrayText = (await res.text()).slice(0, 100);
+      } catch (err: any) {
+        diagnostics.finarrayError = {
+          message: err.message,
+          code: err.code,
+          cause: err?.cause ? (err.cause.message || String(err.cause)) : null
+        };
+      }
+
       console.log("[CrawlWorker] Diagnostics completed:", diagnostics);
       return diagnostics;
     } catch (err: any) {
