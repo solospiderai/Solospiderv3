@@ -371,6 +371,31 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
   const [openBriefId, setOpenBriefId] = useState<string | null>(null);
   const [activeGeoTab, setActiveGeoTab] = useState<Record<string, "authority" | "readability" | "structure">>({});
 
+  // Setup panel states
+  const [scanLocation, setScanLocation] = useState("United States");
+  const [scanCompetitors, setScanCompetitors] = useState("");
+  const [scanPromptLimit, setScanPromptLimit] = useState(25);
+
+  useEffect(() => {
+    if (activeProject) {
+      const rawDesc = activeProject.brand_description || "";
+      const parts = rawDesc.split("\n---\nMETADATA: ");
+      if (parts.length > 1) {
+        try {
+          const meta = JSON.parse(parts[1]) || {};
+          if (meta.location) {
+            setScanLocation(meta.location);
+          }
+          if (Array.isArray(meta.competitors)) {
+            setScanCompetitors(meta.competitors.join(", "));
+          }
+        } catch (e) {
+          console.warn("Failed to parse metadata in useEffect:", e);
+        }
+      }
+    }
+  }, [activeProject]);
+
   // Prompts and fanouts filtering / edit modal state
   const [promptSearch, setPromptSearch] = useState("");
   const [citedFilter, setCitedFilter] = useState<"all" | "cited" | "not-cited">("all");
@@ -1256,8 +1281,56 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
     }
   };
 
+  // Handle Launch Scan - updates project metadata first, then runs scan
+  const handleLaunchScan = async () => {
+    if (!activeProject?.id) return;
+    setScanning(true);
+    const toastId = toast.loading("Updating target parameters & launching scan...");
+    try {
+      const rawDesc = activeProject.brand_description || "";
+      const parts = rawDesc.split("\n---\nMETADATA: ");
+      const cleanDesc = parts[0] || "";
+      
+      let parsedMeta: any = {};
+      if (parts.length > 1) {
+        try {
+          parsedMeta = JSON.parse(parts[1]) || {};
+        } catch {}
+      }
+
+      parsedMeta.location = scanLocation;
+      parsedMeta.competitors = scanCompetitors
+        .split(",")
+        .map(c => c.trim().toLowerCase())
+        .filter(Boolean);
+
+      const updatedDesc = `${cleanDesc}\n---\nMETADATA: ${JSON.stringify(parsedMeta)}`;
+
+      const supabase = getSupabaseBrowserClient();
+      const { error: updateErr } = await supabase
+        .from("projects")
+        .update({ brand_description: updatedDesc })
+        .eq("id", activeProject.id);
+
+      if (updateErr) throw new Error(`Failed to save project settings: ${updateErr.message}`);
+      
+      // Invalidate queries so useProjects returns updated project info
+      await qc.invalidateQueries({ queryKey: ["projects"] });
+      
+      toast.success("Project settings updated successfully.", { id: toastId });
+
+      // Trigger scan
+      // Let's brief-wait to let the query client sync the new metadata
+      await new Promise(r => setTimeout(r, 500));
+      await handleRunScan(parsedMeta.competitors);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to launch visibility scan", { id: toastId });
+      setScanning(false);
+    }
+  };
+
   // Handle Run Scanner Scan — pre-seeds prompts if inventory is empty
-  const handleRunScan = async () => {
+  const handleRunScan = async (competitorsOverride?: string[]) => {
     setScanning(true);
     try {
       // ── Pre-check: generate prompts if none exist, so the worker never fails silently ──
@@ -1280,6 +1353,25 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         await new Promise(r => setTimeout(r, 1000));
       }
 
+      // ── Parse competitors from active project metadata ──
+      let competitorsFromMeta: string[] = [];
+      if (activeProject) {
+        const rawDesc = activeProject.brand_description || "";
+        const parts = rawDesc.split("\n---\nMETADATA: ");
+        if (parts.length > 1) {
+          try {
+            const meta = JSON.parse(parts[1]);
+            if (Array.isArray(meta.competitors)) {
+              competitorsFromMeta = meta.competitors;
+            }
+          } catch (e) {
+            console.warn("Failed to parse project metadata:", e);
+          }
+        }
+      }
+
+      const activeCompetitors = competitorsOverride || competitorsFromMeta;
+
       // ── Dispatch scan job ──
       const res = await fetch("/api/jobs/prompt-scan", {
         method: "POST",
@@ -1291,7 +1383,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
           project_id: activeProject.id,
           brand_name: activeProject.brand_name || activeProject.name,
           models: DEFAULT_MODELS,
-          competitors: ["sitefire.ai", "higoodie.com", "scrunch.com"],
+          competitors: activeCompetitors,
         }),
       });
 
@@ -1565,7 +1657,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             {!isScanActive && runQuery.data?.status !== "done" && runQuery.data?.status !== "failed" && (
               <button
                 type="button"
-                onClick={handleRunScan}
+                onClick={() => handleRunScan()}
                 disabled={scanning || seeding || generatingPrompts}
                 className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 text-xs font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
               >
@@ -1775,7 +1867,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             </div>
             <button
               type="button"
-              onClick={handleRunScan}
+              onClick={() => handleRunScan()}
               disabled={scanning || seeding || generatingPrompts}
               className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 text-xs font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
             >
@@ -1920,7 +2012,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             </div>
             <button
               type="button"
-              onClick={handleRunScan}
+              onClick={() => handleRunScan()}
               disabled={scanning || seeding || generatingPrompts}
               className="flex items-center gap-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 text-xs font-bold shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
             >
@@ -1933,18 +2025,99 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
           </div>
         </div>
       ) : (
-        /* ── DEFAULT: NOT YET RUN ────────────────────────────────────────── */
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/30 p-8 shadow-sm">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="h-14 w-14 rounded-2xl bg-violet-50 flex items-center justify-center">
-              <Brain className="h-7 w-7 text-violet-600" />
+        /* ── DEFAULT: NOT YET RUN Setup Panel ────────────────────────────────────────── */
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm space-y-6 max-w-2xl mx-auto">
+          <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+            <div className="h-12 w-12 rounded-xl bg-violet-50 flex items-center justify-center shrink-0">
+              <Brain className="h-6 w-6 text-violet-600 animate-pulse" />
             </div>
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-slate-800">Ready to Scan</h3>
-              <p className="text-xs text-slate-500 max-w-md leading-relaxed">
-                Seed your prompt database using the controls above, then click <strong className="text-slate-700">Run Active Scan</strong> to query ChatGPT, Gemini, Perplexity, and Claude for brand visibility analysis.
+            <div>
+              <h3 className="text-base font-black text-slate-900">Configure AEO Visibility Scan</h3>
+              <p className="text-xs text-slate-550 font-semibold">
+                Set up target parameters to analyze your brand share of voice across ChatGPT, Gemini, Perplexity, and Claude.
               </p>
             </div>
+          </div>
+
+          <div className="space-y-4">
+            {/* Target Location/Market */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <Globe className="h-3.5 w-3.5 text-slate-400" /> Target Market Location
+              </label>
+              <select
+                value={scanLocation}
+                onChange={(e) => setScanLocation(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl text-xs font-bold px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
+              >
+                <option value="United States">United States</option>
+                <option value="India">India</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="Germany">Germany</option>
+                <option value="France">France</option>
+                <option value="Japan">Japan</option>
+                <option value="Global">Global / Worldwide</option>
+              </select>
+              <p className="text-[10px] text-slate-400 font-bold">
+                Specifies the geo-context LLMs will prioritize when searching or evaluating competitor presence.
+              </p>
+            </div>
+
+            {/* Benchmark Competitors */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5 text-slate-400" /> Benchmarked Competitors
+              </label>
+              <input
+                type="text"
+                value={scanCompetitors}
+                onChange={(e) => setScanCompetitors(e.target.value)}
+                placeholder="competitor1.com, competitor2.com"
+                className="w-full bg-white border border-slate-200 rounded-xl text-xs font-bold px-3 py-2.5 text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+              />
+              <p className="text-[10px] text-slate-400 font-bold">
+                Enter comma-separated domains (e.g. competitora.com, competitorb.com) to track their reference rates alongside yours.
+              </p>
+            </div>
+
+            {/* Scan Limit Count */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <FileText className="h-3.5 w-3.5 text-slate-400" /> Scan Prompt Limit
+              </label>
+              <select
+                value={scanPromptLimit}
+                onChange={(e) => {
+                  setScanPromptLimit(Number(e.target.value));
+                  setWorkspacePromptLimit(Number(e.target.value));
+                }}
+                className="w-full bg-white border border-slate-200 rounded-xl text-xs font-bold px-3 py-2.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/20 cursor-pointer"
+              >
+                {[10, 15, 20, 25, 30, 40, 50].map((n) => (
+                  <option key={n} value={n}>{n} Prompts</option>
+                ))}
+              </select>
+              <p className="text-[10px] text-slate-400 font-bold">
+                Maximum number of organic/category prompts to scan. More prompts yield higher audit accuracy.
+              </p>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <button
+              type="button"
+              onClick={handleLaunchScan}
+              disabled={scanning || seeding || generatingPrompts}
+              className="flex items-center gap-2 rounded-xl bg-violet-650 hover:bg-violet-600 text-white px-6 py-3 text-xs font-black shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+            >
+              {scanning ? (
+                <><Loader2 className="h-4 w-4 animate-spin text-white" /> Launching Scan...</>
+              ) : (
+                <><Play className="h-4 w-4 text-white" /> Launch AI Visibility Scan</>
+              )}
+            </button>
           </div>
         </div>
       )}

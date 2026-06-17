@@ -20,7 +20,7 @@ function getSupabaseAdmin() {
   );
 }
 
-async function callLLM(prompt: string, maxTokens = 500, model = "google/gemini-2.5-flash") {
+async function callLLM(prompt: string, maxTokens = 500) {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   let text = "";
 
@@ -35,7 +35,7 @@ async function callLLM(prompt: string, maxTokens = 500, model = "google/gemini-2
           "X-Title": "SoloSpider",
         },
         body: JSON.stringify({
-          model: model,
+          model: "google/gemini-2.5-flash",
           messages: [{ role: "user", content: prompt }],
           max_tokens: maxTokens,
           temperature: 0.7,
@@ -429,6 +429,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    let initialLocation = "";
+    let initialCompetitors: string[] = [];
+    if (project.brand_description) {
+      const parts = project.brand_description.split("\n---\nMETADATA: ");
+      if (parts.length > 1) {
+        try {
+          const existingMeta = JSON.parse(parts[1]);
+          if (existingMeta.location) initialLocation = existingMeta.location;
+          if (Array.isArray(existingMeta.competitors) && existingMeta.competitors.length > 0) {
+            initialCompetitors = existingMeta.competitors;
+          }
+        } catch {}
+      }
+    }
+
     // 2. Fetch some crawled pages to guide brand tone/topic
     const { data: pages } = await supabase
       .from("crawled_pages" as any)
@@ -469,24 +484,6 @@ export async function POST(request: NextRequest) {
         .trim();
     }
 
-    const cleanDomainName = cleanUrl.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0].toLowerCase();
-    if (!homepageText || homepageText.includes("enable JavaScript") || homepageText.length < 300) {
-      console.log("[generate-brand-summary] Direct homepage fetch was empty or JS blocked. Executing Perplexity web search fallback...");
-      try {
-        const searchInfo = await callLLM(
-          `Search the web for: site:${cleanDomainName} OR "${project.brand_name || project.name || cleanDomainName}". Find details about this brand/organization, including its core offerings, services, products, business category, target audience, location, and key features. Respond with a detailed and objective summary of facts about this website/organization.`,
-          1500,
-          "perplexity/sonar"
-        );
-        if (searchInfo) {
-          homepageText = searchInfo;
-          console.log(`[generate-brand-summary] Web search fallback retrieved ${homepageText.length} characters of context.`);
-        }
-      } catch (searchErr: any) {
-        console.error("[generate-brand-summary] Web search fallback failed:", searchErr?.message || searchErr);
-      }
-    }
-
     const logoUrl = homepageHtml ? findLogoUrl(homepageHtml, cleanUrl, project.brand_name || project.name, project.domain) : null;
     const extractedColors = homepageHtml ? extractColorsFromHtml(homepageHtml) : [];
     const colorGroundingText = extractedColors.length > 0
@@ -514,6 +511,10 @@ Company Details:
 - Tagline: "${project.brand_tagline || ""}"
 ${colorGroundingText}
 
+${initialLocation ? `Important Ground Truth Constraints:
+- The target market/location is "${initialLocation}". You MUST output "${initialLocation}" in the JSON field "location".` : ""}
+${initialCompetitors.length > 0 ? `- The verified competitors are ${JSON.stringify(initialCompetitors)}. You MUST output these exact competitors in the JSON field "competitors" and use them in "competitorsDetail".` : ""}
+
 Crawled Website Context:
 ${crawledContext}
 
@@ -523,9 +524,11 @@ CRITICAL: Do not assume the company is a Software/SaaS platform unless the crawl
 For Target Country (location):
 - Analyze the text, contact details, currencies, regional references, and phone numbers.
 - If the domain is a .in or target market is explicitly/implicitly India (e.g. pricing in INR, offices in India, cities like Mumbai/Delhi/Bangalore), set target location/location to "India".
+${initialLocation ? `- OVERRIDE: Regardless of other indicators, use the location "${initialLocation}" as configured by the user.` : ""}
 
 For Competitors:
 - Deduce exactly 3 or 4 real competitors in this specific category (e.g. for a premium Indian fragrance brand like Fraganote, competitors would be Ajmal Perfumes, Villain, Skinn by Titan, Nykaa Perfumes, etc. For a SaaS, it would be related SaaS platforms. Do not output generic SaaS competitors like Semrush/Ahrefs unless the brand itself is an SEO/SaaS company).
+${initialCompetitors.length > 0 ? `- OVERRIDE: Regardless of other indicators, use the competitor list ${JSON.stringify(initialCompetitors)} as configured by the user.` : ""}
 
 For Color Palette:
 - Suggest 6 harmonious hex color codes representing the brand's style. For luxury fragrance, suggest rich golds, deep obsidian, luxury purples, warm cream. For tech, blues/indigos.
@@ -595,6 +598,13 @@ Respond ONLY with raw valid JSON. Do not include markdown code block formatting 
 
     if (logoUrl && !parsedMeta.logoUrl) {
       parsedMeta.logoUrl = logoUrl;
+    }
+
+    if (initialLocation) {
+      parsedMeta.location = initialLocation;
+    }
+    if (initialCompetitors.length > 0) {
+      parsedMeta.competitors = initialCompetitors;
     }
 
     const summary = parsedMeta.summary || "A premium and dedicated brand focused on high quality offerings.";

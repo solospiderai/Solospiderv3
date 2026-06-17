@@ -210,10 +210,28 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
 
       if (insertErr) throw insertErr;
 
+      // 3. Trigger background crawl & scans
+      const crawlRes = await fetch("/api/jobs/crawl", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-worker-secret": process.env.NEXT_PUBLIC_WORKER_SECRET || "dev-secret",
+        },
+        body: JSON.stringify({
+          project_id: created.id,
+          website: normalizeUrl(domain),
+          max_pages: 50,
+        }),
+      });
+
+      if (!crawlRes.ok) {
+        throw new Error("Failed to queue background crawl worker");
+      }
+
       setStep(4);
-      toast.success("Success! Project and prompts registered.");
+      toast.success("Success! Site crawler launched and scan scheduled.");
     } catch (err: any) {
-      toast.error(err?.message || "Failed to complete setup");
+      toast.error(err?.message || "Failed to launch scanner pipeline");
     } finally {
       setSubmitting(false);
     }
@@ -552,9 +570,9 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                 <CheckCircle2 className="h-9 w-9 stroke-[2.5]" />
               </div>
               <div className="space-y-1.5">
-                <h4 className="text-lg font-black text-slate-850">Project Registered Successfully!</h4>
+                <h4 className="text-lg font-black text-slate-850">AEO Pipeline Initiated!</h4>
                 <p className="text-slate-500 font-medium max-w-sm leading-relaxed">
-                  Your project has been successfully registered. Go to the Dashboard to run your first SEO sitemap audit and check domain configurations.
+                  Your project has been successfully registered. The background site crawler has started, and active real-time grounded AEO scans will execute immediately after.
                 </p>
               </div>
               <button
@@ -563,9 +581,9 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
                   onClose();
                   router.push("/app/en/dashboard");
                 }}
-                className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-extrabold shadow hover:bg-slate-800 transition-all text-xs cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-extrabold shadow hover:bg-slate-800 transition-all text-xs"
               >
-                Go to Dashboard
+                Go to Workspace
               </button>
             </div>
           )}
