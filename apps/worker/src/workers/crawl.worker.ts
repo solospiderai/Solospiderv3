@@ -120,6 +120,104 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
 
   await job.updateProgress(5);
 
+  // ── 1.5 Smart Cache: Reuse recent crawl results from same domain ──────────
+  // If another project crawled this domain in the last 2 hours, copy results
+  // instead of re-crawling. This handles 50+ users auditing the same site.
+  try {
+    let cleanDomain = website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "").toLowerCase();
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+
+    // Find a recent successful crawl run for the same domain (different project)
+    const { data: recentRuns } = await supabase
+      .from("crawl_runs")
+      .select("id, project_id, pages_found, pages_crawled")
+      .eq("status", "done")
+      .gte("finished_at", twoHoursAgo)
+      .neq("project_id", project_id)
+      .gt("pages_crawled", 5)
+      .order("finished_at", { ascending: false })
+      .limit(10);
+
+    let donorProjectId: string | null = null;
+    if (recentRuns && recentRuns.length > 0) {
+      // Check which of these runs match our domain
+      for (const run of recentRuns) {
+        const { data: donorProj } = await supabase
+          .from("projects")
+          .select("domain")
+          .eq("id", run.project_id)
+          .single();
+        if (donorProj?.domain) {
+          const donorDomain = donorProj.domain.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "").toLowerCase();
+          if (donorDomain === cleanDomain) {
+            donorProjectId = run.project_id;
+            console.log(`[CrawlWorker] ✅ Cache hit! Reusing crawl data from project ${donorProjectId} (${run.pages_crawled} pages)`);
+            break;
+          }
+        }
+      }
+    }
+
+    if (donorProjectId) {
+      // Copy crawled pages from the donor project
+      const { data: donorPages } = await supabase
+        .from("crawled_pages")
+        .select("url, title, meta_desc, h1, word_count, schema_types, has_faq_schema, has_howto, status_code, source")
+        .eq("project_id", donorProjectId)
+        .limit(max_pages);
+
+      if (donorPages && donorPages.length > 0) {
+        const rows = donorPages.map(p => ({ ...p, project_id }));
+        
+        await supabase
+          .from("crawled_pages")
+          .upsert(rows, { onConflict: "project_id,url", ignoreDuplicates: false });
+
+        const pagesCrawled = donorPages.length;
+        await supabase.from("crawl_runs").update({
+          status: "done",
+          pages_found: pagesCrawled,
+          pages_crawled: pagesCrawled,
+          finished_at: new Date().toISOString(),
+        }).eq("id", runId);
+
+        await job.updateProgress(90);
+
+        // Still fetch PageSpeed & traffic for this project (fast, no crawl needed)
+        // Copy metadata from donor if available
+        const { data: donorProj } = await supabase.from("projects").select("brand_description").eq("id", donorProjectId).single();
+        if (donorProj?.brand_description) {
+          const parts = donorProj.brand_description.split("\n---\nMETADATA: ");
+          if (parts.length > 1) {
+            try {
+              const donorMeta = JSON.parse(parts[1]);
+              const { data: myProj } = await supabase.from("projects").select("brand_description").eq("id", project_id).single();
+              const myRawDesc = myProj?.brand_description || "";
+              const myParts = myRawDesc.split("\n---\nMETADATA: ");
+              let myMeta: any = {};
+              if (myParts.length > 1) { try { myMeta = JSON.parse(myParts[1]) || {}; } catch {} }
+              if (donorMeta.pageSpeed) myMeta.pageSpeed = donorMeta.pageSpeed;
+              if (donorMeta.trafficData) myMeta.trafficData = donorMeta.trafficData;
+              if (donorMeta.hasSitemap !== undefined) myMeta.hasSitemap = donorMeta.hasSitemap;
+              const updatedDesc = `${myParts[0]}\n---\nMETADATA: ${JSON.stringify(myMeta)}`;
+              await supabase.from("projects").update({ brand_description: updatedDesc }).eq("id", project_id);
+            } catch {}
+          }
+        }
+
+        await job.updateProgress(100);
+        generateAndSaveAiPrompts(project_id).catch(err => {
+          console.error("[CrawlWorker] Automatic prompt generation failed:", err);
+        });
+
+        console.log(`[CrawlWorker] ✅ Cache reuse complete: ${pagesCrawled} pages copied instantly`);
+        return { run_id: runId, pages_found: pagesCrawled, pages_crawled: pagesCrawled, cached: true };
+      }
+    }
+  } catch (cacheErr: any) {
+    console.warn(`[CrawlWorker] Cache check failed (non-critical, will crawl fresh): ${cacheErr?.message}`);
+  }
+
   // ── 2. Discover URLs ────────────────────────────────────────────────────────
   const urlQueue = await discoverUrls(website, max_pages);
   console.log(`[CrawlWorker] Discovered ${urlQueue.length} real URLs (no simulated pages)`);

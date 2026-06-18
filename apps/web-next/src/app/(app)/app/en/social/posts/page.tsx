@@ -1,5 +1,7 @@
-import { SocialPlanner } from "@/components/social/social-planner";
+"use client";
 
-export default function SocialPostsPage() {
-  return <SocialPlanner />;
+import { ComingSoon } from "@/components/ui/coming-soon";
+
+export default function SocialMediaPage() {
+  return <ComingSoon title="Social Media" />;
 }

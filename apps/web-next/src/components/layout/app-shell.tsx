@@ -145,7 +145,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       isActive: (path) => path.startsWith("/app/en/ads")
     },
     {
-      label: "Media Studio",
+      label: "Media Studio (BETA)",
       to: "/app/en/media-studio",
       icon: PlayCircle,
       isActive: (path) => path.startsWith("/app/en/media-studio")
@@ -209,11 +209,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {activeProject ? (
                 <div className="flex items-center gap-3 truncate">
-                  {activeProject.brand_logo_url || activeProject.og_image_url || activeProject.favicon_url ? (
+                  {activeProject.brand_logo_url || activeProject.favicon_url || activeProject.og_image_url || activeProject.domain ? (
                     <img
-                      src={(activeProject.brand_logo_url || activeProject.og_image_url || activeProject.favicon_url) ?? undefined}
+                      src={(activeProject.brand_logo_url || activeProject.favicon_url || activeProject.og_image_url || `https://www.google.com/s2/favicons?domain=${activeProject.domain}&sz=128`) ?? undefined}
                       alt={activeProject.brand_name || activeProject.name}
-                      className="w-8 h-8 rounded-lg object-cover border border-white/10 shrink-0 shadow-sm"
+                      className="w-8 h-8 rounded-lg object-cover border border-white/10 shrink-0 shadow-sm bg-white"
+                      onError={(e) => { e.currentTarget.src = `https://www.google.com/s2/favicons?domain=${activeProject.domain}&sz=128`; }}
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9025F2] to-[#b260ff] text-white flex items-center justify-center text-[12px] font-extrabold shrink-0 shadow-[0_0_10px_rgba(144,37,242,0.3)]">
@@ -262,11 +263,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                           }`}
                         >
                           <div className="flex items-center gap-2 truncate">
-                            {project.brand_logo_url || project.og_image_url || project.favicon_url ? (
+                            {project.brand_logo_url || project.favicon_url || project.og_image_url || project.domain ? (
                               <img
-                                src={(project.brand_logo_url || project.og_image_url || project.favicon_url) ?? undefined}
+                                src={(project.brand_logo_url || project.favicon_url || project.og_image_url || `https://www.google.com/s2/favicons?domain=${project.domain}&sz=128`) ?? undefined}
                                 alt={project.brand_name || project.name}
-                                className="w-6 h-6 rounded-md object-cover border border-white/10 shrink-0 shadow-sm"
+                                className="w-6 h-6 rounded-md object-cover border border-white/10 shrink-0 shadow-sm bg-white"
+                                onError={(e) => { e.currentTarget.src = `https://www.google.com/s2/favicons?domain=${project.domain}&sz=128`; }}
                               />
                             ) : (
                               <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold shrink-0 ${

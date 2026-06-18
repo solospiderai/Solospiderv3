@@ -1,5 +1,7 @@
-import { MediaStudioWorkspace } from "@/components/media/media-studio-workspace";
+"use client";
+
+import { ComingSoon } from "@/components/ui/coming-soon";
 
 export default function MediaStudioPage() {
-  return <MediaStudioWorkspace />;
+  return <ComingSoon title="Media Studio" />;
 }

@@ -2547,6 +2547,7 @@ export function SeoWorkspace() {
         </div>
 
         {/* Site Speed (Core Web Vitals) at the bottom */}
+        {/*
         <div className="flex items-center justify-between mt-8 mb-4 print-hidden">
           <div>
             <h2 className="text-xl font-extrabold tracking-tight text-slate-900">Site Speed</h2>
@@ -2568,14 +2569,12 @@ export function SeoWorkspace() {
         </div>
 
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm print-card speed-card-container">
-          {/* Printable Heading (Only visible in Print) */}
           <div className="hidden print:block border-b border-slate-100 pb-3 mb-5">
             <h3 className="text-slate-800 font-extrabold text-sm uppercase tracking-wider">Site Speed</h3>
             <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Core Web Vitals Performance Report - {activeProject.domain}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Load Time */}
             <div className="bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-md p-5 rounded-xl transition-all duration-300">
               <SpeedSlider 
                 value={metrics.loadTime} 
@@ -2585,7 +2584,6 @@ export function SeoWorkspace() {
               />
             </div>
             
-            {/* Interactivity */}
             <div className="bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-md p-5 rounded-xl transition-all duration-300">
               <SpeedSlider 
                 value={metrics.interactivity} 
@@ -2595,7 +2593,6 @@ export function SeoWorkspace() {
               />
             </div>
             
-            {/* Visual Stability */}
             <div className="bg-slate-50/50 hover:bg-white border border-transparent hover:border-slate-200 hover:shadow-md p-5 rounded-xl transition-all duration-300">
               <SpeedSlider 
                 value={metrics.visualStability} 
@@ -2612,6 +2609,7 @@ export function SeoWorkspace() {
             <span>• Ideal Visual Stability: &lt; 0.1</span>
           </div>
         </div>
+        */}
 
       {/* Detail Modals for Metric Cards */}
       <Modal 

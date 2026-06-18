@@ -406,7 +406,7 @@ export function startPromptScanWorker() {
   const worker = new Worker<PromptScanJobData>(
     "prompt-scan",
     processPromptScanJob,
-    { connection: redis as any, concurrency: 1, prefix } // serial — AI calls are expensive
+    { connection: redis as any, concurrency: 3, prefix } // allow 3 concurrent scan jobs for multi-user support
   );
 
   worker.on("completed", (job) => console.log(`[PromptScanWorker] ✅ Job ${job.id} done`));

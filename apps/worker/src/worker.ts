@@ -42,6 +42,51 @@ cron.schedule("* * * * *", async () => {
   await processDueSocialPosts();
 });
 
+// Auto-cleanup stuck runs every 10 minutes
+cron.schedule("*/10 * * * *", async () => {
+  try {
+    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+    // Fix stuck crawl runs
+    const { data: stuckCrawls } = await supabase
+      .from("crawl_runs")
+      .select("id")
+      .in("status", ["running", "pending"])
+      .lt("created_at", thirtyMinAgo);
+
+    if (stuckCrawls && stuckCrawls.length > 0) {
+      for (const run of stuckCrawls) {
+        await supabase.from("crawl_runs").update({
+          status: "failed",
+          error: "Job timed out after 30 minutes",
+          finished_at: new Date().toISOString(),
+        }).eq("id", run.id);
+      }
+      console.log(`[Cron] Cleaned up ${stuckCrawls.length} stuck crawl runs`);
+    }
+
+    // Fix stuck prompt scan runs
+    const { data: stuckScans } = await supabase
+      .from("prompt_scan_runs")
+      .select("id")
+      .in("status", ["running", "pending"])
+      .lt("created_at", thirtyMinAgo);
+
+    if (stuckScans && stuckScans.length > 0) {
+      for (const run of stuckScans) {
+        await supabase.from("prompt_scan_runs").update({
+          status: "failed",
+          error: "Job timed out after 30 minutes",
+          finished_at: new Date().toISOString(),
+        }).eq("id", run.id);
+      }
+      console.log(`[Cron] Cleaned up ${stuckScans.length} stuck scan runs`);
+    }
+  } catch (err) {
+    console.error("[Cron] Stuck run cleanup error:", err);
+  }
+});
+
 console.log("SoloSpider worker process ready");
 console.log(`ENV: ${env.NODE_ENV}`);
 console.log("Workers: CrawlWorker | PromptScanWorker | ScoringWorker | PublishWorker");

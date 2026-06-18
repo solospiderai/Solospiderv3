@@ -108,11 +108,11 @@ export default function HomePage() {
             </span>
             <h1 className="text-5xl md:text-[80px] leading-[1.05] my-7 hero-fade hero-d1">
               <span className="text-ink">Replace Your Entire</span><br />
-              <span className="grad-text">Digital Marketing Team</span><br />
+              <span className="grad-text">Marketing Workflow</span><br />
               <span className="text-ink">With One Tool</span>
             </h1>
             <p className="text-[20px] text-ink max-w-[760px] mx-auto mb-9 leading-relaxed hero-fade hero-d2">
-              Solo Spider automates everything your marketing team does — blogs, social media, SEO, and AI search visibility. One subscription. No agency retainer. No hiring headache.
+              Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
             <div className="flex justify-center gap-3.5 flex-wrap mb-5.5 hero-fade hero-d3">
               <Link href="/signup" className="btn btn-grad">Start for Free →</Link>
@@ -192,19 +192,19 @@ export default function HomePage() {
                 
                 <div className="relative z-10">
                   <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary text-white text-[12px] font-semibold border border-primary tracking-wide self-start mb-4">
-                    For agencies
+                    For Agencies
                   </span>
-                  <h3 className="text-3xl font-extrabold tracking-tight leading-tight text-ink mb-4">Scale client work without scaling headcount.</h3>
-                  <p className="text-[15px] text-ink-2 leading-relaxed mb-6">Most agencies hit a ceiling: to take on more clients, you need more people. Solo Spider breaks that ceiling. Automate content, social, and SEO delivery across every client account — from one dashboard.</p>
+                  <h3 className="text-3xl font-extrabold tracking-tight leading-tight text-ink mb-4">Scale Your Agency Without Increasing Operational Complexity</h3>
+                  <p className="text-[15px] text-ink-2 leading-relaxed mb-6">Growing an agency shouldn't mean juggling more tools or adding unnecessary overhead. Solo Spider helps you streamline content creation, social media management, SEO, and AI search visibility across every client account—all from one centralized platform.</p>
                   
                   <div className="flex flex-col gap-3 mb-8">
                     {[
-                      "Manage 10+ client brands from a single workspace",
-                      "Auto-generate blogs, captions, and social assets per client",
-                      "Schedule and publish content without touching each platform",
-                      "Deliver SEO audit reports clients actually understand",
-                      "Show up in AI search results before your competitors do (AEO/GRO)",
-                      "White-label reporting ready to send to clients"
+                      "Manage multiple client brands from a single workspace",
+                      "Generate blogs, social posts, captions, and creative assets tailored to each client",
+                      "Plan, schedule, and publish content across channels with ease",
+                      "Deliver clear, client-friendly SEO audit reports",
+                      "Show up in AI search results before your competitors do (AEO & GEO)",
+                      "Share professional white-label reports with clients"
                     ].map((item, i) => (
                       <div key={i} className="flex gap-3 items-start text-[14.5px] text-ink">
                         <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
@@ -223,16 +223,16 @@ export default function HomePage() {
                   <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary-soft text-primary-2 text-[12px] font-semibold border border-primary/20 tracking-wide self-start mb-4">
                     For individuals
                   </span>
-                  <h3 className="text-3xl font-extrabold tracking-tight leading-tight text-ink mb-4">Your entire marketing team. Just you.</h3>
-                  <p className="text-[15px] text-ink-2 leading-relaxed mb-6">You're wearing every hat. Solo Spider makes that sustainable. Write blogs, post to social, fix your SEO, and grow your AI search visibility — without hiring anyone or subscribing to anything else.</p>
+                  <h3 className="text-3xl font-extrabold tracking-tight leading-tight text-ink mb-4">Grow Your Marketing Without the Complexity</h3>
+                  <p className="text-[15px] text-ink-2 leading-relaxed mb-6">Running a business means wearing many hats. Solo Spider helps you simplify your marketing by automating content creation, social media, SEO, and AI search visibility—all from one easy-to-use platform.</p>
                   
                   <div className="flex flex-col gap-3 mb-8">
                     {[
-                      "Publish blog posts without touching a CMS",
-                      "Generate scroll-stopping social images and videos automatically",
-                      "Fix SEO issues on your site with one click",
-                      "Get found in ChatGPT, Gemini, and AI overview results",
-                      "Plan and schedule a month of content in under an hour"
+                      "Publish blog posts without managing a complex CMS",
+                      "Generate engaging social media images, videos, and captions in minutes",
+                      "Identify and resolve SEO issues with guided recommendations",
+                      "Increase your visibility across ChatGPT, Gemini, AI Overviews, and other AI-powered search experiences",
+                      "Plan, create, and schedule a month's worth of content in under an hour"
                     ].map((item, i) => (
                       <div key={i} className="flex gap-3 items-start text-[14.5px] text-ink">
                         <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
@@ -318,7 +318,7 @@ export default function HomePage() {
                 <div className="w-[54px] h-[54px] rounded-xl bg-[#fef3c7] border border-[#f5b500]/30 text-[#b45309] flex items-center justify-center text-2xl mb-2">◇</div>
                 <div className="flex flex-col gap-1.5 relative z-10">
                   <span className="mono !text-[#b45309]">SEO — Audit & Fix</span>
-                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-ink">Find Every SEO Problem. Fix It Without a Developer.</h3>
+                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-ink">Identify SEO Issues. Fix Them with Ease.</h3>
                 </div>
                 <p className="text-[14.5px] text-ink-2 leading-relaxed">Solo Spider scans your entire website for SEO issues — broken tags, slow pages, missing meta descriptions, weak internal linking — then helps you fix them without touching code.</p>
                 <div className="flex flex-col gap-2.5 mt-2 border-t border-line pt-4.5">
@@ -396,7 +396,7 @@ export default function HomePage() {
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— How it works</div>
               <h2 className="mb-[18px]">From Setup to Running on<br /><span className="grad-text">Autopilot — in One Day.</span></h2>
-              <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">You don't need a marketing degree, a developer, or a full team. Just connect your accounts and let Solo Spider do the rest.</p>
+              <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">Getting started is simple. Connect your accounts, customize your preferences, and let Solo Spider automate your marketing workflows from one unified platform.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
@@ -605,7 +605,7 @@ export default function HomePage() {
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary relative z-10">Most popular for solo creators</span>
                 <h3 className="font-display text-[22px] font-bold tracking-tight text-ink relative z-10">Solo</h3>
                 <div className="text-[13px] text-muted relative z-10">For founders, freelancers & creators</div>
-                <div className="font-display font-black text-[54px] leading-none tracking-tight text-primary mt-2 relative z-10">₹X,XXX<small className="text-[14px] font-medium text-muted tracking-normal ml-1.5 font-sans">/month</small></div>
+                <div className="font-display font-black text-[54px] leading-none tracking-tight text-primary mt-2 relative z-10">$149<small className="text-[14px] font-medium text-muted tracking-normal ml-1.5 font-sans">/month</small></div>
                 <div className="flex flex-col gap-2.5 text-[14px] text-ink-2 border-t border-line pt-5 mt-2 relative z-10">
                   {["Unlimited blog posts", "Unlimited social content", "Full SEO audit + auto-fix", "AEO & GRO dashboard", "5 social accounts", "Priority support"].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
@@ -621,7 +621,7 @@ export default function HomePage() {
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary">Best for teams & client work</span>
                 <h3 className="font-display text-[22px] font-bold tracking-tight text-ink">Agency</h3>
                 <div className="text-[13px] text-muted">For agencies running 10+ clients</div>
-                <div className="font-display font-black text-[54px] leading-none tracking-tight text-ink mt-2">₹X,XXX<small className="text-[14px] font-medium text-muted tracking-normal ml-1.5 font-sans">/month</small></div>
+                <div className="font-display font-black text-[54px] leading-none tracking-tight text-ink mt-2">Custom</div>
                 <div className="flex flex-col gap-2.5 text-[14px] text-ink-2 border-t border-line pt-5 mt-2">
                   {["Everything in Solo", "25+ client workspaces", "White-label reports", "Bulk content scheduling", "Team collaboration tools", "Dedicated onboarding call"].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
@@ -688,8 +688,8 @@ export default function HomePage() {
               
               <div className="mono text-[#22d3ee] mb-3.5">— Ready to switch?</div>
               <h2 className="text-4xl md:text-[64px] leading-[1.05] mb-6">
-                Fire Your Marketing Stack.<br />
-                <span className="grad-text">Keep the Results.</span>
+                Simplify Your Marketing.<br />
+                <span className="grad-text">Amplify Your Results.</span>
               </h2>
               <p className="text-[18px] text-ink-2 mb-9 max-w-[680px] mx-auto">
                 Join 2,000+ agencies and creators who replaced their entire digital marketing workflow with Solo Spider. Less cost. Less complexity. More output.

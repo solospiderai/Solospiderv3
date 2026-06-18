@@ -38,9 +38,10 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
     },
   });
 
-  const hasData = (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url)).length > 0;
+  const pagesData = Array.isArray(crawledPagesQuery.data) ? crawledPagesQuery.data : [];
+  const hasData = pagesData.filter((p: any) => !isNonUserPage(p.url)).length > 0;
 
-  const pageCount = (crawledPagesQuery.data || []).filter((p: any) => !isNonUserPage(p.url)).length;
+  const pageCount = pagesData.filter((p: any) => !isNonUserPage(p.url)).length;
 
   // Parse real traffic data from project metadata
   const realTrafficData = useMemo(() => {
