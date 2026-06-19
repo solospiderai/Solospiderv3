@@ -20,57 +20,45 @@ export async function POST(request: NextRequest) {
 
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     let title = "";
-
-    // 1. Try OpenRouter (Gemini 2.5 Flash)
-    if (openrouterKey) {
-      try {
-        console.log("[GenerateTitle] Calling OpenRouter...");
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${openrouterKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://solospider.ai",
-            "X-Title": "SoloSpider",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [{ role: "user", content: prompt }],
-            max_tokens: 150,
-            temperature: 0.7,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          title = data.choices?.[0]?.message?.content?.trim() || "";
-        }
-      } catch (err) {
-        console.warn("[GenerateTitle] OpenRouter failed, falling back...", err);
-      }
+    if (!openrouterKey) {
+      throw new Error("OPENROUTER_API_KEY is not defined in environment");
     }
 
-    // 2. Fallback to Pollinations AI
-    if (!title) {
+    console.log("[GenerateTitle] Calling OpenRouter...");
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${openrouterKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://solospider.ai",
+        "X-Title": "SoloSpider",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 150,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      let errorMsg = `OpenRouter error (Status ${response.status})`;
       try {
-        console.log("[GenerateTitle] Calling Pollinations AI fallback...");
-        const res = await fetch("https://text.pollinations.ai/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messages: [{ role: "user", content: prompt }],
-            model: "openai"
-          }),
-        });
-        if (res.ok) {
-          title = (await res.text()).trim();
+        const errorJson = await response.json();
+        if (errorJson?.error?.message) {
+          errorMsg = errorJson.error.message;
         }
-      } catch (err) {
-        console.error("[GenerateTitle] Pollinations fallback failed:", err);
+      } catch {
+        try {
+          const text = await response.text();
+          if (text) errorMsg = text.slice(0, 200);
+        } catch {}
       }
+      throw new Error(errorMsg);
     }
+
+    const data = await response.json();
+    title = data.choices?.[0]?.message?.content?.trim() || "";
 
     // Clean up title (remove outer quotes if LLM added them)
     if (title) {

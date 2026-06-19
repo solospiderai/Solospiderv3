@@ -44,7 +44,19 @@ async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash",
   });
 
   if (!response.ok) {
-    throw new Error(`OpenRouter responded with status ${response.status}: ${await response.text()}`);
+    let errorMsg = `OpenRouter error (Status ${response.status})`;
+    try {
+      const errorJson = await response.json();
+      if (errorJson?.error?.message) {
+        errorMsg = errorJson.error.message;
+      }
+    } catch {
+      try {
+        const text = await response.text();
+        if (text) errorMsg = text.slice(0, 200);
+      } catch {}
+    }
+    throw new Error(errorMsg);
   }
 
   const data = await response.json();
@@ -241,33 +253,7 @@ Format the output strictly as raw JSON. Do not include markdown code block forma
 
     let promptsArray = [];
     try {
-      let llmResponse = "";
-      try {
-        llmResponse = await callOpenRouter(promptText);
-      } catch (err: any) {
-        console.warn("[GeneratePromptsWizard] OpenRouter failed, trying Pollinations fallback:", err?.message || err);
-        try {
-          const res = await fetch("https://text.pollinations.ai/", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              messages: [{ role: "user", content: promptText }],
-              model: "openai",
-              json: true
-            }),
-          });
-          if (res.ok) {
-            llmResponse = (await res.text()).trim();
-          } else {
-            throw new Error(`Pollinations responded with status ${res.status}`);
-          }
-        } catch (fallbackErr: any) {
-          console.error("[GeneratePromptsWizard] Fallback also failed:", fallbackErr);
-          throw new Error(`AI prompt generation failed: ${err?.message || err}. (Fallback error: ${fallbackErr?.message || fallbackErr})`);
-        }
-      }
+      const llmResponse = await callOpenRouter(promptText);
 
       let cleanedText = llmResponse.trim();
       if (cleanedText.startsWith("```")) {

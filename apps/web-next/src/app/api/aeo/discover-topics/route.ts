@@ -11,64 +11,45 @@ const DiscoverTopicsSchema = z.object({
 
 async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
-  let text = "";
-
-  if (openrouterKey) {
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openrouterKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://solospider.ai",
-          "X-Title": "SoloSpider",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 1500,
-          temperature: 0.3,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        text = data.choices?.[0]?.message?.content?.trim() || "";
-      } else {
-        console.warn(`[callOpenRouter] OpenRouter responded with ${response.status}: ${await response.text()}`);
-      }
-    } catch (err) {
-      console.warn("[callOpenRouter] OpenRouter failed, falling back to pollinations:", err);
-    }
+  if (!openrouterKey) {
+    throw new Error("OPENROUTER_API_KEY is not defined in environment");
   }
 
-  // Fallback to pollinations if OpenRouter is unavailable
-  if (!text) {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${openrouterKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://solospider.ai",
+      "X-Title": "SoloSpider",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1500,
+      temperature: 0.3,
+    }),
+  });
+
+  if (!response.ok) {
+    let errorMsg = `OpenRouter error (Status ${response.status})`;
     try {
-      const res = await fetch("https://text.pollinations.ai/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-          model: "openai",
-          json: true
-        }),
-      });
-      if (res.ok) {
-        text = (await res.text()).trim();
-      } else {
-        throw new Error(`Pollinations responded with status ${res.status}`);
+      const errorJson = await response.json();
+      if (errorJson?.error?.message) {
+        errorMsg = errorJson.error.message;
       }
-    } catch (err) {
-      console.error("[callOpenRouter] Pollinations fallback failed:", err);
-      throw new Error(`AI model query failed: ${err instanceof Error ? err.message : String(err)}`);
+    } catch {
+      try {
+        const text = await response.text();
+        if (text) errorMsg = text.slice(0, 200);
+      } catch {}
     }
+    throw new Error(errorMsg);
   }
 
-  return text;
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content?.trim() || "";
 }
 
 function cleanDomain(raw: string) {
