@@ -58,8 +58,17 @@ async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-
   // Fallback to pollinations if OpenRouter is unavailable
   if (!text) {
     try {
-      const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
-      const res = await fetch(pollinationsUrl);
+      const res = await fetch("https://text.pollinations.ai/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: prompt }],
+          model: "openai",
+          json: true
+        }),
+      });
       if (res.ok) {
         text = (await res.text()).trim();
       }
@@ -105,6 +114,68 @@ function isValidUnbrandedPrompt(prompt: string, brandName: string, domain: strin
   }
 
   return true;
+}
+
+function generateLocalFallbackPrompts(
+  brandName: string,
+  domain: string,
+  location: string,
+  limit = 25
+): Array<{ topic: string; prompt: string; rationale: string }> {
+  const fallbackTopics = [
+    "seo ranking",
+    "market visibility",
+    "branding strategy",
+    "customer reviews",
+    "niche services"
+  ];
+  
+  const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+  const domainName = cleanDomain.split("/")[0];
+  const capitalizedLocation = location || "United States";
+  
+  const templates = [
+    "best {topic} services in {location}",
+    "top rated {topic} providers in {location}",
+    "how to choose the right {topic} company in {location}",
+    "affordable {topic} solutions for businesses near {location}",
+    "what are the key features of a premium {topic} service",
+    "local {topic} specialists near {location}",
+    "comprehensive guide to {topic} options in {location}",
+    "how to find reliable {topic} services in {location}",
+    "what is the average cost of {topic} in {location}",
+    "benefits of hiring a professional {topic} agency",
+    "trusted {topic} companies located in {location}",
+    "how does {topic} help local clients in {location}",
+    "best practices for implementing {topic} strategies",
+    "leading {topic} experts and consultants in {location}",
+    "how to compare different {topic} services",
+    "what to look for in a {topic} provider",
+    "recommended {topic} packages and pricing",
+    "innovative {topic} solutions for modern problems",
+    "how to get started with {topic} in {location}",
+    "why location targeting matters for {topic} in {location}",
+    "top {topic} features that drive business growth",
+    "expert recommendations for {topic} in {location}",
+    "highly recommended {topic} resources and tools",
+    "reviews of the best {topic} programs in {location}",
+    "frequently asked questions about {topic} services"
+  ];
+  
+  const list: Array<{ topic: string; prompt: string; rationale: string }> = [];
+  for (let i = 0; i < limit; i++) {
+    const topic = fallbackTopics[i % fallbackTopics.length];
+    const template = templates[i % templates.length];
+    const prompt = template
+      .replace(/{topic}/g, topic)
+      .replace(/{location}/g, capitalizedLocation);
+    list.push({
+      topic: topic,
+      prompt: prompt,
+      rationale: ""
+    });
+  }
+  return list;
 }
 
 export async function POST(request: NextRequest) {
@@ -250,36 +321,41 @@ Guidelines for generating prompts:
 
 Format your output strictly as a raw JSON array. Do not include markdown code block formatting (like triple backticks or JSON tags) or any additional text.`;
 
-    const llmResponse = await callLLM(promptText, 3000);
-    if (!llmResponse) {
-      throw new Error("Empty response from AI model");
-    }
-
-    let cleanedText = llmResponse.trim();
-    if (cleanedText.startsWith("```")) {
-      cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
-    }
-
     let promptsArray = [];
     try {
-      promptsArray = JSON.parse(cleanedText);
-    } catch {
-      const startIdx = cleanedText.indexOf("[");
-      const endIdx = cleanedText.lastIndexOf("]");
-      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-        const candidate = cleanedText.slice(startIdx, endIdx + 1);
-        try {
-          promptsArray = JSON.parse(candidate);
-        } catch (err) {
-          throw new Error("Failed to parse AI prompts response as JSON array");
-        }
-      } else {
-        throw new Error("Invalid array format from AI model");
+      const llmResponse = await callLLM(promptText, 3000);
+      if (!llmResponse) {
+        throw new Error("Empty response from AI model");
       }
-    }
 
-    if (!Array.isArray(promptsArray) || promptsArray.length === 0) {
-      throw new Error("AI did not return a valid array of prompts");
+      let cleanedText = llmResponse.trim();
+      if (cleanedText.startsWith("```")) {
+        cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+      }
+
+      try {
+        promptsArray = JSON.parse(cleanedText);
+      } catch {
+        const startIdx = cleanedText.indexOf("[");
+        const endIdx = cleanedText.lastIndexOf("]");
+        if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+          const candidate = cleanedText.slice(startIdx, endIdx + 1);
+          try {
+            promptsArray = JSON.parse(candidate);
+          } catch (err) {
+            throw new Error("Failed to parse AI prompts response as JSON array");
+          }
+        } else {
+          throw new Error("Invalid array format from AI model");
+        }
+      }
+
+      if (!Array.isArray(promptsArray) || promptsArray.length === 0) {
+        throw new Error("AI did not return a valid array of prompts");
+      }
+    } catch (fallbackError: any) {
+      console.warn(`[GeneratePromptsAPI] AI prompt generation failed, falling back to local template generator: ${fallbackError.message}`);
+      promptsArray = generateLocalFallbackPrompts(brandName, domain, location, limit);
     }
 
     // 4. Delete existing prompts to make room for a completely fresh list of AI prompts
@@ -300,6 +376,21 @@ Format your output strictly as a raw JSON array. Do not include markdown code bl
         prompt: p.prompt.trim(),
         is_active: true,
       }));
+
+    // If filter resulted in no prompts, fill with fallback
+    if (newRows.length === 0) {
+      const fallbackList = generateLocalFallbackPrompts(brandName, domain, location, limit);
+      const fallbackRows = fallbackList.map((p: any) => ({
+        project_id: projectId,
+        topic: p.topic,
+        prompt: p.prompt.trim(),
+        is_active: true,
+      }));
+      await supabase
+        .from("aeo_prompts")
+        .insert(fallbackRows);
+      return NextResponse.json({ ok: true, generated: fallbackList.length, inserted: fallbackList.length, fallback: true });
+    }
 
     if (newRows.length > 0) {
       const { error: insertError } = await supabase

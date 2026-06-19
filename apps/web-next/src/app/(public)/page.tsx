@@ -4,9 +4,23 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
+import { Loader2 } from "lucide-react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 
 export default function HomePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisUrl, setAnalysisUrl] = useState("");
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardDomain, setWizardDomain] = useState("");
+
+  const handleStartAnalysis = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!analysisUrl) return;
+    setWizardDomain(analysisUrl);
+    setIsWizardOpen(true);
+  };
 
   // Smooth scroll
   useEffect(() => {
@@ -54,7 +68,7 @@ export default function HomePage() {
         } as React.CSSProperties
       }
     >
-      <MarketingNavbar />
+      <MarketingNavbar onOpenWizard={() => { setWizardDomain(""); setIsWizardOpen(true); }} />
 
       <main>
         {/* HERO */}
@@ -114,14 +128,46 @@ export default function HomePage() {
             <p className="text-[20px] text-ink max-w-[760px] mx-auto mb-9 leading-relaxed hero-fade hero-d2">
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
-            <div className="flex justify-center gap-3.5 flex-wrap mb-5.5 hero-fade hero-d3">
-              <Link href="/signup" className="btn btn-grad">Start for Free →</Link>
-              <Link href="#how" className="btn btn-ghost">See How It Works</Link>
+            {/* Website Analysis Search Bar */}
+            <div className="max-w-[640px] mx-auto mb-10 hero-fade hero-d3 relative z-20">
+              <form onSubmit={handleStartAnalysis} className="p-2 rounded-2xl bg-white/70 backdrop-blur-md border border-primary/20 shadow-[0_20px_50px_rgba(144,37,242,0.1)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.18)] focus-within:shadow-[0_20px_50px_rgba(144,37,242,0.18)] transition-all duration-300 flex flex-col sm:flex-row gap-2.5">
+                <div className="flex-1 flex items-center pl-4 bg-white/40 sm:bg-transparent rounded-xl sm:rounded-none">
+                  <span className="text-lg shrink-0">🌐</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter your website URL (e.g., example.com)"
+                    value={analysisUrl}
+                    onChange={(e) => setAnalysisUrl(e.target.value)}
+                    className="w-full bg-transparent border-0 outline-none text-ink font-semibold text-sm py-3 px-3 placeholder-muted"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={analyzing}
+                  className="btn btn-grad px-7 py-3.5 h-auto text-[13px] font-black tracking-wide rounded-xl shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      Start Analysis <span className="text-[14px]">⚡</span>
+                    </>
+                  )}
+                </button>
+              </form>
+              <p className="text-[12px] text-ink-2/60 mt-3.5 font-bold flex items-center justify-center gap-1.5">
+                <span>⚡ SEO & AEO scans start instantly in the background</span>
+              </p>
             </div>
+
             <div className="flex justify-center gap-5.5 flex-wrap text-[13px] text-ink-2 hero-fade hero-d4">
-              <span className="flex items-center gap-2">No credit card required</span>
+              <span className="flex items-center gap-2">No setup wizard required</span>
               <span className="flex items-center gap-2 before:content-['·'] before:text-muted">Free plan available</span>
-              <span className="flex items-center gap-2 before:content-['·'] before:text-muted">Set up in 5 minutes</span>
+              <span className="flex items-center gap-2 before:content-['·'] before:text-muted">Crawls 50 pages automatically</span>
             </div>
           </div>
 
@@ -212,7 +258,7 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
-                  <Link href="/pricing" className="btn btn-grad self-start">Explore Agency Plan →</Link>
+                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad self-start cursor-pointer">Explore Agency Plan →</button>
                 </div>
               </div>
 
@@ -240,7 +286,7 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
-                  <Link href="/pricing" className="btn btn-ghost self-start mt-auto">Explore Solo Plan →</Link>
+                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost self-start mt-auto cursor-pointer">Explore Solo Plan →</button>
                 </div>
               </div>
             </div>
@@ -595,7 +641,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/signup" className="btn btn-ghost w-full justify-center mt-auto pt-6">Get started free →</Link>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto pt-6 cursor-pointer">Get started free →</button>
               </div>
 
               <div className="bg-gradient-to-b from-white to-primary-tint rounded-3xl p-8 lg:p-9 flex flex-col gap-5 transition-all duration-250 hover:-translate-y-1 shadow-[0_30px_60px_-22px_rgba(144,37,242,0.3)] reveal d1 relative">
@@ -614,7 +660,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/signup" className="btn btn-grad w-full justify-center mt-auto relative z-10">Start Solo plan →</Link>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad w-full justify-center mt-auto relative z-10 cursor-pointer">Start Solo plan →</button>
               </div>
 
               <div className="bg-white border border-line rounded-3xl p-8 lg:p-9 flex flex-col gap-5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_26px_50px_-22px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal d2 relative">
@@ -630,7 +676,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/signup" className="btn btn-ghost w-full justify-center mt-auto pt-6">Talk to us →</Link>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto pt-6 cursor-pointer">Talk to us →</button>
               </div>
 
             </div>
@@ -696,8 +742,8 @@ export default function HomePage() {
               </p>
               
               <div className="flex justify-center gap-3.5 flex-wrap mb-9">
-                <Link href="/signup" className="btn btn-grad">Start Free — No Card Needed →</Link>
-                <Link href="/signup" className="btn btn-ghost">Book a 20-Minute Demo</Link>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad cursor-pointer">Start Free — No Card Needed →</button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost cursor-pointer">Book a 20-Minute Demo</button>
               </div>
               
               <div className="flex justify-center flex-wrap gap-x-8 gap-y-4 text-[13.5px] text-ink-2">
@@ -714,6 +760,12 @@ export default function HomePage() {
       </main>
 
       <MarketingFooter />
+
+      <AeoWizardModal
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        initialDomain={wizardDomain}
+      />
     </div>
   );
 }

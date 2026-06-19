@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
+import { useAuth } from "@/hooks/useAuth";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { copyToClipboard } from "@/lib/seo-utils";
 import { 
@@ -38,17 +39,27 @@ const COUNTRIES = [
   { name: "United Arab Emirates", code: "AE" }
 ];
 
+import { useEffect } from "react";
+
 interface AeoWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialDomain?: string;
 }
 
-export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
+export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModalProps) {
   const router = useRouter();
+  const { user } = useAuth();
   const { addProject, canAddProject, currentPlan, projectLimit } = useProjects();
   const [step, setStep] = useState<WizardStep>(1);
   const [domain, setDomain] = useState("");
   const [brandName, setBrandName] = useState("");
+
+  useEffect(() => {
+    if (initialDomain) {
+      setDomain(initialDomain);
+    }
+  }, [initialDomain]);
   
   // Step 1 -> 2 state
   const [selectedLocation, setSelectedLocation] = useState("United States");
@@ -81,7 +92,7 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
       toast.error("Please enter a domain URL");
       return;
     }
-    if (!canAddProject) {
+    if (user && !canAddProject) {
       toast.error(`Your ${currentPlan} plan is limited to ${projectLimit} project(s).`);
       return;
     }
@@ -181,55 +192,86 @@ export function AeoWizardModal({ isOpen, onClose }: AeoWizardModalProps) {
 
     setSubmitting(true);
     try {
-      // 1. Create the project record with embedded metadata in description
-      const cleanBrand = brandName.trim() || domain.trim();
-      const metadataBlock = `\n---\nMETADATA: ${JSON.stringify({
-        location: selectedLocation,
-        competitors: competitors,
-      })}`;
-      const cleanDesc = `Market audience targeted: ${selectedLocation}. Generated based on selection.${metadataBlock}`;
-      const created = await addProject.mutateAsync({
-        name: cleanBrand,
-        domain: normalizeUrl(domain),
-        brand_name: cleanBrand,
-        brand_description: cleanDesc,
-      });
-
-      // 2. Insert the custom prompts into aeo_prompts
       const supabase = getSupabaseBrowserClient();
-      const promptRows = selectedPrompts.map(p => ({
-        project_id: created.id,
-        topic: p.topic,
-        prompt: p.prompt.trim(),
-        is_active: true,
-      }));
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
 
-      const { error: insertErr } = await supabase
-        .from("aeo_prompts" as any)
-        .insert(promptRows as any);
+      if (user) {
+        // 1. Create the project record with embedded metadata in description
+        const cleanBrand = brandName.trim() || domain.trim();
+        const metadataBlock = `\n---\nMETADATA: ${JSON.stringify({
+          location: selectedLocation,
+          competitors: competitors,
+        })}`;
+        const cleanDesc = `Market audience targeted: ${selectedLocation}. Generated based on selection.${metadataBlock}`;
+        const created = await addProject.mutateAsync({
+          name: cleanBrand,
+          domain: normalizeUrl(domain),
+          brand_name: cleanBrand,
+          brand_description: cleanDesc,
+        });
 
-      if (insertErr) throw insertErr;
-
-      // 3. Trigger background crawl & scans
-      const crawlRes = await fetch("/api/jobs/crawl", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-worker-secret": process.env.NEXT_PUBLIC_WORKER_SECRET || "dev-secret",
-        },
-        body: JSON.stringify({
+        // 2. Insert the custom prompts into aeo_prompts
+        const promptRows = selectedPrompts.map(p => ({
           project_id: created.id,
-          website: normalizeUrl(domain),
-          max_pages: 50,
-        }),
-      });
+          topic: p.topic,
+          prompt: p.prompt.trim(),
+          is_active: true,
+        }));
 
-      if (!crawlRes.ok) {
-        throw new Error("Failed to queue background crawl worker");
+        const { error: insertErr } = await supabase
+          .from("aeo_prompts" as any)
+          .insert(promptRows as any);
+
+        if (insertErr) throw insertErr;
+
+        // 3. Trigger background crawl & scans
+        const crawlRes = await fetch("/api/jobs/crawl", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-worker-secret": process.env.NEXT_PUBLIC_WORKER_SECRET || "dev-secret",
+          },
+          body: JSON.stringify({
+            project_id: created.id,
+            website: normalizeUrl(domain),
+            max_pages: 50,
+          }),
+        });
+
+        if (!crawlRes.ok) {
+          throw new Error("Failed to queue background crawl worker");
+        }
+
+        setStep(4);
+        toast.success("Success! Site crawler launched and scan scheduled.");
+      } else {
+        // Unauthenticated: Call the public launch API
+        const cleanBrand = brandName.trim() || domain.trim();
+        const res = await fetch("/api/projects/anonymous-launch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            domain: normalizeUrl(domain),
+            brandName: cleanBrand,
+            location: selectedLocation,
+            competitors: competitors,
+            prompts: selectedPrompts.map(p => ({
+              topic: p.topic,
+              prompt: p.prompt.trim()
+            }))
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to launch analysis");
+
+        localStorage.setItem("pending_project_id", data.projectId);
+        toast.success("Analysis launched in the background! Please sign up to view results.");
+        
+        // Go to signup page
+        window.location.href = "/signup";
       }
-
-      setStep(4);
-      toast.success("Success! Site crawler launched and scan scheduled.");
     } catch (err: any) {
       toast.error(err?.message || "Failed to launch scanner pipeline");
     } finally {

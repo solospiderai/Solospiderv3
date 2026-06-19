@@ -360,7 +360,21 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
   };
 
   try {
-    if (scheduledPost.platform === "instagram" && publishToken && socialAccount.meta_ig_user_id) {
+    const isStubToken = !publishToken ||
+                        publishToken === "mock_token" ||
+                        publishToken.includes("stub") ||
+                        publishToken.startsWith("mock_") ||
+                        publishToken.startsWith("stub_");
+
+    if (isStubToken) {
+      console.log(`[PublishWorker] Sandbox Mode: Simulating successful publish for ${scheduledPost.platform} (Token: ${publishToken})`);
+      publishMode = "sandbox_simulated";
+      publishMeta = {
+        ...publishMeta,
+        mode: publishMode,
+        external_post_id: externalPostId,
+      };
+    } else if (scheduledPost.platform === "instagram" && publishToken && socialAccount.meta_ig_user_id) {
       const result = await publishToInstagram({
         accessToken: publishToken,
         igUserId: socialAccount.meta_ig_user_id,

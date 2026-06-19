@@ -54,8 +54,16 @@ export async function POST(request: NextRequest) {
     if (!title) {
       try {
         console.log("[GenerateTitle] Calling Pollinations AI fallback...");
-        const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
-        const res = await fetch(pollinationsUrl);
+        const res = await fetch("https://text.pollinations.ai/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: prompt }],
+            model: "openai"
+          }),
+        });
         if (res.ok) {
           title = (await res.text()).trim();
         }

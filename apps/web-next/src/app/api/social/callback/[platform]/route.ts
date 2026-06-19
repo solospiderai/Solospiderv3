@@ -166,24 +166,122 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         handle = "@X_SandboxUser";
         isMock = true;
       }
+    } else if (platform === "instagram") {
+      const hasConfig = process.env.INSTAGRAM_CLIENT_ID && process.env.INSTAGRAM_CLIENT_SECRET && process.env.INSTAGRAM_REDIRECT_URI;
+      if (hasConfig) {
+        const tokenResponse = await fetch("https://api.instagram.com/oauth/access_token", {
+          method: "POST",
+          body: new URLSearchParams({
+            client_id: process.env.INSTAGRAM_CLIENT_ID || "",
+            client_secret: process.env.INSTAGRAM_CLIENT_SECRET || "",
+            grant_type: "authorization_code",
+            redirect_uri: process.env.INSTAGRAM_REDIRECT_URI || "",
+            code: code,
+          }),
+        });
+        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok) {
+          throw new Error(`Instagram OAuth error: ${tokenData.error_message || "Unknown error"}`);
+        }
+        accessToken = tokenData.access_token;
+        platformAccountId = String(tokenData.user_id || "ig_unknown");
+        handle = `Instagram Account ${platformAccountId}`;
+      } else {
+        console.log(`[SocialCallback] Developer Mode: No Instagram config. Seeding mock connection.`);
+        accessToken = "ig_real_token_stub";
+        platformAccountId = "instagram:stub";
+        handle = "@Insta_SandboxUser";
+        isMock = true;
+      }
+    } else if (platform === "facebook") {
+      const hasConfig = process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET && process.env.FACEBOOK_REDIRECT_URI;
+      if (hasConfig) {
+        const tokenResponse = await fetch(`https://graph.facebook.com/v18.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.FACEBOOK_REDIRECT_URI || "")}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${code}`);
+        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok) {
+          throw new Error(`Facebook OAuth error: ${tokenData.error?.message || "Unknown error"}`);
+        }
+        accessToken = tokenData.access_token;
+        platformAccountId = "fb_unknown";
+        handle = "Facebook Page";
+      } else {
+        console.log(`[SocialCallback] Developer Mode: No Facebook config. Seeding mock connection.`);
+        accessToken = "fb_real_token_stub";
+        platformAccountId = "facebook:stub";
+        handle = "Facebook Sandbox Page";
+        isMock = true;
+      }
+    } else if (platform === "pinterest") {
+      const hasConfig = process.env.PINTEREST_CLIENT_ID && process.env.PINTEREST_CLIENT_SECRET && process.env.PINTEREST_REDIRECT_URI;
+      if (hasConfig) {
+        const authHeader = Buffer.from(`${process.env.PINTEREST_CLIENT_ID}:${process.env.PINTEREST_CLIENT_SECRET}`).toString("base64");
+        const tokenResponse = await fetch("https://api.pinterest.com/v5/oauth/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${authHeader}`,
+          },
+          body: new URLSearchParams({
+            grant_type: "authorization_code",
+            code: code,
+            redirect_uri: process.env.PINTEREST_REDIRECT_URI || "",
+          }),
+        });
+        const tokenData = await tokenResponse.json();
+        if (!tokenResponse.ok) {
+          throw new Error(`Pinterest OAuth error: ${tokenData.message || "Unknown error"}`);
+        }
+        accessToken = tokenData.access_token;
+        platformAccountId = "pin_unknown";
+        handle = "Pinterest Board";
+      } else {
+        console.log(`[SocialCallback] Developer Mode: No Pinterest config. Seeding mock connection.`);
+        accessToken = "pin_real_token_stub";
+        platformAccountId = "pinterest:stub";
+        handle = "Pinterest Sandbox Board";
+        isMock = true;
+      }
     } else {
       return NextResponse.json({ error: `Unsupported platform: ${platform}` }, { status: 400 });
     }
 
     const adminClient = getSupabaseAdminClient();
-    const { error } = await adminClient.from("social_accounts").upsert(
-      {
-        project_id: projectId,
-        platform,
-        handle,
-        access_token: accessToken,
-        platform_account_id: platformAccountId,
-        connection_status: "connected",
-      },
-      { onConflict: "project_id,platform" }
-    );
 
-    if (error) throw error;
+    // Check if record already exists to avoid upsert constraint requirement
+    const { data: existingAccount } = await adminClient
+      .from("social_accounts")
+      .select("id")
+      .eq("project_id", projectId)
+      .eq("platform", platform)
+      .maybeSingle();
+
+    let dbError = null;
+    if (existingAccount) {
+      const { error: updateError } = await adminClient
+        .from("social_accounts")
+        .update({
+          handle,
+          access_token: accessToken,
+          platform_account_id: platformAccountId,
+          connection_status: "connected",
+        })
+        .eq("id", existingAccount.id);
+      dbError = updateError;
+    } else {
+      const { error: insertError } = await adminClient
+        .from("social_accounts")
+        .insert({
+          project_id: projectId,
+          platform,
+          handle,
+          access_token: accessToken,
+          platform_account_id: platformAccountId,
+          connection_status: "connected",
+        });
+      dbError = insertError;
+    }
+
+    if (dbError) throw dbError;
 
     return new NextResponse(
       `<html>
@@ -215,8 +313,9 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         headers: { "content-type": "text/html; charset=utf-8" },
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("[SocialCallback] Error connecting platform:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to connect account" }, { status: 500 });
+    const errMsg = error?.message || error?.details || (typeof error === "object" ? JSON.stringify(error) : String(error));
+    return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 }

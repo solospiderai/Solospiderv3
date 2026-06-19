@@ -274,10 +274,17 @@ JSON Schema:
     if (!rawContent) {
       try {
         console.log("Calling Pollinations AI for SEO AI suggestion fallback...");
-        const encodedPrompt = encodeURIComponent(`${prompt}\nSTRICT RULE: Return ONLY raw JSON. No markdown code block wraps.`);
-        const pollinationsUrl = `https://text.pollinations.ai/${encodedPrompt}?model=openai`;
-
-        const res = await fetch(pollinationsUrl);
+        const res = await fetch("https://text.pollinations.ai/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: `${prompt}\nSTRICT RULE: Return ONLY raw JSON. No markdown code block wraps.` }],
+            model: "openai",
+            json: true
+          }),
+        });
         if (res.ok) {
           rawContent = await res.text();
         }

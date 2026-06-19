@@ -66,6 +66,14 @@ const platformMeta = {
     bgColor: "bg-slate-50",
     borderColor: "border-slate-200",
     label: "@solospider_ai"
+  },
+  pinterest: {
+    name: "Pinterest",
+    bg: "from-red-650 to-red-800",
+    color: "text-red-600",
+    bgColor: "bg-red-50",
+    borderColor: "border-red-200",
+    label: "builditindia_pins"
   }
 };
 
@@ -80,6 +88,20 @@ export function SocialPlanner() {
   const { activeProject } = useProjects();
   const queryClient = useQueryClient();
   const supabase = getSupabaseBrowserClient();
+
+  // Fetch connected social accounts from database
+  const { data: dbSocialAccounts } = useQuery({
+    queryKey: ["social_accounts_planner", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("social_accounts")
+        .select("*")
+        .eq("project_id", activeProject!.id);
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   // Selected state for planner composer
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["instagram"]);
@@ -216,12 +238,13 @@ export function SocialPlanner() {
     }
   };
 
-  // Feed simulated accounts metrics (Instagram, Facebook, LinkedIn, Twitter/X)
+  // Feed simulated accounts metrics (Instagram, Facebook, LinkedIn, Twitter/X, Pinterest)
   const connectedStats = [
     { platform: "instagram", reach: "12.4K", engagement: 589, engRate: "4.7%", arrow: "up", sparkline: [20, 35, 45, 30, 50, 75, 60] },
     { platform: "facebook", reach: "8.7K", engagement: 412, engRate: "3.6%", arrow: "up", sparkline: [10, 15, 25, 40, 35, 45, 55] },
     { platform: "linkedin", reach: "15.2K", engagement: 867, engRate: "5.7%", arrow: "up", sparkline: [30, 45, 40, 60, 65, 80, 95] },
-    { platform: "twitter", reach: "6.1K", engagement: 213, engRate: "3.2%", arrow: "down", sparkline: [40, 35, 30, 25, 28, 22, 20] }
+    { platform: "twitter", reach: "6.1K", engagement: 213, engRate: "3.2%", arrow: "down", sparkline: [40, 35, 30, 25, 28, 22, 20] },
+    { platform: "pinterest", reach: "3.8K", engagement: 145, engRate: "2.8%", arrow: "up", sparkline: [15, 20, 25, 30, 28, 32, 38] }
   ];
 
   // Helper to get formatted week dates for mockup representation (May 18 - May 24, 2026)
@@ -592,6 +615,9 @@ export function SocialPlanner() {
               <div className="mt-4 space-y-4">
                 {connectedStats.map((stat) => {
                   const meta = platformMeta[stat.platform as keyof typeof platformMeta] || platformMeta.instagram;
+                  const dbAcc = dbSocialAccounts?.find((acc: any) => acc.platform === stat.platform);
+                  const isConnected = Boolean(dbAcc);
+                  const displayHandle = isConnected ? dbAcc.handle : `${meta.label} (Sandbox)`;
                   return (
                     <div key={stat.platform} className="flex items-center justify-between group hover:bg-slate-50/50 p-1.5 rounded-xl transition-all">
                       <div className="flex items-center gap-3">
@@ -599,8 +625,19 @@ export function SocialPlanner() {
                           {stat.platform[0].toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-800">{meta.name}</p>
-                          <p className="text-[10px] text-slate-400 font-medium">{meta.label}</p>
+                          <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            {meta.name}
+                            {isConnected ? (
+                              <span className="bg-emerald-500/10 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                Connected
+                              </span>
+                            ) : (
+                              <span className="bg-slate-100 text-slate-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                Sandbox
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[10px] text-slate-400 font-medium">{displayHandle}</p>
                         </div>
                       </div>
 

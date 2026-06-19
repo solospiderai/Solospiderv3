@@ -351,6 +351,68 @@ function isValidUnbrandedPrompt(prompt: string, brandName: string, domain: strin
   return true;
 }
 
+function generateLocalFallbackPrompts(
+  brandName: string,
+  domain: string,
+  location: string,
+  limit = 25
+): Array<{ topic: string; prompt: string; rationale: string }> {
+  const fallbackTopics = [
+    "seo ranking",
+    "market visibility",
+    "branding strategy",
+    "customer reviews",
+    "niche services"
+  ];
+  
+  const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").toLowerCase();
+  const domainName = cleanDomain.split("/")[0];
+  const capitalizedLocation = location || "United States";
+  
+  const templates = [
+    "best {topic} services in {location}",
+    "top rated {topic} providers in {location}",
+    "how to choose the right {topic} company in {location}",
+    "affordable {topic} solutions for businesses near {location}",
+    "what are the key features of a premium {topic} service",
+    "local {topic} specialists near {location}",
+    "comprehensive guide to {topic} options in {location}",
+    "how to find reliable {topic} services in {location}",
+    "what is the average cost of {topic} in {location}",
+    "benefits of hiring a professional {topic} agency",
+    "trusted {topic} companies located in {location}",
+    "how does {topic} help local clients in {location}",
+    "best practices for implementing {topic} strategies",
+    "leading {topic} experts and consultants in {location}",
+    "how to compare different {topic} services",
+    "what to look for in a {topic} provider",
+    "recommended {topic} packages and pricing",
+    "innovative {topic} solutions for modern problems",
+    "how to get started with {topic} in {location}",
+    "why location targeting matters for {topic} in {location}",
+    "top {topic} features that drive business growth",
+    "expert recommendations for {topic} in {location}",
+    "highly recommended {topic} resources and tools",
+    "reviews of the best {topic} programs in {location}",
+    "frequently asked questions about {topic} services"
+  ];
+  
+  const list: Array<{ topic: string; prompt: string; rationale: string }> = [];
+  for (let i = 0; i < limit; i++) {
+    const topic = fallbackTopics[i % fallbackTopics.length];
+    const template = templates[i % templates.length];
+    const prompt = template
+      .replace(/{topic}/g, topic)
+      .replace(/{location}/g, capitalizedLocation);
+    list.push({
+      topic: topic,
+      prompt: prompt,
+      rationale: ""
+    });
+  }
+  return list;
+}
+
 export async function generateAndSaveAiPrompts(projectId: string) {
   try {
     console.log(`[PromptGenerator] Generating AEO prompts for project ${projectId}...`);
@@ -614,7 +676,98 @@ Respond ONLY with raw valid JSON. Do not include markdown code block formatting 
           
         console.log(`[PromptGenerator] Auto-discovered metadata saved (merged with existing): location=${location}, competitors=${competitorsFromMeta.join(", ")}`);
       } catch (discErr) {
-        console.warn(`[PromptGenerator] Auto-discovery failed for project ${projectId}:`, discErr);
+        console.warn(`[PromptGenerator] Auto-discovery failed for project ${projectId}, executing fallback:`, discErr);
+        try {
+          const cleanBrandName = brandName || project.brand_name || project.name;
+          const cleanDomain = domain.toLowerCase();
+          const nameLower = cleanBrandName.toLowerCase();
+
+          let industry = "Software & Technology";
+          let category = "SaaS Growth Platform";
+          let targetAudience = "Founders, Marketers, Growth Teams at SMBs";
+          let colors = ["#4F46E5", "#6366F1", "#8B5CF6", "#EC4899", "#10B981", "#F59E0B"];
+          let primaryFont = "Plus Jakarta Sans";
+          let secondaryFont = "Inter";
+          let summaryText = `${cleanBrandName} helps modern brands scale their online presence with robust, high-performance tools.`;
+
+          if (cleanDomain.includes("venue") || nameLower.includes("venue") || cleanDomain.includes("event") || nameLower.includes("event")) {
+            industry = "Event Management & Hospitality";
+            category = "Venue Discovery & Booking Services";
+            targetAudience = "Event Planners, Corporate Coordinators, Venue Managers";
+            colors = ["#8B5CF6", "#7C3AED", "#1E1B4B", "#6366F1", "#F472B6", "#10B981"];
+            primaryFont = "Playfair Display";
+            secondaryFont = "Outfit";
+            summaryText = `${cleanBrandName} simplifies the corporate and private venue discovery process, connecting hosts with premium event venues seamlessly.`;
+          } else if (cleanDomain.includes("fraganote") || nameLower.includes("fraganote") || cleanDomain.includes("perfume") || nameLower.includes("perfume") || cleanDomain.includes("fragrance")) {
+            industry = "Fragrance & Cosmetics";
+            category = "Premium Perfumery & Scent Design";
+            targetAudience = "Fragrance Enthusiasts, Luxury Shoppers, Gift Seekers";
+            colors = ["#D97706", "#B45309", "#78350F", "#1E293B", "#F59E0B", "#10B981"];
+            primaryFont = "Cinzel";
+            secondaryFont = "Montserrat";
+            summaryText = `${cleanBrandName} crafts premium, long-lasting fragrances designed to evoke memories and create a sensory experience.`;
+          }
+
+          const fallbackMeta = {
+            summary: summaryText,
+            location: location || "United States",
+            industry,
+            category,
+            targetAudience,
+            colors,
+            fonts: { primary: primaryFont, secondary: secondaryFont },
+            designStyles: ["Modern", "Clean", "Minimalist", "Elegant"],
+            voiceSliders: {
+              professionalCasual: 65,
+              friendlyFormal: 60,
+              boldSubtle: 70,
+              premiumAccessible: 50,
+              simpleComplex: 45
+            },
+            voiceTags: ["Innovative", "Empathetic", "Professional", "Premium"],
+            competitors: competitorsFromMeta.length > 0 ? competitorsFromMeta : ["competitor1.com", "competitor2.com"],
+            competitorsDetail: (competitorsFromMeta.length > 0 ? competitorsFromMeta : ["competitor1.com", "competitor2.com"]).map(comp => ({
+              name: comp,
+              positioning: `A competitor in the ${industry} space.`,
+              strengths: "Established brand presence",
+              share: 30
+            }))
+          };
+
+          // Read existing description to preserve metadata fields from crawl (like pageSpeed, trafficData)
+          const { data: currentProj } = await supabase
+            .from("projects")
+            .select("brand_description")
+            .eq("id", projectId)
+            .single();
+
+          let currentMeta: any = {};
+          if (currentProj?.brand_description) {
+            const currentParts = currentProj.brand_description.split("\n---\nMETADATA: ");
+            if (currentParts.length > 1) {
+              try { currentMeta = JSON.parse(currentParts[1]) || {}; } catch {}
+            }
+          }
+
+          const mergedMeta = {
+            ...fallbackMeta,
+            ...(currentMeta.pageSpeed ? { pageSpeed: currentMeta.pageSpeed } : {}),
+            ...(currentMeta.trafficData ? { trafficData: currentMeta.trafficData } : {}),
+            ...(currentMeta.hasSitemap !== undefined ? { hasSitemap: currentMeta.hasSitemap } : {}),
+          };
+
+          const metadataBlock = `\n---\nMETADATA: ${JSON.stringify(mergedMeta)}`;
+          const updatedDesc = `${summaryText}${metadataBlock}`;
+
+          await supabase
+            .from("projects")
+            .update({ brand_description: updatedDesc })
+            .eq("id", projectId);
+
+          console.log(`[PromptGenerator] Fallback metadata successfully written for project ${projectId}`);
+        } catch (fallbackErr) {
+          console.error(`[PromptGenerator] Double fault! Fallback metadata generation failed:`, fallbackErr);
+        }
       }
     }
 
@@ -815,6 +968,13 @@ ${searchRes.text}
     }
 
     console.log(`[PromptGenerator] Verification complete. Found ${verifiedPrompts.length} verified prompts.`);
+
+    if (verifiedPrompts.length < limit) {
+      const needed = limit - verifiedPrompts.length;
+      console.log(`[PromptGenerator] Padding with ${needed} local fallback prompts...`);
+      const fallbackList = generateLocalFallbackPrompts(brandName, domain, location, needed);
+      verifiedPrompts.push(...fallbackList);
+    }
 
     // Guarantee we return only verified prompts up to the limit
     const finalPrompts = verifiedPrompts.slice(0, limit);

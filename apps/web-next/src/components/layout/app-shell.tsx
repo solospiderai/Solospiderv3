@@ -63,6 +63,37 @@ export function AppShell({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const [autoGenRunning, setAutoGenRunning] = useState<string | null>(null);
 
+  // Claim pending anonymous projects if any exist in localStorage
+  useEffect(() => {
+    if (user) {
+      const pendingProjectId = localStorage.getItem("pending_project_id");
+      if (pendingProjectId) {
+        console.log(`[AppShell] Found pending project ${pendingProjectId} to claim for user ${user.id}`);
+        fetch("/api/projects/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: pendingProjectId }),
+        })
+          .then(async (res) => {
+            if (res.ok) {
+              localStorage.removeItem("pending_project_id");
+              toast.success("✨ Project linked successfully! Your website analysis is underway.");
+              // Refetch projects
+              await qc.invalidateQueries({ queryKey: ["projects"] });
+              // Select the new project as active
+              selectActiveProject(pendingProjectId);
+            } else {
+              const data = await res.json();
+              console.warn("[AppShell] Failed to claim pending project:", data.error);
+            }
+          })
+          .catch((err) => {
+            console.error("[AppShell] Error claiming project:", err);
+          });
+      }
+    }
+  }, [user, qc, selectActiveProject]);
+
   useEffect(() => {
     if (activeProject?.id && !autoGenRunning) {
       const isPlaceholder = !activeProject.brand_description || 
@@ -115,13 +146,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       isActive: (path) => path.startsWith("/app/en/seo") && !path.startsWith("/app/en/seo/rank-tracking")
     },
     {
-      label: "Blogs",
+      label: "Blogs [Coming soon]",
       to: "/app/en/content/generate",
       icon: FileText,
       isActive: (path) => path.startsWith("/app/en/content") || path.startsWith("/app/en/blogs") || path.startsWith("/blogs") || path.startsWith("/bulk-generate") || path.startsWith("/calendar") || path.startsWith("/generate") || path.startsWith("/manage-posts")
     },
     {
-      label: "Backlinks",
+      label: "Backlinks [Coming soon]",
       to: "/app/en/backlinks",
       icon: Link2,
       isActive: (path) => path.startsWith("/app/en/backlinks")
@@ -139,7 +170,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       isActive: (path) => path.startsWith("/app/en/aeo")
     },
     {
-      label: "Ads",
+      label: "Ads [Coming soon]",
       to: "/app/en/ads/meta-analytics",
       icon: Megaphone,
       isActive: (path) => path.startsWith("/app/en/ads")
@@ -151,13 +182,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       isActive: (path) => path.startsWith("/app/en/media-studio")
     },
     {
-      label: "Reports",
+      label: "Reports [Coming soon]",
       to: "/app/en/reports",
       icon: BarChart3,
       isActive: (path) => path.startsWith("/app/en/reports")
     },
     {
-      label: "Rank Tracking",
+      label: "Rank Tracking [Coming soon]",
       to: "/app/en/seo/rank-tracking",
       icon: TrendingUp,
       isActive: (path) => path.startsWith("/app/en/seo/rank-tracking")
