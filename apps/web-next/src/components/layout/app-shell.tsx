@@ -39,6 +39,7 @@ interface SidebarMenuItem {
   to: string;
   icon: React.ElementType;
   isActive: (pathname: string) => boolean;
+  badge?: "coming_soon" | "beta";
 }
 
 function normalizeUrl(raw: string) {
@@ -152,10 +153,11 @@ export function AppShell({ children }: { children: ReactNode }) {
       isActive: (path) => path.startsWith("/app/en/content") || path.startsWith("/app/en/blogs") || path.startsWith("/blogs") || path.startsWith("/bulk-generate") || path.startsWith("/calendar") || path.startsWith("/generate") || path.startsWith("/manage-posts")
     },
     {
-      label: "Backlinks [Coming soon]",
+      label: "Backlinks",
       to: "/app/en/backlinks",
       icon: Link2,
-      isActive: (path) => path.startsWith("/app/en/backlinks")
+      isActive: (path) => path.startsWith("/app/en/backlinks"),
+      badge: "coming_soon"
     },
     {
       label: "Social Media",
@@ -170,28 +172,24 @@ export function AppShell({ children }: { children: ReactNode }) {
       isActive: (path) => path.startsWith("/app/en/aeo")
     },
     {
-      label: "Ads [Coming soon]",
-      to: "/app/en/ads/meta-analytics",
-      icon: Megaphone,
-      isActive: (path) => path.startsWith("/app/en/ads")
-    },
-    {
-      label: "Media Studio (BETA)",
+      label: "Media Studio",
       to: "/app/en/media-studio",
       icon: PlayCircle,
-      isActive: (path) => path.startsWith("/app/en/media-studio")
+      isActive: (path) => path.startsWith("/app/en/media-studio"),
+      badge: "beta"
     },
     {
-      label: "Reports [Coming soon]",
+      label: "Reports",
       to: "/app/en/reports",
       icon: BarChart3,
       isActive: (path) => path.startsWith("/app/en/reports")
     },
     {
-      label: "Rank Tracking [Coming soon]",
+      label: "Rank Tracking",
       to: "/app/en/seo/rank-tracking",
       icon: TrendingUp,
-      isActive: (path) => path.startsWith("/app/en/seo/rank-tracking")
+      isActive: (path) => path.startsWith("/app/en/seo/rank-tracking"),
+      badge: "coming_soon"
     },
     {
       label: "Integrations",
@@ -357,7 +355,19 @@ export function AppShell({ children }: { children: ReactNode }) {
                     active ? "text-white" : "text-white/50 group-hover:text-white"
                   }`}
                 />
-                <span className="flex-1 truncate">{item.label}</span>
+                <span className="flex-grow flex items-start gap-1 min-w-0">
+                  <span className="truncate">{item.label}</span>
+                  {item.badge === "coming_soon" && (
+                    <span className="text-[8px] leading-none font-medium text-white/40 bg-white/[0.08] border border-white/[0.12] px-1 py-0.5 rounded uppercase tracking-wider select-none relative -top-[4px] shrink-0 scale-90 origin-left">
+                      Soon
+                    </span>
+                  )}
+                  {item.badge === "beta" && (
+                    <span className="text-[8px] leading-none font-bold text-[#b260ff] bg-[#9025F2]/15 border border-[#9025F2]/30 px-1 py-0.5 rounded uppercase tracking-wider select-none relative -top-[4px] shrink-0 scale-90 origin-left">
+                      Beta
+                    </span>
+                  )}
+                </span>
               </Link>
             );
           })}

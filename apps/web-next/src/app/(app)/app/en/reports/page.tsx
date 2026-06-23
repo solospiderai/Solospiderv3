@@ -1,7 +1,5 @@
-"use client";
-
-import { ComingSoon } from "@/components/ui/coming-soon";
+import { MigratedWorkspacePage } from "@/components/layout/migrated-workspace-page";
 
 export default function ReportsPage() {
-  return <ComingSoon title="Reports" />;
+  return <MigratedWorkspacePage moduleKey="reports" />;
 }
