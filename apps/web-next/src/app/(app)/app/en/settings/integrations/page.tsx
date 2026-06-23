@@ -490,9 +490,21 @@ export default function IntegrationsSettingsPage() {
         {/* Left Column: CMS & Store Connections (Shopify, Magento, WordPress) */}
         <div className="lg:col-span-7 space-y-6">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-3">
-              <h3 className="text-base font-black text-slate-950">CMS & E-Commerce Connections</h3>
-              <p className="text-xs text-slate-400 font-semibold">Publish generated drafts, products, and articles to your store or blog.</p>
+            <div className="border-b border-slate-100 pb-3 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-base font-black text-slate-950">CMS & E-Commerce Connections</h3>
+                <p className="text-xs text-slate-400 font-semibold">Publish generated drafts, products, and articles to your store or blog.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setGuidePlatform("wordpress");
+                  setShowGuide(true);
+                }}
+                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm border border-indigo-100 shrink-0"
+              >
+                <BookOpen className="w-3.5 h-3.5" /> Setup Guide
+              </button>
             </div>
 
             {/* Platform Selection Buttons */}
@@ -740,15 +752,15 @@ export default function IntegrationsSettingsPage() {
                   const isMagento = int.platform === "magento";
 
                   return (
-                    <div key={int.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-slate-150 rounded-2xl bg-slate-50/20 gap-4">
-                      <div className="flex items-center gap-3">
+                    <div key={int.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-slate-200 rounded-2xl bg-slate-50/20 gap-4 min-w-0 w-full overflow-hidden">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="w-10 h-10 shrink-0 flex items-center justify-center">
                           {isWp ? <WordPressIcon className="w-10 h-10 rounded-xl shadow-sm" /> : isShopify ? <ShopifyIcon className="w-10 h-10 rounded-xl shadow-sm" /> : <MagentoIcon className="w-10 h-10 rounded-xl shadow-sm" />}
                         </div>
-                        <div className="min-w-0">
-                          <h4 className="text-xs font-black text-slate-800 truncate flex items-center gap-1.5">
-                            {isWp ? int.credentials?.siteUrl : isShopify ? int.credentials?.shopName : int.credentials?.siteUrl}
-                            <span className="bg-emerald-500/15 text-emerald-600 border border-emerald-500/10 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="text-xs font-black text-slate-800 flex items-center gap-1.5 min-w-0 w-full">
+                            <span className="truncate block flex-1 min-w-0">{isWp ? int.credentials?.siteUrl : isShopify ? int.credentials?.shopName : int.credentials?.siteUrl}</span>
+                            <span className="bg-emerald-500/15 text-emerald-600 border border-emerald-500/10 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">
                               Active
                             </span>
                           </h4>
@@ -797,9 +809,21 @@ export default function IntegrationsSettingsPage() {
         {/* Right Column: Social Channels Connection (LinkedIn, Twitter, Instagram, Facebook, Pinterest) */}
         <div className="lg:col-span-5 space-y-6">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-            <div>
-              <h3 className="text-base font-black text-slate-950">Social Media API Channels</h3>
-              <p className="text-xs text-slate-400 font-semibold">Schedule publishing across connected social networks.</p>
+            <div className="border-b border-slate-100 pb-3 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-base font-black text-slate-950">Social Media API Channels</h3>
+                <p className="text-xs text-slate-400 font-semibold">Schedule publishing across connected social networks.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setGuidePlatform("wordpress");
+                  setShowGuide(true);
+                }}
+                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm border border-indigo-100 shrink-0"
+              >
+                <BookOpen className="w-3.5 h-3.5" /> Setup Guide
+              </button>
             </div>
 
             <div className="space-y-4">
@@ -842,14 +866,14 @@ export default function IntegrationsSettingsPage() {
 
                 return (
                   <div key={plat.id} className="p-4 border border-slate-200 rounded-2xl space-y-3.5 hover:border-slate-300 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
+                    <div className="flex items-center justify-between min-w-0 w-full gap-4">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
                         <div className="w-9 h-9 shrink-0 flex items-center justify-center">
                           <BrandIcon className="w-9 h-9 rounded-xl shadow-sm" />
                         </div>
-                        <div>
-                          <span className="text-xs font-black text-slate-800">{plat.name}</span>
-                          <p className="text-[9px] text-slate-400 font-semibold">{plat.desc}</p>
+                        <div className="min-w-0 flex-1">
+                          <span className="text-xs font-black text-slate-800 block truncate">{plat.name}</span>
+                          <p className="text-[9px] text-slate-400 font-semibold truncate">{plat.desc}</p>
                         </div>
                       </div>
 
@@ -861,7 +885,7 @@ export default function IntegrationsSettingsPage() {
                           {/* Change Account / Edit Button */}
                           <button
                             onClick={() => handleSocialConnect(plat.id)}
-                            className="p-2 border border-slate-150 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50/30 transition-colors cursor-pointer text-slate-500 shadow-sm"
+                            className="p-2 border border-slate-200 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50/30 transition-colors cursor-pointer text-slate-500 shadow-sm"
                             title="Change Account / Re-authenticate"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
@@ -874,7 +898,7 @@ export default function IntegrationsSettingsPage() {
                                 disconnectSocialMutation.mutate(connectedAccount.id);
                               }
                             }}
-                            className="p-2 border border-slate-150 rounded-xl hover:border-red-200 hover:text-red-500 hover:bg-red-50/30 transition-colors cursor-pointer text-slate-500 shadow-sm"
+                            className="p-2 border border-slate-200 rounded-xl hover:border-red-200 hover:text-red-500 hover:bg-red-50/30 transition-colors cursor-pointer text-slate-500 shadow-sm"
                             title="Disconnect Account"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
