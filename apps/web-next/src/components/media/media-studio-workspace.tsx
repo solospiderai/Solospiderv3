@@ -166,16 +166,48 @@ export function MediaStudioWorkspace() {
         throw error;
       }
 
-      return (data || []).map((item: any) => ({
-        id: item.id,
-        url: item.image_url,
-        prompt: item.prompt,
-        enhancedPrompt: item.enhanced_prompt,
-        caption: item.caption,
-        hashtags: item.hashtags || [],
-        date: item.created_at,
-        format: item.format || "square",
-      })) as GeneratedAsset[];
+      return (data || []).map((item: any) => {
+        let parsedCaption = item.caption || "";
+        let prompt = item.prompt || "";
+        let enhancedPrompt = item.enhanced_prompt || "";
+        let format = item.format || "square";
+        let hashtags = item.hashtags || [];
+
+        // Attempt to parse JSON from caption
+        if (item.caption && item.caption.trim().startsWith("{")) {
+          try {
+            const parsed = JSON.parse(item.caption);
+            if (parsed && typeof parsed === "object") {
+              parsedCaption = parsed.text || parsed.caption || "";
+              prompt = parsed.prompt || prompt;
+              enhancedPrompt = parsed.enhanced_prompt || enhancedPrompt;
+              format = parsed.format || format;
+              hashtags = parsed.hashtags || hashtags;
+            }
+          } catch (e) {
+            console.error("Failed to parse serialized caption JSON:", e);
+          }
+        }
+
+        // Handle string representation of hashtags if it was saved directly in database
+        let hashtagsArr: string[] = [];
+        if (Array.isArray(hashtags)) {
+          hashtagsArr = hashtags;
+        } else if (typeof hashtags === "string") {
+          hashtagsArr = hashtags.split(",").map((t: string) => t.trim()).filter(Boolean);
+        }
+
+        return {
+          id: item.id,
+          url: item.image_url,
+          prompt: prompt,
+          enhancedPrompt: enhancedPrompt,
+          caption: parsedCaption,
+          hashtags: hashtagsArr,
+          date: item.created_at,
+          format: format,
+        };
+      }) as GeneratedAsset[];
     },
   });
 
@@ -365,15 +397,20 @@ export function MediaStudioWorkspace() {
       const supabase = getSupabaseBrowserClient();
       const userRes = await supabase.auth.getUser();
 
+      const serializedCaption = JSON.stringify({
+        text: safeCaption,
+        prompt: prompt,
+        enhanced_prompt: safeImagePrompt,
+        format: activeFormat,
+        hashtags: safeHashtags
+      });
+
       const { error } = await supabase.from("media_assets").insert({
         project_id: activeProject.id,
         user_id: userRes.data.user?.id ?? null,
         image_url: imageUrl,
-        prompt: prompt,
-        enhanced_prompt: safeImagePrompt,
-        caption: safeCaption,
-        hashtags: safeHashtags,
-        format: activeFormat,
+        caption: serializedCaption,
+        hashtags: safeHashtags.join(",")
       });
 
       if (error) {
@@ -427,7 +464,18 @@ export function MediaStudioWorkspace() {
   const handleUpdateCaption = async (id: string, newCaption: string) => {
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase.from("media_assets").update({ caption: newCaption }).eq("id", id);
+      const asset = savedAssets.find((a) => a.id === id);
+      if (!asset) throw new Error("Asset not found");
+
+      const serializedCaption = JSON.stringify({
+        text: newCaption,
+        prompt: asset.prompt,
+        enhanced_prompt: asset.enhancedPrompt,
+        format: asset.format,
+        hashtags: asset.hashtags
+      });
+
+      const { error } = await supabase.from("media_assets").update({ caption: serializedCaption }).eq("id", id);
 
       if (error) throw error;
 
@@ -443,7 +491,21 @@ export function MediaStudioWorkspace() {
   const handleUpdateHashtags = async (id: string, newHashtags: string[]) => {
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase.from("media_assets").update({ hashtags: newHashtags }).eq("id", id);
+      const asset = savedAssets.find((a) => a.id === id);
+      if (!asset) throw new Error("Asset not found");
+
+      const serializedCaption = JSON.stringify({
+        text: asset.caption,
+        prompt: asset.prompt,
+        enhanced_prompt: asset.enhancedPrompt,
+        format: asset.format,
+        hashtags: newHashtags
+      });
+
+      const { error } = await supabase.from("media_assets").update({ 
+        caption: serializedCaption,
+        hashtags: newHashtags.join(",") 
+      }).eq("id", id);
 
       if (error) throw error;
 
