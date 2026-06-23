@@ -16,7 +16,10 @@ import {
   AlertCircle, 
   FolderKanban,
   FileCode2,
-  RefreshCw
+  RefreshCw,
+  BookOpen,
+  X,
+  ExternalLink
 } from "lucide-react";
 
 // Official High-Fidelity Brand SVG Icons
@@ -113,6 +116,12 @@ export default function IntegrationsSettingsPage() {
   const [editingIntegrationId, setEditingIntegrationId] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<{ ok: boolean; message?: string; error?: string } | null>(null);
+
+  // Setup Guide modal states
+  const [showGuide, setShowGuide] = useState(false);
+  const [guidePlatform, setGuidePlatform] = useState<"wordpress" | "shopify">("wordpress");
+  const [wpGuideTab, setWpGuideTab] = useState<"org" | "com">("org");
+  const [shopifyGuideTab, setShopifyGuideTab] = useState<"standard" | "partner">("standard");
 
   // Fetch connected CMS & Store integrations
   const cmsIntegrationsQuery = useQuery({
@@ -525,7 +534,19 @@ export default function IntegrationsSettingsPage() {
                     <WordPressIcon className="w-5 h-5" />
                     Configure WordPress Site
                   </h4>
-                  <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGuidePlatform("wordpress");
+                        setShowGuide(true);
+                      }}
+                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" /> Setup Guide
+                    </button>
+                    <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <div className="space-y-1">
@@ -598,7 +619,19 @@ export default function IntegrationsSettingsPage() {
                     <ShopifyIcon className="w-5 h-5" />
                     Configure Shopify Store
                   </h4>
-                  <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setGuidePlatform("shopify");
+                        setShowGuide(true);
+                      }}
+                      className="text-xs font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" /> Setup Guide
+                    </button>
+                    <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <div className="space-y-1">
@@ -881,6 +914,329 @@ export default function IntegrationsSettingsPage() {
         </div>
 
       </div>
+
+      {/* Setup Guide Modal */}
+      {showGuide && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="relative bg-white rounded-3xl max-w-3xl w-full border border-slate-100 shadow-2xl p-6 md:p-8 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowGuide(false)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Integration Setup Guide</h3>
+                <p className="text-xs text-slate-500 font-semibold">Step-by-step instructions to connect your external platforms</p>
+              </div>
+            </div>
+
+            {/* Platform Selector Tabs */}
+            <div className="flex border-b border-slate-100 mt-4">
+              <button
+                onClick={() => setGuidePlatform("wordpress")}
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  guidePlatform === "wordpress"
+                    ? "border-[#21759B] text-[#21759B]"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <WordPressIcon className="w-5 h-5" />
+                WordPress
+              </button>
+              <button
+                onClick={() => setGuidePlatform("shopify")}
+                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  guidePlatform === "shopify"
+                    ? "border-[#96BF48] text-[#96BF48]"
+                    : "border-transparent text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                <ShopifyIcon className="w-5 h-5" />
+                Shopify
+              </button>
+            </div>
+
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto mt-4 pr-2 space-y-4 max-h-[50vh]">
+              {guidePlatform === "wordpress" ? (
+                <>
+                  {/* WordPress Subtabs */}
+                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                    <button
+                      onClick={() => setWpGuideTab("org")}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        wpGuideTab === "org"
+                          ? "bg-white text-[#21759B] shadow-sm"
+                          : "text-slate-600 hover:text-slate-800"
+                      }`}
+                    >
+                      Self-Hosted (.org)
+                    </button>
+                    <button
+                      onClick={() => setWpGuideTab("com")}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        wpGuideTab === "com"
+                          ? "bg-white text-[#21759B] shadow-sm"
+                          : "text-slate-600 hover:text-slate-800"
+                      }`}
+                    >
+                      Hosted (WordPress.com)
+                    </button>
+                  </div>
+
+                  {/* WordPress Warning Alert */}
+                  <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+                      <span className="font-bold text-amber-700">Important Security Requirement:</span> You must use an <strong>Application Password</strong> instead of your regular site account password. Main logins will fail verification for security reasons.
+                    </div>
+                  </div>
+
+                  {wpGuideTab === "org" ? (
+                    // WordPress.org Steps
+                    <div className="space-y-4">
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Log in to WP Admin</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Navigate to your WordPress dashboard (e.g. <code>https://your-site.com/wp-admin</code>) and sign in.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Go to your Profile settings</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">In the left-hand sidebar menu, click on <strong>Users</strong> → <strong>Profile</strong> (or edit the user profile you plan to publish with).</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Generate Application Password</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Scroll to the bottom of the page to find the <strong>Application Passwords</strong> section. Enter a name (e.g., <code>SoloSpider</code>) and click <strong>Add New Application Password</strong>.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Copy the password</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Copy the newly generated 24-character password (separated by spaces, e.g. <code>xxxx xxxx xxxx xxxx xxxx xxxx</code>). Keep it safe as you will not see it again.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Save connection in SoloSpider</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter your website base URL, your WordPress username (or admin email), and paste the copied Application Password. Click <strong>Verify & Save Connection</strong>.</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // WordPress.com Steps
+                    <div className="space-y-4">
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Log in & Go to Security Settings</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Log in to WordPress.com and navigate to the <strong>Two-Step Authentication</strong> page: <a href="https://wordpress.com/me/security/two-step" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-bold inline-flex items-center gap-0.5">wordpress.com/me/security/two-step <ExternalLink className="w-3 h-3" /></a></p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Enable Two-Step Authentication (2FA)</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">WordPress.com requires 2FA to be active to use application passwords. If not enabled, turn on 2FA using your mobile number or authenticator app.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Generate WordPress.com App Password</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Once 2FA is active, navigate to the <strong>Application Passwords</strong> page: <a href="https://wordpress.com/me/security/application-passwords" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-bold inline-flex items-center gap-0.5">wordpress.com/me/security/application-passwords <ExternalLink className="w-3 h-3" /></a></p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Name and generate password</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter an application name (e.g. <code>SoloSpider</code>) and click <strong>Generate Password</strong>. Copy the 16-character string immediately.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Save connection in SoloSpider</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter your blog site URL (e.g. <code>https://solospiderai.wordpress.com</code>), your WordPress.com email address/username, and paste the 16-character generated password.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {/* Shopify Subtabs */}
+                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                    <button
+                      onClick={() => setShopifyGuideTab("standard")}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        shopifyGuideTab === "standard"
+                          ? "bg-white text-[#96BF48] shadow-sm"
+                          : "text-slate-600 hover:text-slate-800"
+                      }`}
+                    >
+                      Merchant Store (Custom App)
+                    </button>
+                    <button
+                      onClick={() => setShopifyGuideTab("partner")}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                        shopifyGuideTab === "partner"
+                          ? "bg-white text-[#96BF48] shadow-sm"
+                          : "text-slate-600 hover:text-slate-800"
+                      }`}
+                    >
+                      Developer Partners (App Dashboard)
+                    </button>
+                  </div>
+
+                  {/* Shopify Warning Alert */}
+                  <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-[11px] text-slate-600 font-semibold leading-relaxed">
+                      <span className="font-bold text-amber-700">Important Credentials Note:</span> In SoloSpider, you must enter the **Admin API Access Token** (starts with <code>shpat_</code>). Do <strong>NOT</strong> enter your Shopify API Client Secret or API Key.
+                    </div>
+                  </div>
+
+                  {shopifyGuideTab === "standard" ? (
+                    // Shopify Custom App steps
+                    <div className="space-y-4">
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Log in to Shopify Store Admin</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Log in to your store admin panel at <code>admin.shopify.com</code>.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Navigate to Custom App settings</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Click on <strong>Settings</strong> (bottom left gear) → <strong>Apps and sales channels</strong> → <strong>Develop apps</strong> (top right), then click <strong>Create an app</strong>.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Configure Scopes</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Click **Configure Admin API scopes**. Scroll down and check <strong>write_content</strong> and <strong>read_content</strong> permissions, then click <strong>Save</strong>.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Install Custom App</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Go to the **API credentials** tab, and click **Install app** (confirm the installation popup).</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Copy Admin API access token</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Under **Admin API access token**, click **Reveal token once** and copy it (it starts with <code>shpat_</code>). Keep it safe as Shopify only displays it once.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">6</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Save connection in SoloSpider</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter your store URL (e.g. <code>my-store.myshopify.com</code>) and paste the token. Click **Verify & Save Shopify Connection**.</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    // Shopify Partner Store steps
+                    <div className="space-y-4">
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Log in to Shopify Dev Dashboard</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Navigate to Shopify Dev Dashboard: <a href="https://dev.shopify.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-bold inline-flex items-center gap-0.5">dev.shopify.com <ExternalLink className="w-3 h-3" /></a>, log in, and go to **Apps** → click **Create app**.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Set Allowed URLs</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Under **Client credentials**, set **App URL** to <code>https://example.com</code> and **Allowed redirection URLs** to <code>https://example.com/auth/callback</code>.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Configure Scopes</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Under **API Access** or **Versions/Scopes**, select the scopes: <code>write_content</code> and <code>read_content</code>, then click save.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Perform App Authorization</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Visit this URL in a new browser tab to trigger the installation flow:</p>
+                          <pre className="bg-slate-50 border border-slate-150 p-2 rounded-lg text-[9px] font-mono whitespace-pre-wrap break-all mt-1 select-all">
+                            {"https://{your-store}.myshopify.com/admin/oauth/authorize?client_id={client_id}&scope=write_content,read_content&redirect_uri=https://example.com/auth/callback"}
+                          </pre>
+                          <p className="text-[9px] text-slate-400 font-medium mt-1">Replace <code>{`{your-store}`}</code> with store handle (e.g. <code>uw0abf-vd</code>) and <code>{`{client_id}`}</code> with Client ID from App settings.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
+                        <div>
+                          <h4 className="text-xs font-black text-slate-800">Retrieve code and exchange</h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">After hitting Install, copy the authorization code from the redirected browser URL parameter (e.g. <code>?code=CODE</code>) and exchange it to retrieve the permanent Admin API access token (starts with <code>shpat_</code>).</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="border-t border-slate-100 pt-4 flex justify-end">
+              <button
+                onClick={() => setShowGuide(false)}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-5 rounded-xl cursor-pointer transition-all shadow-sm"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
