@@ -81,7 +81,7 @@ function computeSEOScore(content: ContentItem) {
   return { score: Math.round((totalScore / maxScore) * 100), checks, totalScore, maxScore };
 }
 
-export function ContentEditor({ id }: { id: string }) {
+export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: string; backHref?: string }) {
   const router = useRouter();
   const { activeProjectId } = useProjects();
   const { user } = useAuth();
@@ -113,6 +113,16 @@ export function ContentEditor({ id }: { id: string }) {
   const [fetchingAuthors, setFetchingAuthors] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [canonicalUrl, setCanonicalUrl] = useState<string>("");
+
+  // Shopify Publish Settings State
+  const [shopifyPublishDialogOpen, setShopifyPublishDialogOpen] = useState(false);
+  const [shopifyPublishStatus, setShopifyPublishStatus] = useState("draft");
+  const [shopifyBlogs, setShopifyBlogs] = useState<{ id: number, title: string }[]>([]);
+  const [selectedShopifyBlog, setSelectedShopifyBlog] = useState<string>("none");
+  const [fetchingShopifyBlogs, setFetchingShopifyBlogs] = useState(false);
+  const [shopifyIntegrations, setShopifyIntegrations] = useState<any[]>([]);
+  const [selectedShopifyIntegration, setSelectedShopifyIntegration] = useState<string>("none");
+  const [shopifyPublishing, setShopifyPublishing] = useState(false);
 
   const toTitleCase = (str: string) => {
     return str.replace(
@@ -227,7 +237,7 @@ export function ContentEditor({ id }: { id: string }) {
         setSelectedIntegration(integrations[0].id);
 
         // Fetch properties for the first integration
-        await fetchWpProperties(integrations[0].credentials);
+        await fetchWpProperties(integrations[0].id);
       } else {
         setFetchingCategories(false);
         setFetchingAuthors(false);
@@ -239,42 +249,34 @@ export function ContentEditor({ id }: { id: string }) {
     }
   };
 
-  const fetchWpProperties = async (creds: any) => {
+  const fetchWpProperties = async (integrationId: string) => {
     setFetchingCategories(true);
     setFetchingAuthors(true);
-    if (creds && creds.url && creds.username && creds.app_password) {
-      let cleanUrl = creds.url.trim();
-      if (cleanUrl.endsWith("/")) cleanUrl = cleanUrl.slice(0, -1);
-      const authString = btoa(`${creds.username}:${creds.app_password}`);
-
-      try {
-        const [catRes, authRes] = await Promise.all([
-          fetch(`${cleanUrl}/wp-json/wp/v2/categories?per_page=100`, { headers: { Authorization: `Basic ${authString}` } }),
-          fetch(`${cleanUrl}/wp-json/wp/v2/users?per_page=100`, { headers: { Authorization: `Basic ${authString}` } })
-        ]);
-
-        if (catRes.ok) {
-          const cats = await catRes.json();
-          setWpCategories(cats);
-        }
-        if (authRes.ok) {
-          const authors = await authRes.json();
-          setWpAuthors(authors);
-        }
-      } catch (e) {
-        console.error("Failed to fetch WP properties", e);
+    try {
+      const res = await fetch("/api/jobs/wp-properties", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ integrationId }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.categories) setWpCategories(data.categories);
+        if (data.authors) setWpAuthors(data.authors);
+      } else {
+        console.error("Failed to fetch WP properties:", data.error);
+        toast.error(data.error || "Failed to fetch WordPress properties");
       }
+    } catch (e) {
+      console.error("Failed to fetch WP properties:", e);
+    } finally {
+      setFetchingCategories(false);
+      setFetchingAuthors(false);
     }
-    setFetchingCategories(false);
-    setFetchingAuthors(false);
   };
 
   useEffect(() => {
     if (publishDialogOpen && selectedIntegration !== "none" && wpIntegrations.length > 0) {
-      const integration = wpIntegrations.find(int => int.id === selectedIntegration);
-      if (integration) {
-        fetchWpProperties(integration.credentials);
-      }
+      fetchWpProperties(selectedIntegration);
     }
   }, [selectedIntegration, publishDialogOpen, wpIntegrations]);
 
@@ -305,7 +307,11 @@ export function ContentEditor({ id }: { id: string }) {
         throw new Error("Selected integration not found or inactive.");
       }
       const creds = integration.credentials;
-      if (!creds || !creds.url || !creds.username || !creds.app_password) {
+      const url = creds?.url || creds?.siteUrl;
+      const appPassword = creds?.app_password || creds?.appPassword;
+      const username = creds?.username;
+
+      if (!creds || !url || !username || !appPassword) {
         throw new Error("WordPress integration is missing credentials.");
       }
 
@@ -373,6 +379,106 @@ export function ContentEditor({ id }: { id: string }) {
       setPublishing(false);
     }
   };
+
+  const openShopifyPublishDialog = async () => {
+    setShopifyPublishDialogOpen(true);
+    setFetchingShopifyBlogs(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: integrations } = await (supabase
+        .from("workspace_integrations" as any)
+        .select("*")
+        .eq("user_id", session.user.id)
+        .eq("platform", "shopify")
+        .eq("is_active", true) as any);
+
+      if (integrations && integrations.length > 0) {
+        setShopifyIntegrations(integrations);
+        setSelectedShopifyIntegration(integrations[0].id);
+        await fetchShopifyBlogs(integrations[0].id);
+      } else {
+        setFetchingShopifyBlogs(false);
+      }
+    } catch (e) {
+      console.error(e);
+      setFetchingShopifyBlogs(false);
+    }
+  };
+
+  const fetchShopifyBlogs = async (integrationId: string) => {
+    setFetchingShopifyBlogs(true);
+    try {
+      const res = await fetch("/api/jobs/publish-to-shopify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ integrationId, step: "get_blogs" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.blogs) {
+        setShopifyBlogs(data.blogs);
+        if (data.blogs.length > 0) {
+          setSelectedShopifyBlog(data.blogs[0].id.toString());
+        }
+      } else {
+        toast.error("Failed to load Shopify blogs");
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setFetchingShopifyBlogs(false);
+    }
+  };
+
+  const handleShopifyPublish = async () => {
+    if (!content) return;
+    setShopifyPublishing(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: integration, error: intError } = await (supabase
+        .from("workspace_integrations" as any)
+        .select("*")
+        .eq("id", selectedShopifyIntegration)
+        .single() as any);
+
+      if (intError || !integration) {
+        throw new Error("No active Shopify integration found. Please connect in Settings > Integrations.");
+      }
+
+      const res = await fetch("/api/jobs/publish-to-shopify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contentId: content.id,
+          integrationId: selectedShopifyIntegration,
+          publishStatus: shopifyPublishStatus,
+          blogId: selectedShopifyBlog,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Server returned ${res.status}`);
+      }
+
+      toast.success("Successfully published to Shopify!");
+      setShopifyPublishDialogOpen(false);
+      fetchContent();
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Failed to publish to Shopify");
+    } finally {
+      setShopifyPublishing(false);
+    }
+  };
+
+  useEffect(() => {
+    if (shopifyPublishDialogOpen && selectedShopifyIntegration !== "none" && shopifyIntegrations.length > 0) {
+      fetchShopifyBlogs(selectedShopifyIntegration);
+    }
+  }, [selectedShopifyIntegration, shopifyPublishDialogOpen]);
 
   const handleRetry = async () => {
     if (!id) return;
@@ -505,10 +611,10 @@ export function ContentEditor({ id }: { id: string }) {
       <div className="p-8">
         <p>Content not found.</p>
         <button
-          onClick={() => router.push("/app/en/dashboard")}
+          onClick={() => router.push(backHref)}
           className="mt-4 border border-slate-300 rounded-xl px-4 py-2 hover:bg-slate-50 transition-all font-semibold"
         >
-          Back to Dashboard
+          {backHref === "/app/en/dashboard" ? "Back to Dashboard" : "Back"}
         </button>
       </div>
     );
@@ -524,7 +630,7 @@ export function ContentEditor({ id }: { id: string }) {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
         <button
-          onClick={() => router.push("/app/en/dashboard")}
+          onClick={() => router.push(backHref)}
           className="p-2 hover:bg-slate-100 rounded-xl text-slate-600 transition-colors"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -656,6 +762,13 @@ export function ContentEditor({ id }: { id: string }) {
               className="bg-indigo-600 text-white text-xs font-bold rounded-lg px-3 py-1.5 hover:bg-indigo-700 disabled:opacity-50 transition-all flex items-center gap-1 shadow-sm shadow-indigo-600/10"
             >
               <Globe className="h-3.5 w-3.5" /> Publish to WordPress
+            </button>
+            <button
+              onClick={openShopifyPublishDialog}
+              disabled={!content.generated_content || isGenerating}
+              className="bg-emerald-600 text-white text-xs font-bold rounded-lg px-3 py-1.5 hover:bg-emerald-700 disabled:opacity-50 transition-all flex items-center gap-1 shadow-sm shadow-emerald-600/10"
+            >
+              <Globe className="h-3.5 w-3.5" /> Publish to Shopify
             </button>
           </div>
         </div>
@@ -908,6 +1021,104 @@ export function ContentEditor({ id }: { id: string }) {
               >
                 {publishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Send to WordPress
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Shopify Publisher Modal */}
+      {shopifyPublishDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div>
+                <h3 className="font-black text-slate-900 text-lg">Publish to Shopify</h3>
+                <p className="text-xs text-slate-500 font-semibold">Select Shopify store and blog category</p>
+              </div>
+              <button
+                onClick={() => setShopifyPublishDialogOpen(false)}
+                className="text-slate-400 hover:text-slate-600 font-black text-xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Integration Select */}
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 uppercase">Shopify Target Store</label>
+                <select
+                  value={selectedShopifyIntegration}
+                  onChange={(e) => setSelectedShopifyIntegration(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-sm font-semibold"
+                >
+                  {shopifyIntegrations.length === 0 ? (
+                    <option value="none">No active Shopify stores connected</option>
+                  ) : (
+                    shopifyIntegrations.map((int) => (
+                      <option key={int.id} value={int.id}>{int.credentials.shopName}</option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              {shopifyIntegrations.length > 0 && (
+                <>
+                  {/* Blog Select */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 uppercase">Shopify Blog Category</label>
+                    <select
+                      value={selectedShopifyBlog}
+                      onChange={(e) => setSelectedShopifyBlog(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-sm font-semibold"
+                      disabled={fetchingShopifyBlogs}
+                    >
+                      {fetchingShopifyBlogs ? (
+                        <option value="none">Fetching blogs...</option>
+                      ) : shopifyBlogs.length === 0 ? (
+                        <option value="none">No blogs found (will use default category)</option>
+                      ) : (
+                        <>
+                          <option value="none">Select Blog Category</option>
+                          {shopifyBlogs.map((blog) => (
+                            <option key={blog.id} value={blog.id.toString()}>{blog.title}</option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                  </div>
+
+                  {/* Publish Status */}
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-slate-700 uppercase">Publish Action</label>
+                    <select
+                      value={shopifyPublishStatus}
+                      onChange={(e) => setShopifyPublishStatus(e.target.value)}
+                      className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-sm font-semibold"
+                    >
+                      <option value="draft">Save as Hidden (Draft) in Shopify</option>
+                      <option value="active">Publish to Live Store</option>
+                    </select>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-2 bg-slate-50/50">
+              <button
+                onClick={() => setShopifyPublishDialogOpen(false)}
+                className="border border-slate-300 rounded-xl px-4 py-2 hover:bg-slate-50 transition-all font-bold text-slate-700 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleShopifyPublish}
+                disabled={shopifyPublishing || shopifyIntegrations.length === 0}
+                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold px-5 py-2 rounded-xl text-sm flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/10"
+              >
+                {shopifyPublishing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                Send to Shopify
               </button>
             </div>
           </div>

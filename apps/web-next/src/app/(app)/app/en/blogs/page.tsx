@@ -1,5 +1,5 @@
-import { MigratedWorkspacePage } from "@/components/layout/migrated-workspace-page";
+import { BlogsList } from "@/components/content/blogs-list";
 
 export default function BlogsPage() {
-  return <MigratedWorkspacePage moduleKey="blogs" />;
+  return <BlogsList />;
 }

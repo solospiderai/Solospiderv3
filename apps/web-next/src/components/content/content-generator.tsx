@@ -8,7 +8,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Image as ImageIcon, CheckCircle2, FileText, Fingerprint, Calendar as CalendarIcon } from "lucide-react";
 
-export function ContentGenerator() {
+export function ContentGenerator({ redirectBase = "/app/en/content" }: { redirectBase?: string }) {
   const router = useRouter();
   const { user } = useAuth();
   const { activeProjectId } = useProjects();
@@ -122,7 +122,7 @@ export function ContentGenerator() {
       }).catch((err: any) => console.error("Generation invoke error:", err));
 
       toast.success("Generation started!");
-      router.push(`/app/en/content/${data.id}`);
+      router.push(`${redirectBase}/${data.id}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to start generation");
     } finally {

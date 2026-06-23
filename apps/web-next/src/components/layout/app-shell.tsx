@@ -146,7 +146,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       isActive: (path) => path.startsWith("/app/en/seo") && !path.startsWith("/app/en/seo/rank-tracking")
     },
     {
-      label: "Blogs [Coming soon]",
+      label: "Blogs",
       to: "/app/en/content/generate",
       icon: FileText,
       isActive: (path) => path.startsWith("/app/en/content") || path.startsWith("/app/en/blogs") || path.startsWith("/blogs") || path.startsWith("/bulk-generate") || path.startsWith("/calendar") || path.startsWith("/generate") || path.startsWith("/manage-posts")

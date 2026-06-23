@@ -237,46 +237,54 @@ JSON Schema:
 
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     let rawContent = "";
-    if (!openrouterKey) {
-      throw new Error("OPENROUTER_API_KEY is not defined in environment");
-    }
 
-    console.log("Calling OpenRouter for SEO AI suggestion...");
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openrouterKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://solospider.ai",
-        "X-Title": "SoloSpider",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 800,
-        temperature: 0.3,
-        response_format: { type: "json_object" }
-      }),
-    });
-
-    if (!response.ok) {
-      let errorMsg = `OpenRouter error (Status ${response.status})`;
+    // 1. Try OpenRouter if key is available
+    if (openrouterKey) {
       try {
-        const errorJson = await response.json();
-        if (errorJson?.error?.message) {
-          errorMsg = errorJson.error.message;
+        console.log("Calling OpenRouter for SEO AI suggestion...");
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openrouterKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://solospider.ai",
+            "X-Title": "SoloSpider",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 800,
+            temperature: 0.3,
+            response_format: { type: "json_object" }
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          rawContent = data.choices?.[0]?.message?.content || "";
+        } else {
+          console.warn("OpenRouter API route call failed, status:", response.status);
         }
-      } catch {
-        try {
-          const text = await response.text();
-          if (text) errorMsg = text.slice(0, 200);
-        } catch {}
+      } catch (err) {
+        console.warn("OpenRouter API route call encountered error:", err);
       }
-      throw new Error(errorMsg);
     }
 
-    const data = await response.json();
-    rawContent = data.choices?.[0]?.message?.content || "";
+    // 2. Fallback to Pollinations AI text endpoint
+    if (!rawContent) {
+      try {
+        console.log("Calling Pollinations AI for SEO AI suggestion fallback...");
+        const encodedPrompt = encodeURIComponent(`${prompt}\nSTRICT RULE: Return ONLY raw JSON. No markdown code block wraps.`);
+        const pollinationsUrl = `https://text.pollinations.ai/${encodedPrompt}?model=openai`;
+
+        const res = await fetch(pollinationsUrl);
+        if (res.ok) {
+          rawContent = await res.text();
+        }
+      } catch (err) {
+        console.warn("Pollinations AI API route fallback failed:", err);
+      }
+    }
 
     // 3. Process and return clean JSON
     if (rawContent) {

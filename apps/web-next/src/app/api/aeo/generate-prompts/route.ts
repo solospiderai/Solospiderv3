@@ -23,45 +23,52 @@ function getSupabaseAdmin() {
 
 async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-2.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
-  if (!openrouterKey) {
-    throw new Error("OPENROUTER_API_KEY is not defined in environment");
-  }
+  let text = "";
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${openrouterKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://solospider.ai",
-      "X-Title": "SoloSpider",
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    },
-    body: JSON.stringify({
-      model: model,
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: maxTokens,
-      temperature: 0.8,
-    }),
-  });
-
-  if (!response.ok) {
-    let errorMsg = `OpenRouter error (Status ${response.status})`;
+  if (openrouterKey) {
     try {
-      const errorJson = await response.json();
-      if (errorJson?.error?.message) {
-        errorMsg = errorJson.error.message;
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openrouterKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://solospider.ai",
+          "X-Title": "SoloSpider",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.8,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        text = data.choices?.[0]?.message?.content?.trim() || "";
+      } else {
+        console.warn(`[callLLM] OpenRouter responded with ${response.status}: ${await response.text()}`);
       }
-    } catch {
-      try {
-        const text = await response.text();
-        if (text) errorMsg = text.slice(0, 200);
-      } catch {}
+    } catch (err) {
+      console.warn("[callLLM] OpenRouter failed, falling back:", err);
     }
-    throw new Error(errorMsg);
   }
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || "";
+  // Fallback to pollinations if OpenRouter is unavailable
+  if (!text) {
+    try {
+      const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
+      const res = await fetch(pollinationsUrl);
+      if (res.ok) {
+        text = (await res.text()).trim();
+      }
+    } catch (err) {
+      console.error("[callLLM] Pollinations fallback failed:", err);
+    }
+  }
+
+  return text;
 }
 
 function isValidUnbrandedPrompt(prompt: string, brandName: string, domain: string, competitors: string[]): boolean {

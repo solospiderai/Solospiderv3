@@ -44,19 +44,7 @@ async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash",
   });
 
   if (!response.ok) {
-    let errorMsg = `OpenRouter error (Status ${response.status})`;
-    try {
-      const errorJson = await response.json();
-      if (errorJson?.error?.message) {
-        errorMsg = errorJson.error.message;
-      }
-    } catch {
-      try {
-        const text = await response.text();
-        if (text) errorMsg = text.slice(0, 200);
-      } catch {}
-    }
-    throw new Error(errorMsg);
+    throw new Error(`OpenRouter responded with status ${response.status}: ${await response.text()}`);
   }
 
   const data = await response.json();
@@ -253,7 +241,24 @@ Format the output strictly as raw JSON. Do not include markdown code block forma
 
     let promptsArray = [];
     try {
-      const llmResponse = await callOpenRouter(promptText);
+      let llmResponse = "";
+      try {
+        llmResponse = await callOpenRouter(promptText);
+      } catch (err: any) {
+        console.warn("[GeneratePromptsWizard] OpenRouter failed, trying Pollinations fallback:", err?.message || err);
+        try {
+          const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`;
+          const res = await fetch(pollinationsUrl);
+          if (res.ok) {
+            llmResponse = (await res.text()).trim();
+          } else {
+            throw new Error(`Pollinations responded with status ${res.status}`);
+          }
+        } catch (fallbackErr: any) {
+          console.error("[GeneratePromptsWizard] Fallback also failed:", fallbackErr);
+          throw new Error(`AI prompt generation failed: ${err?.message || err}. (Fallback error: ${fallbackErr?.message || fallbackErr})`);
+        }
+      }
 
       let cleanedText = llmResponse.trim();
       if (cleanedText.startsWith("```")) {

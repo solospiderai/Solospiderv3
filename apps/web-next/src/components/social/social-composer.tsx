@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import {
   Facebook,
@@ -38,13 +37,6 @@ import {
   Store,
   Pin
 } from "lucide-react";
-
-const PinterestIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <circle cx="12" cy="12" r="12" fill="#E60023" />
-    <path d="M12.2 4c-4.4 0-8 3.6-8 8 0 3.4 2.1 6.3 5.1 7.4-.1-.6-.2-1.6 0-2.3l1-4.2s-.3-.5-.3-1.3c0-1.2.7-2.1 1.6-2.1.8 0 1.1.6 1.1 1.3 0 .8-.5 1.9-.8 3-.2.9.4 1.6 1.3 1.6 1.6 0 2.8-1.7 2.8-4.1 0-2.1-1.5-3.6-3.7-3.6-2.5 0-4 1.9-4 3.8 0 .8.3 1.6.7 2.1.1.1.1.2 0 .3l-.3 1.1c0 .1-.1.2-.2.1-1.2-.5-1.9-2.2-1.9-3.6 0-2.9 2.1-5.6 6.1-5.6 3.2 0 5.7 2.3 5.7 5.3 0 3.2-2 5.7-4.8 5.7-.9 0-1.8-.5-2.1-1.1l-.6 2.2c-.2.8-.8 1.8-1.2 2.4.8.2 1.6.4 2.5.4 4.4 0 8-3.6 8-8s-3.6-8-8-8z" fill="white" />
-  </svg>
-);
 
 // Platform configurations
 const platformConfigs = {
@@ -83,15 +75,6 @@ const platformConfigs = {
     icon: Twitter,
     avatarUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
     handle: "builditindia_ai"
-  },
-  pinterest: {
-    id: "pinterest",
-    name: "Pinterest",
-    color: "#E60023",
-    bgClass: "from-red-600 to-red-800",
-    icon: PinterestIcon,
-    avatarUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    handle: "builditindia_pins"
   }
 };
 
@@ -115,28 +98,6 @@ interface SocialComposerProps {
 export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime = "10:00" }: SocialComposerProps) {
   const { activeProject } = useProjects();
   const queryClient = useQueryClient();
-  const supabase = getSupabaseBrowserClient();
-
-  // Fetch connected social accounts from database
-  const { data: dbSocialAccounts } = useQuery({
-    queryKey: ["social_accounts_composer", activeProject?.id],
-    enabled: Boolean(activeProject?.id),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("social_accounts")
-        .select("*")
-        .eq("project_id", activeProject!.id);
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  const getPlatformHandle = (plat: string) => {
-    const dbAcc = dbSocialAccounts?.find((acc: any) => acc.platform === plat);
-    if (dbAcc) return dbAcc.handle;
-    const config = platformConfigs[plat as keyof typeof platformConfigs];
-    return config?.handle || plat;
-  };
 
   // Basic Composer states
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["facebook", "instagram"]);
@@ -810,7 +771,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                           />
                           <div>
                             <span className="text-[13px] font-black text-slate-900 hover:underline block leading-snug cursor-pointer">
-                              {getPlatformHandle("facebook")}
+                              {platformConfigs.facebook.handle}
                             </span>
                             <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
                               Just now · <Globe className="w-3 h-3" />
@@ -925,7 +886,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                           />
                           <div>
                             <span className="text-[12px] font-black text-slate-900 block leading-tight cursor-pointer hover:underline">
-                              {getPlatformHandle("instagram")}
+                              {platformConfigs.instagram.handle}
                             </span>
                             <span className="text-[10px] text-slate-400 font-medium block mt-0.5">Mumbai, India</span>
                           </div>
@@ -980,7 +941,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                         {/* Text Caption display */}
                         <div className="text-[12px] text-slate-800 leading-relaxed">
                           <span className="font-black text-slate-900 mr-1.5 hover:underline cursor-pointer">
-                            {getPlatformHandle("instagram")}
+                            {platformConfigs.instagram.handle}
                           </span>
                           <span className="whitespace-pre-wrap">
                             {getActiveCaption("instagram") || "Write custom details in composer..."}
@@ -1010,7 +971,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                           />
                           <div>
                             <span className="text-[13px] font-black text-slate-900 hover:underline hover:text-sky-700 block cursor-pointer">
-                              {getPlatformHandle("linkedin")}
+                              {platformConfigs.linkedin.handle}
                             </span>
                             <span className="text-[10px] text-slate-400 font-bold block mt-0.5">38,412 followers</span>
                             <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5 mt-0.5">
@@ -1097,7 +1058,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                               {platformConfigs.twitter.name}
                             </span>
                             <span className="text-[11px] text-slate-400 font-semibold truncate block leading-none">
-                              @{getPlatformHandle("twitter")} · Just now
+                              @{platformConfigs.twitter.handle} · Just now
                             </span>
                           </div>
 
@@ -1132,32 +1093,6 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                         </div>
                       </div>
 
-                    </div>
-                  )}
-
-                  {/* --- PLATFORM 5: PINTEREST PIN PREVIEW --- */}
-                  {activePreviewPlatform === "pinterest" && (
-                    <div className="w-full p-4.5 select-none animate-in fade-in duration-200 bg-white">
-                      <div className="flex gap-4">
-                        {mediaUrls.length > 0 ? (
-                          <div className="w-1/3 rounded-xl overflow-hidden border border-slate-150 relative bg-slate-50 shrink-0">
-                            <img src={mediaUrls[0]} className="w-full object-cover" alt="Pinterest pin attachment" />
-                          </div>
-                        ) : (
-                          <div className="w-1/3 aspect-[2/3] rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-slate-350 shrink-0">
-                            No image
-                          </div>
-                        )}
-                        <div className="flex-1 space-y-2.5 min-w-0">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pinterest Pin Draft</span>
-                          <h4 className="text-sm font-extrabold text-slate-900 leading-tight">
-                            {getPlatformHandle("pinterest")}
-                          </h4>
-                          <p className="text-[12px] text-slate-600 leading-relaxed whitespace-pre-wrap">
-                            {getActiveCaption("pinterest") || "Compose your pin details..."}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   )}
 

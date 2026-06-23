@@ -109,6 +109,11 @@ export default function IntegrationsSettingsPage() {
   const [magentoUrl, setMagentoUrl] = useState("");
   const [magentoToken, setMagentoToken] = useState("");
 
+  // Editing / Verification states
+  const [editingIntegrationId, setEditingIntegrationId] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{ ok: boolean; message?: string; error?: string } | null>(null);
+
   // Fetch connected CMS & Store integrations
   const cmsIntegrationsQuery = useQuery({
     queryKey: ["cms_integrations", user?.id],
@@ -137,11 +142,47 @@ export default function IntegrationsSettingsPage() {
     }
   });
 
+  // Verify credentials before saving
+  const verifyCredentials = async (platform: string, credentials: any): Promise<{ ok: boolean; message?: string; error?: string }> => {
+    setIsVerifying(true);
+    setVerificationResult(null);
+    try {
+      const res = await fetch("/api/jobs/verify-integration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform, credentials }),
+      });
+      const data = await res.json();
+      setVerificationResult(data);
+      return data;
+    } catch (e: any) {
+      const result = { ok: false, error: e.message || "Verification failed" };
+      setVerificationResult(result);
+      return result;
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   // General Add Integration mutation (WordPress, Shopify, Magento)
   const addIntegrationMutation = useMutation({
     mutationFn: async (payload: { platform: string; credentials: any }) => {
       if (!user) throw new Error("Not authenticated");
       
+      // If editing existing integration, update instead of insert
+      if (editingIntegrationId) {
+        const { data, error } = await supabase
+          .from("workspace_integrations")
+          .update({
+            credentials: payload.credentials,
+            is_active: true
+          })
+          .eq("id", editingIntegrationId)
+          .select();
+        if (error) throw error;
+        return data;
+      }
+
       const { data, error } = await supabase
         .from("workspace_integrations")
         .insert({
@@ -158,8 +199,11 @@ export default function IntegrationsSettingsPage() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["cms_integrations", user?.id] });
       const platformLabel = variables.platform.charAt(0).toUpperCase() + variables.platform.slice(1);
-      toast.success(`${platformLabel} integration connected successfully!`);
+      const action = editingIntegrationId ? "updated" : "connected";
+      toast.success(`${platformLabel} integration ${action} successfully!`);
       setActiveForm(null);
+      setEditingIntegrationId(null);
+      setVerificationResult(null);
       
       // Reset forms
       setWpUrl("");
@@ -172,7 +216,7 @@ export default function IntegrationsSettingsPage() {
     },
     onError: (err: any, variables) => {
       const platformLabel = variables.platform.charAt(0).toUpperCase() + variables.platform.slice(1);
-      toast.error(`Failed to add ${platformLabel} integration`, { description: err.message });
+      toast.error(`Failed to save ${platformLabel} integration`, { description: err.message });
     }
   });
 
@@ -212,7 +256,7 @@ export default function IntegrationsSettingsPage() {
     }
   });
 
-  const handleAddWordPress = (e: React.FormEvent) => {
+  const handleAddWordPress = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!wpUrl || !wpUsername || !wpPassword) {
       toast.error("Please fill in all WordPress credentials fields.");
@@ -225,17 +269,23 @@ export default function IntegrationsSettingsPage() {
     if (cleanUrl.endsWith("/")) {
       cleanUrl = cleanUrl.slice(0, -1);
     }
-    addIntegrationMutation.mutate({
-      platform: "wordpress",
-      credentials: {
-        siteUrl: cleanUrl,
-        username: wpUsername.trim(),
-        appPassword: wpPassword.trim()
-      }
-    });
+    const creds = {
+      siteUrl: cleanUrl,
+      username: wpUsername.trim(),
+      appPassword: wpPassword.trim()
+    };
+
+    // Verify first
+    const result = await verifyCredentials("wordpress", creds);
+    if (!result.ok) {
+      toast.error("WordPress verification failed", { description: result.error });
+      return;
+    }
+
+    addIntegrationMutation.mutate({ platform: "wordpress", credentials: creds });
   };
 
-  const handleAddShopify = (e: React.FormEvent) => {
+  const handleAddShopify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!shopifyShopName || !shopifyAccessToken) {
       toast.error("Please fill in all Shopify credentials fields.");
@@ -246,14 +296,38 @@ export default function IntegrationsSettingsPage() {
       cleanShop = `${cleanShop}.myshopify.com`;
     }
     cleanShop = cleanShop.replace(/https?:\/\//, "");
+    const creds = {
+      shopName: cleanShop,
+      accessToken: shopifyAccessToken.trim()
+    };
 
-    addIntegrationMutation.mutate({
-      platform: "shopify",
-      credentials: {
-        shopName: cleanShop,
-        accessToken: shopifyAccessToken.trim()
-      }
-    });
+    // Verify first
+    const result = await verifyCredentials("shopify", creds);
+    if (!result.ok) {
+      toast.error("Shopify verification failed", { description: result.error });
+      return;
+    }
+
+    addIntegrationMutation.mutate({ platform: "shopify", credentials: creds });
+  };
+
+  const handleEditIntegration = (integration: any) => {
+    setEditingIntegrationId(integration.id);
+    setVerificationResult(null);
+    if (integration.platform === "wordpress") {
+      setWpUrl(integration.credentials?.siteUrl || "");
+      setWpUsername(integration.credentials?.username || "");
+      setWpPassword(integration.credentials?.appPassword || "");
+      setActiveForm("wordpress");
+    } else if (integration.platform === "shopify") {
+      setShopifyShopName(integration.credentials?.shopName || "");
+      setShopifyAccessToken(""); // Don't pre-fill token for security
+      setActiveForm("shopify");
+    } else if (integration.platform === "magento") {
+      setMagentoUrl(integration.credentials?.siteUrl || "");
+      setMagentoToken("");
+      setActiveForm("magento");
+    }
   };
 
   const handleAddMagento = (e: React.FormEvent) => {
@@ -318,12 +392,21 @@ export default function IntegrationsSettingsPage() {
     );
   }
 
-  // Helper to render connection status badge
-  const renderStatusBadge = () => (
-    <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-      Connected
-    </span>
-  );
+  // Helper to render connection status badge - shows Sandbox for stub tokens, Connected for real
+  const renderStatusBadge = (account: any) => {
+    const isSandbox = !account?.access_token || 
+      account.access_token.includes("stub") || 
+      account.access_token.includes("mock");
+    return isSandbox ? (
+      <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+        Sandbox
+      </span>
+    ) : (
+      <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+        Connected
+      </span>
+    );
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 p-6 animate-slide-in">
@@ -481,16 +564,28 @@ export default function IntegrationsSettingsPage() {
                 <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                    WordPress restricts API publishing via standard passwords. Create a specialized **Application Password** inside your WP site under **Users &gt; Profile &gt; Application Passwords** to proceed.
+                    {wpUrl.toLowerCase().includes(".wordpress.com")
+                      ? <>For WordPress.com sites, generate an <strong>Application Password</strong> at <a href="https://wordpress.com/me/security/application-passwords" target="_blank" rel="noopener" className="text-indigo-600 underline">wordpress.com/me/security</a>. Do NOT use your login password.</>
+                      : <>Create an <strong>Application Password</strong> in your WP Admin under <strong>Users → Profile → Application Passwords</strong>. Do NOT use your login password.</>}
                   </p>
                 </div>
+                {verificationResult && (
+                  <div className={`rounded-xl p-3 flex items-start gap-2.5 text-[10px] font-semibold ${
+                    verificationResult.ok
+                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                      : "bg-red-50 border border-red-200 text-red-700"
+                  }`}>
+                    {verificationResult.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
+                    <p>{verificationResult.ok ? verificationResult.message : verificationResult.error}</p>
+                  </div>
+                )}
                 <button
                   type="submit"
-                  disabled={addIntegrationMutation.isPending}
+                  disabled={addIntegrationMutation.isPending || isVerifying}
                   className="w-full bg-[#21759B] hover:bg-[#1a5b79] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  {addIntegrationMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Verify & Save WordPress Connection
+                  {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isVerifying ? "Verifying..." : editingIntegrationId ? "Verify & Update" : "Verify & Save WordPress Connection"}
                 </button>
               </form>
             )}
@@ -530,16 +625,26 @@ export default function IntegrationsSettingsPage() {
                 <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                   <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                    Install a custom app in your Shopify Admin panel under **Settings &gt; App and sales channels &gt; Develop apps** and generate an Admin API Access Token with write privileges.
+                    In Shopify Admin → <strong>Settings → Apps → Develop apps</strong>, create a custom app, configure <strong>write_content</strong> scope, install it, then copy the <strong>Admin API access token</strong> (starts with <code>shpat_</code>). Do NOT use the Client Secret.
                   </p>
                 </div>
+                {verificationResult && activeForm === "shopify" && (
+                  <div className={`rounded-xl p-3 flex items-start gap-2.5 text-[10px] font-semibold ${
+                    verificationResult.ok
+                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                      : "bg-red-50 border border-red-200 text-red-700"
+                  }`}>
+                    {verificationResult.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
+                    <p>{verificationResult.ok ? verificationResult.message : verificationResult.error}</p>
+                  </div>
+                )}
                 <button
                   type="submit"
-                  disabled={addIntegrationMutation.isPending}
+                  disabled={addIntegrationMutation.isPending || isVerifying}
                   className="w-full bg-[#96BF48] hover:bg-[#83aa3d] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                 >
-                  {addIntegrationMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Verify & Save Shopify Connection
+                  {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isVerifying ? "Verifying..." : editingIntegrationId ? "Verify & Update" : "Verify & Save Shopify Connection"}
                 </button>
               </form>
             )}
@@ -622,16 +727,24 @@ export default function IntegrationsSettingsPage() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => {
-                          if (confirm(`Are you sure you want to disconnect this ${int.platform} integration?`)) {
-                            disconnectCmsMutation.mutate(int.id);
-                          }
-                        }}
-                        className="border border-slate-200 bg-white hover:border-red-200 hover:text-red-600 text-slate-500 font-semibold p-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer self-end sm:self-auto shadow-sm"
-                      >
-                        <Trash2 className="w-4 h-4" /> Disconnect
-                      </button>
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                        <button
+                          onClick={() => handleEditIntegration(int)}
+                          className="border border-slate-200 bg-white hover:border-indigo-200 hover:text-indigo-600 text-slate-500 font-semibold p-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                        >
+                          <RefreshCw className="w-4 h-4" /> Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to disconnect this ${int.platform} integration?`)) {
+                              disconnectCmsMutation.mutate(int.id);
+                            }
+                          }}
+                          className="border border-slate-200 bg-white hover:border-red-200 hover:text-red-600 text-slate-500 font-semibold p-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                        >
+                          <Trash2 className="w-4 h-4" /> Disconnect
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -710,7 +823,7 @@ export default function IntegrationsSettingsPage() {
                       {/* Connect / Connected + Edit buttons */}
                       {isConnected ? (
                         <div className="flex items-center gap-1.5">
-                          {renderStatusBadge()}
+                          {renderStatusBadge(connectedAccount)}
                           
                           {/* Change Account / Edit Button */}
                           <button
@@ -747,9 +860,16 @@ export default function IntegrationsSettingsPage() {
                     {/* Account Handle Info Card */}
                     {isConnected && (
                       <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-2.5 text-[10px] font-semibold text-slate-500 flex items-center justify-between">
-                        <span className="truncate max-w-[200px]">Account: {connectedAccount?.handle}</span>
+                        <span className="truncate max-w-[200px]">
+                          {connectedAccount?.access_token?.includes("stub") || connectedAccount?.access_token?.includes("mock")
+                            ? "Sandbox Mode — no real API calls"
+                            : `Account: ${connectedAccount?.handle}`}
+                        </span>
                         <span className="text-emerald-500 font-bold flex items-center gap-1 shrink-0">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> API Ready
+                          <CheckCircle2 className="w-3.5 h-3.5" /> 
+                          {connectedAccount?.access_token?.includes("stub") || connectedAccount?.access_token?.includes("mock")
+                            ? "Simulated"
+                            : "API Ready"}
                         </span>
                       </div>
                     )}

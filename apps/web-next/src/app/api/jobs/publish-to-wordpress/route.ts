@@ -24,6 +24,30 @@ function getSupabaseAdmin() {
   );
 }
 
+/**
+ * Detects if a URL is a WordPress.com hosted site.
+ * WordPress.com sites need the public-api.wordpress.com endpoint.
+ */
+function isWordPressCom(siteUrl: string): boolean {
+  const lower = siteUrl.toLowerCase();
+  return lower.includes(".wordpress.com");
+}
+
+/**
+ * Returns the correct REST API base URL for posts.
+ * - Self-hosted: https://mysite.com/wp-json/wp/v2/posts
+ * - WordPress.com: https://public-api.wordpress.com/wp/v2/sites/{domain}/posts
+ */
+function getWpApiUrl(siteUrl: string, endpoint: string): string {
+  const cleanUrl = siteUrl.replace(/\/$/, "");
+  if (isWordPressCom(cleanUrl)) {
+    // Extract domain from URL (remove https://)
+    const domain = cleanUrl.replace(/^https?:\/\//, "");
+    return `https://public-api.wordpress.com/wp/v2/sites/${domain}/${endpoint}`;
+  }
+  return `${cleanUrl}/wp-json/wp/v2/${endpoint}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const parsed = PublishWPSchema.safeParse(await readJson(request));
@@ -57,21 +81,139 @@ export async function POST(request: NextRequest) {
     }
 
     const credentials = integration.credentials as any;
-    const cleanUrl = credentials.siteUrl.replace(/\/$/, "");
-    const authString = Buffer.from(`${credentials.username}:${credentials.appPassword}`).toString("base64");
+    const siteUrl = (credentials.siteUrl || credentials.url || "").replace(/\/$/, "");
+    const username = credentials.username;
+    const appPassword = credentials.appPassword || credentials.app_password;
+
+    if (!siteUrl || !username || !appPassword) {
+      return NextResponse.json({ error: "WordPress credentials are incomplete." }, { status: 400 });
+    }
+
+    // XML-RPC publishing for WordPress.com
+    if (isWordPressCom(siteUrl)) {
+      const xmlrpcUrl = `${siteUrl}/xmlrpc.php`;
+      const title = content.generated_title || content.h1;
+      const body = content.generated_content || "";
+      
+      const escapeXml = (str: string) => str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+
+      let categoriesBlock = "";
+      if (categories && categories.length > 0) {
+        categoriesBlock = `
+          <member>
+            <name>terms</name>
+            <value>
+              <struct>
+                <member>
+                  <name>category</name>
+                  <value>
+                    <array>
+                      <data>
+                        ${categories.map(catId => `<value><int>${catId}</int></value>`).join("\n")}
+                      </data>
+                    </array>
+                  </value>
+                </member>
+              </struct>
+            </value>
+          </member>`;
+      }
+
+      let authorBlock = "";
+      if (authorId) {
+        authorBlock = `
+          <member>
+            <name>post_author</name>
+            <value><int>${authorId}</int></value>
+          </member>`;
+      }
+
+      const xmlPayload = `<?xml version="1.0" encoding="utf-8"?>
+<methodCall>
+  <methodName>wp.newPost</methodName>
+  <params>
+    <param><value><int>0</int></value></param>
+    <param><value><string>${username}</string></value></param>
+    <param><value><string>${appPassword}</string></value></param>
+    <param>
+      <value>
+        <struct>
+          <member>
+            <name>post_title</name>
+            <value><string>${escapeXml(title)}</string></value>
+          </member>
+          <member>
+            <name>post_content</name>
+            <value><string>${escapeXml(body)}</string></value>
+          </member>
+          <member>
+            <name>post_status</name>
+            <value><string>${publishStatus}</string></value>
+          </member>
+          ${categoriesBlock}
+          ${authorBlock}
+        </struct>
+      </value>
+    </param>
+  </params>
+</methodCall>`;
+
+      console.log(`[PublishToWP] Sending XML-RPC post to: ${xmlrpcUrl}`);
+      
+      const xmlRes = await fetch(xmlrpcUrl, {
+        method: "POST",
+        headers: { "Content-Type": "text/xml" },
+        body: xmlPayload,
+      });
+
+      const responseText = await xmlRes.text();
+      if (responseText.includes("<fault>")) {
+        const errorMatch = /<name>faultString<\/name>\s*<value>\s*<string>([^<]+)<\/string>/i.exec(responseText);
+        const errMsg = errorMatch ? errorMatch[1] : "XML-RPC error publishing";
+        return NextResponse.json({ error: errMsg }, { status: 400 });
+      }
+
+      const postIdMatch = /<value>\s*<string>(\d+)<\/string>\s*<\/value>/i.exec(responseText) || /<value>\s*<int>(\d+)<\/int>\s*<\/value>/i.exec(responseText);
+      if (!postIdMatch) {
+        return NextResponse.json({ error: "Failed to parse post ID from WordPress.com response" }, { status: 500 });
+      }
+      
+      const postId = postIdMatch[1];
+      const link = `${siteUrl}/?p=${postId}`;
+
+      // Update status in database
+      const { error: updateErr } = await supabase
+        .from("content_items")
+        .update({
+          status: "published",
+        })
+        .eq("id", contentId);
+
+      if (updateErr) throw updateErr;
+
+      return NextResponse.json({ ok: true, wpPostId: parseInt(postId, 10), link });
+    }
+
+    const authString = Buffer.from(`${username}:${appPassword}`).toString("base64");
+    const apiUrl = getWpApiUrl(siteUrl, "posts");
 
     // 3. Post to WordPress REST API
-    const wpPayload = {
+    const wpPayload: any = {
       title: content.generated_title || content.h1,
       content: content.generated_content || "",
       status: publishStatus,
-      categories: categories || undefined,
-      author: authorId || undefined,
     };
+    if (categories && categories.length > 0) wpPayload.categories = categories;
+    if (authorId) wpPayload.author = authorId;
 
-    console.log(`[PublishToWP] Sending request to WordPress: ${cleanUrl}/wp-json/wp/v2/posts`);
+    console.log(`[PublishToWP] Sending request to: ${apiUrl}`);
 
-    const wpResponse = await fetch(`${cleanUrl}/wp-json/wp/v2/posts`, {
+    const wpResponse = await fetch(apiUrl, {
       method: "POST",
       headers: {
         Authorization: `Basic ${authString}`,
@@ -80,11 +222,21 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(wpPayload),
     });
 
-    const wpData = await wpResponse.json();
+    let wpData: any = null;
+    const responseText = await wpResponse.text();
+    try {
+      wpData = JSON.parse(responseText);
+    } catch (e) {
+      console.error("[PublishToWP] WordPress response was not JSON. Status:", wpResponse.status, "Body:", responseText.substring(0, 500));
+      return NextResponse.json({
+        error: `WordPress returned a non-JSON response (Status ${wpResponse.status}). Please check your site URL and ensure it has REST API enabled and supports application passwords.`
+      }, { status: 502 });
+    }
 
     if (!wpResponse.ok) {
       console.error("[PublishToWP] WordPress REST API error:", wpData);
-      throw new Error(wpData?.message || `WordPress returned status ${wpResponse.status}`);
+      const msg = wpData?.message || wpData?.error || `WordPress returned status ${wpResponse.status}`;
+      return NextResponse.json({ error: msg }, { status: wpResponse.status });
     }
 
     // 4. Update status in database

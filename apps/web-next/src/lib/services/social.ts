@@ -244,7 +244,24 @@ Make captions authentic, engaging, and platform-native. Mix the types across the
         imagePrompt: String(idea.imagePrompt || idea.image_prompt || ""),
       }));
     }
-    throw new Error("Invalid response format from social post generator API");
+
+    // Fallback to Pollinations if Edge Function doesn't return data
+    const encodedPrompt = encodeURIComponent(prompt);
+    const res = await fetch(
+      `https://text.pollinations.ai/${encodedPrompt}?model=openai&json=true`,
+      { method: "GET" }
+    );
+    const text = await res.text();
+
+    // Extract JSON array from response
+    const jsonMatch = text.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) throw new Error("No JSON array found");
+
+    const ideas: PostIdea[] = JSON.parse(jsonMatch[0]);
+    return ideas.map((idea, i) => ({
+      ...idea,
+      id: idea.id || `idea_${i + 1}`,
+    }));
   } catch (e) {
     console.error("AI generation error:", e);
     // Fallback ideas

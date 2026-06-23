@@ -33,15 +33,14 @@ import {
   LayoutTemplate
 } from "lucide-react";
 
-// Platform styling details
-const platformMeta = {
+// Platform styling details — labels are now pulled from DB (no hardcoded handles)
+const platformMeta: Record<string, { name: string; bg: string; color: string; bgColor: string; borderColor: string }> = {
   instagram: {
     name: "Instagram",
     bg: "from-pink-600 via-purple-600 to-orange-500",
     color: "text-pink-500",
     bgColor: "bg-pink-50",
     borderColor: "border-pink-200",
-    label: "@solospider_ig"
   },
   facebook: {
     name: "Facebook",
@@ -49,7 +48,6 @@ const platformMeta = {
     color: "text-blue-600",
     bgColor: "bg-blue-50",
     borderColor: "border-blue-200",
-    label: "SoloSpider AI"
   },
   linkedin: {
     name: "LinkedIn",
@@ -57,7 +55,6 @@ const platformMeta = {
     color: "text-sky-700",
     bgColor: "bg-sky-50",
     borderColor: "border-sky-200",
-    label: "SoloSpider"
   },
   twitter: {
     name: "X (Twitter)",
@@ -65,17 +62,28 @@ const platformMeta = {
     color: "text-slate-900",
     bgColor: "bg-slate-50",
     borderColor: "border-slate-200",
-    label: "@solospider_ai"
   },
   pinterest: {
     name: "Pinterest",
-    bg: "from-red-650 to-red-800",
+    bg: "from-red-600 to-rose-700",
     color: "text-red-600",
     bgColor: "bg-red-50",
     borderColor: "border-red-200",
-    label: "builditindia_pins"
-  }
+  },
 };
+
+// Helper: get week start (Sunday) for a given date
+function getWeekStart(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+// Helper: format date as YYYY-MM-DD
+function toDateStr(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
 
 // Preset Content Ideas
 const contentIdeas = [
@@ -89,19 +97,13 @@ export function SocialPlanner() {
   const queryClient = useQueryClient();
   const supabase = getSupabaseBrowserClient();
 
-  // Fetch connected social accounts from database
-  const { data: dbSocialAccounts } = useQuery({
-    queryKey: ["social_accounts_planner", activeProject?.id],
-    enabled: Boolean(activeProject?.id),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("social_accounts")
-        .select("*")
-        .eq("project_id", activeProject!.id);
-      if (error) throw error;
-      return data || [];
-    }
-  });
+  // Calendar navigation state — current week offset from today
+  const [weekOffset, setWeekOffset] = useState(0);
+  const currentWeekStart = React.useMemo(() => {
+    const base = getWeekStart(new Date());
+    base.setDate(base.getDate() + weekOffset * 7);
+    return base;
+  }, [weekOffset]);
 
   // Selected state for planner composer
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["instagram"]);
@@ -111,7 +113,7 @@ export function SocialPlanner() {
   const [hashtags, setHashtags] = useState<string[]>(["AI", "Marketing", "Growth"]);
   const [ctaType, setCtaType] = useState("Learn More");
   const [ctaUrl, setCtaUrl] = useState("https://solospider.ai/ai-marketing");
-  const [scheduleDate, setScheduleDate] = useState("2026-05-21");
+  const [scheduleDate, setScheduleDate] = useState(toDateStr(new Date()));
   const [scheduleTime, setScheduleTime] = useState("10:00");
   const [mediaList, setMediaList] = useState<string[]>([
     "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60",
@@ -238,43 +240,66 @@ export function SocialPlanner() {
     }
   };
 
-  // Feed simulated accounts metrics (Instagram, Facebook, LinkedIn, Twitter/X, Pinterest)
-  const connectedStats = [
-    { platform: "instagram", reach: "12.4K", engagement: 589, engRate: "4.7%", arrow: "up", sparkline: [20, 35, 45, 30, 50, 75, 60] },
-    { platform: "facebook", reach: "8.7K", engagement: 412, engRate: "3.6%", arrow: "up", sparkline: [10, 15, 25, 40, 35, 45, 55] },
-    { platform: "linkedin", reach: "15.2K", engagement: 867, engRate: "5.7%", arrow: "up", sparkline: [30, 45, 40, 60, 65, 80, 95] },
-    { platform: "twitter", reach: "6.1K", engagement: 213, engRate: "3.2%", arrow: "down", sparkline: [40, 35, 30, 25, 28, 22, 20] },
-    { platform: "pinterest", reach: "3.8K", engagement: 145, engRate: "2.8%", arrow: "up", sparkline: [15, 20, 25, 30, 28, 32, 38] }
-  ];
+  // Build a map of platform -> handle from real DB accounts
+  const accountHandleMap = React.useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const acc of accountsQuery.data || []) {
+      map[acc.platform] = acc.handle || acc.platform_account_id || "Connected";
+    }
+    return map;
+  }, [accountsQuery.data]);
 
-  // Helper to get formatted week dates for mockup representation (May 18 - May 24, 2026)
-  const daysOfWeek = [
-    { label: "SUN", dayNum: "17", dateStr: "2026-05-17" },
-    { label: "MON", dayNum: "18", dateStr: "2026-05-18" },
-    { label: "TUE", dayNum: "19", dateStr: "2026-05-19" },
-    { label: "WED", dayNum: "20", dateStr: "2026-05-20" },
-    { label: "THU", dayNum: "21", dateStr: "2026-05-21" },
-    { label: "FRI", dayNum: "22", dateStr: "2026-05-22" },
-    { label: "SAT", dayNum: "23", dateStr: "2026-05-23" }
-  ];
+  // Performance stats from connected accounts (real handles, simulated metrics for sandbox)
+  const connectedStats = React.useMemo(() => {
+    const allPlatforms = ["instagram", "facebook", "linkedin", "twitter", "pinterest"];
+    const fakeMetrics: Record<string, { reach: string; engRate: string; arrow: string; sparkline: number[] }> = {
+      instagram: { reach: "12.4K", engRate: "4.7%", arrow: "up", sparkline: [20, 35, 45, 30, 50, 75, 60] },
+      facebook:  { reach: "8.7K",  engRate: "3.6%", arrow: "up", sparkline: [10, 15, 25, 40, 35, 45, 55] },
+      linkedin:  { reach: "15.2K", engRate: "5.7%", arrow: "up", sparkline: [30, 45, 40, 60, 65, 80, 95] },
+      twitter:   { reach: "6.1K",  engRate: "3.2%", arrow: "down", sparkline: [40, 35, 30, 25, 28, 22, 20] },
+      pinterest: { reach: "3.8K",  engRate: "2.9%", arrow: "up", sparkline: [15, 20, 18, 30, 28, 35, 40] },
+    };
+    // Only show platforms that are actually connected
+    const connected = (accountsQuery.data || []).map(acc => acc.platform);
+    const platforms = connected.length > 0 ? connected : allPlatforms.slice(0, 4);
+    return platforms.map(p => ({
+      platform: p,
+      handle: accountHandleMap[p] || "—",
+      ...(fakeMetrics[p] || { reach: "—", engRate: "—", arrow: "up", sparkline: [10, 20, 15, 25, 20, 30, 25] }),
+    }));
+  }, [accountsQuery.data, accountHandleMap]);
+
+  // Dynamic week days based on current navigation offset
+  const daysOfWeek = React.useMemo(() => {
+    const dayLabels = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+    return dayLabels.map((label, i) => {
+      const d = new Date(currentWeekStart);
+      d.setDate(d.getDate() + i);
+      return {
+        label,
+        dayNum: String(d.getDate()),
+        dateStr: toDateStr(d),
+        isToday: toDateStr(d) === toDateStr(new Date()),
+      };
+    });
+  }, [currentWeekStart]);
+
+  // Week label string for header
+  const weekLabel = React.useMemo(() => {
+    const end = new Date(currentWeekStart);
+    end.setDate(end.getDate() + 6);
+    const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const year = end.getFullYear();
+    return `${fmt(currentWeekStart)} – ${fmt(end)}, ${year}`;
+  }, [currentWeekStart]);
 
   const timeSlots = ["All-day", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"];
 
-  // Inject placeholder scheduled posts in UI to make calendar populate beautifully if Database is empty
-  const defaultScheduledItems = [
-    { id: "def-1", platform: "instagram", caption: "Productivity tips for modern marketers 🚀", scheduled_at: "2026-05-18T10:00:00Z" },
-    { id: "def-2", platform: "linkedin", caption: "Case study: Scaling organic traffic automatically", scheduled_at: "2026-05-19T10:00:00Z" },
-    { id: "def-3", platform: "facebook", caption: "Client shoutout to the Acme team!", scheduled_at: "2026-05-20T11:00:00Z" },
-    { id: "def-4", platform: "twitter", caption: "Growth update: Our latest feature drops today!", scheduled_at: "2026-05-22T10:00:00Z" },
-    { id: "def-5", platform: "instagram", caption: "Team spotlight: Meet our autonomous workflow experts", scheduled_at: "2026-05-19T13:00:00Z" },
-    { id: "def-6", platform: "twitter", caption: "Tips & tricks: Master automated SEO indexing", scheduled_at: "2026-05-21T15:00:00Z" }
-  ];
+  // Use only real DB posts — no hardcoded fake defaults
+  const allScheduledPosts = postsQuery.data || [];
 
-  // Merge database posts with placeholders for demonstration
-  const allScheduledPosts = [...(postsQuery.data || []), ...defaultScheduledItems];
-
-  // Check how many platforms are connected dynamically
-  const connectedCount = accountsQuery.data?.length || 4; // defaults to 4 connected for gorgeous UI showcase
+  // Real count from DB
+  const connectedCount = accountsQuery.data?.length ?? 0;
 
   if (viewMode === "composer") {
     return (
@@ -298,16 +323,25 @@ export function SocialPlanner() {
         {/* Dynamic Navigation Calendar Controls */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
-            <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+            <button
+              onClick={() => setWeekOffset(o => o - 1)}
+              className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+            >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-4 text-xs font-semibold text-slate-700 select-none">May 17 – May 23, 2026</span>
-            <button className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors">
+            <span className="px-4 text-xs font-semibold text-slate-700 select-none">{weekLabel}</span>
+            <button
+              onClick={() => setWeekOffset(o => o + 1)}
+              className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
+            >
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
 
-          <button className="bg-white border border-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
+          <button
+            onClick={() => setWeekOffset(0)}
+            className="bg-white border border-slate-200 text-slate-700 text-xs font-bold py-2.5 px-4 rounded-xl shadow-sm hover:bg-slate-50 transition-colors"
+          >
             Today
           </button>
 
@@ -373,11 +407,17 @@ export function SocialPlanner() {
           <div>
             <span className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Connected Accounts</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black text-slate-800">{connectedCount} / 4</span>
-              <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                All active
-              </span>
+              <span className="text-2xl font-black text-slate-800">{connectedCount} / 5</span>
+              {connectedCount > 0 ? (
+                <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {connectedCount === 5 ? "All active" : "Active"}
+                </span>
+              ) : (
+                <span className="bg-amber-500/10 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  Connect now
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -445,19 +485,16 @@ export function SocialPlanner() {
               <div className="p-3 border-r border-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase">
                 TIME
               </div>
-              {daysOfWeek.map((day) => {
-                const isToday = day.label === "THU"; // simulation target
-                return (
-                  <div key={day.label} className="p-3 border-r border-slate-100 last:border-r-0 flex flex-col items-center">
-                    <span className="text-[10px] font-bold text-slate-400 tracking-wider">{day.label}</span>
-                    <span className={`text-base font-black mt-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                      isToday ? "bg-violet-600 text-white shadow-[0_4px_10px_rgba(124,58,237,0.3)] scale-105" : "text-slate-700"
-                    }`}>
-                      {day.dayNum}
-                    </span>
-                  </div>
-                );
-              })}
+              {daysOfWeek.map((day) => (
+                <div key={day.label} className="p-3 border-r border-slate-100 last:border-r-0 flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">{day.label}</span>
+                  <span className={`text-base font-black mt-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    day.isToday ? "bg-violet-600 text-white shadow-[0_4px_10px_rgba(124,58,237,0.3)] scale-105" : "text-slate-700"
+                  }`}>
+                    {day.dayNum}
+                  </span>
+                </div>
+              ))}
             </div>
 
             {/* Calendar Rows */}
@@ -472,27 +509,17 @@ export function SocialPlanner() {
                   {/* Days contents cells */}
                   {daysOfWeek.map((day) => {
                     // Check if there are scheduled posts matching this time & day
-                    const matchingPosts = allScheduledPosts.filter((post) => {
-                      const pDate = new Date(post.scheduled_at);
-                      // Formulate comparisons
-                      const hours = pDate.getUTCHours();
-                      const postHourStr = `${hours === 0 ? 12 : hours > 12 ? hours - 12 : hours}:00 ${hours >= 12 ? 'PM' : 'AM'}`;
-                      
-                      // For presets, simplify comparison to static mocked times
-                      if (post.id.startsWith("def-")) {
-                        if (day.dateStr === "2026-05-18" && timeSlot === "10:00 AM" && post.id === "def-1") return true;
-                        if (day.dateStr === "2026-05-19" && timeSlot === "10:00 AM" && post.id === "def-2") return true;
-                        if (day.dateStr === "2026-05-20" && timeSlot === "11:00 AM" && post.id === "def-3") return true;
-                        if (day.dateStr === "2026-05-22" && timeSlot === "10:00 AM" && post.id === "def-4") return true;
-                        if (day.dateStr === "2026-05-19" && timeSlot === "1:00 PM" && post.id === "def-5") return true;
-                        if (day.dateStr === "2026-05-21" && timeSlot === "3:00 PM" && post.id === "def-6") return true;
-                        return false;
-                      }
-
-                      // Dynamic post format comparison
+                    const matchingPosts = allScheduledPosts.filter((post: any) => {
+                      if (!post.scheduled_at) return false;
                       const dateMatch = post.scheduled_at.startsWith(day.dateStr);
-                      const timeMatch = timeSlot.startsWith(post.scheduled_at.substring(11, 13)); // match hour
-                      return dateMatch && timeMatch;
+                      if (!dateMatch) return false;
+                      if (timeSlot === "All-day") return false;
+                      // Match hour from time slot
+                      const slotHour = timeSlot.includes("PM")
+                        ? (parseInt(timeSlot) === 12 ? 12 : parseInt(timeSlot) + 12)
+                        : (parseInt(timeSlot) === 12 ? 0 : parseInt(timeSlot));
+                      const postHour = new Date(post.scheduled_at).getUTCHours();
+                      return postHour === slotHour;
                     });
 
                     return (
@@ -515,7 +542,7 @@ export function SocialPlanner() {
                         </button>
 
                         {/* Display post cards in cell */}
-                        {matchingPosts.map((post) => {
+                        {matchingPosts.map((post: any) => {
                           const meta = platformMeta[post.platform as keyof typeof platformMeta] || platformMeta.instagram;
                           return (
                             <div
@@ -612,12 +639,15 @@ export function SocialPlanner() {
                 </span>
               </div>
 
+              {connectedStats.length === 0 && (
+                <div className="mt-6 text-center py-8">
+                  <p className="text-xs text-slate-400 font-medium">No accounts connected yet.</p>
+                  <p className="text-[10px] text-slate-300 mt-1">Go to Settings → Integrations to connect your first account.</p>
+                </div>
+              )}
               <div className="mt-4 space-y-4">
                 {connectedStats.map((stat) => {
-                  const meta = platformMeta[stat.platform as keyof typeof platformMeta] || platformMeta.instagram;
-                  const dbAcc = dbSocialAccounts?.find((acc: any) => acc.platform === stat.platform);
-                  const isConnected = Boolean(dbAcc);
-                  const displayHandle = isConnected ? dbAcc.handle : `${meta.label} (Sandbox)`;
+                  const meta = platformMeta[stat.platform] || platformMeta.instagram;
                   return (
                     <div key={stat.platform} className="flex items-center justify-between group hover:bg-slate-50/50 p-1.5 rounded-xl transition-all">
                       <div className="flex items-center gap-3">
@@ -625,19 +655,8 @@ export function SocialPlanner() {
                           {stat.platform[0].toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            {meta.name}
-                            {isConnected ? (
-                              <span className="bg-emerald-500/10 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                                Connected
-                              </span>
-                            ) : (
-                              <span className="bg-slate-100 text-slate-400 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                                Sandbox
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-[10px] text-slate-400 font-medium">{displayHandle}</p>
+                          <p className="text-xs font-bold text-slate-800">{meta.name}</p>
+                          <p className="text-[10px] text-slate-400 font-medium">{stat.handle}</p>
                         </div>
                       </div>
 

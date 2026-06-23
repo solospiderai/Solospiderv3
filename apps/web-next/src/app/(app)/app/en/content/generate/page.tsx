@@ -1,7 +1,5 @@
-"use client";
+import { ContentGenerator } from "@/components/content/content-generator";
 
-import { ComingSoon } from "@/components/ui/coming-soon";
-
-export default function BlogsPage() {
-  return <ComingSoon title="Blogs" />;
+export default function GeneratePage() {
+  return <ContentGenerator />;
 }

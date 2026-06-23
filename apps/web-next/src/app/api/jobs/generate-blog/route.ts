@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, after } from "next/server";
 import { z } from "zod";
 import { readJson } from "@/server/api";
 import { createClient } from "@supabase/supabase-js";
@@ -27,44 +27,48 @@ function getSupabaseAdmin() {
 // Call LLM helper
 async function callLLM(prompt: string, maxTokens = 1500) {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
-  if (!openrouterKey) {
-    throw new Error("OPENROUTER_API_KEY is not defined in environment");
-  }
+  let text = "";
 
-  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${openrouterKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://solospider.ai",
-      "X-Title": "SoloSpider",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
-      messages: [{ role: "user", content: prompt }],
-      max_tokens: maxTokens,
-      temperature: 0.7,
-    }),
-  });
-
-  if (!response.ok) {
-    let errorMsg = `OpenRouter error (Status ${response.status})`;
+  if (openrouterKey) {
     try {
-      const errorJson = await response.json();
-      if (errorJson?.error?.message) {
-        errorMsg = errorJson.error.message;
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${openrouterKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://solospider.ai",
+          "X-Title": "SoloSpider",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.7,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        text = data.choices?.[0]?.message?.content?.trim() || "";
       }
-    } catch {
-      try {
-        const text = await response.text();
-        if (text) errorMsg = text.slice(0, 200);
-      } catch {}
+    } catch (err) {
+      console.warn("[callLLM] OpenRouter failed:", err);
     }
-    throw new Error(errorMsg);
   }
 
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content?.trim() || "";
+  if (!text) {
+    try {
+      const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
+      const res = await fetch(pollinationsUrl);
+      if (res.ok) {
+        text = (await res.text()).trim();
+      }
+    } catch (err) {
+      console.error("[callLLM] Pollinations fallback failed:", err);
+    }
+  }
+
+  return text;
 }
 
 // Background generator runner
@@ -284,11 +288,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "sectionHeading is required for regeneration" }, { status: 400 });
       }
       // Run section regeneration in background (will update DB)
-      runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
+      after(() => {
+        runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
+      });
       return NextResponse.json({ ok: true, message: "Section regeneration started." });
     } else {
       // Start full blog generation in background
-      runBlogGeneration(contentId, includeToc);
+      after(() => {
+        runBlogGeneration(contentId, includeToc);
+      });
       return NextResponse.json({ ok: true, message: "Blog generation started in background." });
     }
   } catch (error: any) {
