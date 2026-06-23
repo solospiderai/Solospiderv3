@@ -355,15 +355,15 @@ export function AppShell({ children }: { children: ReactNode }) {
                     active ? "text-white" : "text-white/50 group-hover:text-white"
                   }`}
                 />
-                <span className="flex-grow flex items-start gap-1 min-w-0">
+                <span className="flex-1 flex items-center gap-2 min-w-0">
                   <span className="truncate">{item.label}</span>
                   {item.badge === "coming_soon" && (
-                    <span className="text-[8px] leading-none font-medium text-white/40 bg-white/[0.08] border border-white/[0.12] px-1 py-0.5 rounded uppercase tracking-wider select-none relative -top-[4px] shrink-0 scale-90 origin-left">
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-white/[0.05] border border-white/[0.08] text-white/40 rounded-md select-none shrink-0">
                       Soon
                     </span>
                   )}
                   {item.badge === "beta" && (
-                    <span className="text-[8px] leading-none font-bold text-[#b260ff] bg-[#9025F2]/15 border border-[#9025F2]/30 px-1 py-0.5 rounded uppercase tracking-wider select-none relative -top-[4px] shrink-0 scale-90 origin-left">
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-[#9025F2]/15 border border-[#9025F2]/30 text-[#b260ff] rounded-md select-none shrink-0">
                       Beta
                     </span>
                   )}
