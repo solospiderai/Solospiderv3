@@ -69,6 +69,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ imageUrl });
     }
 
+    // 1.2 Video generation
+    if (body.type === "video" || body.action === "video") {
+      const promptText = (body.prompt || "").toLowerCase();
+      
+      const VIDEO_TEMPLATES = [
+        {
+          keywords: ["code", "coding", "developer", "program", "software", "tech", "computer"],
+          url: "https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-developer-typing-on-a-keyboard-40618-large.mp4"
+        },
+        {
+          keywords: ["analytics", "growth", "chart", "data", "finance", "scale", "sales"],
+          url: "https://assets.mixkit.co/videos/preview/mixkit-analytics-on-a-tablet-screen-40625-large.mp4"
+        },
+        {
+          keywords: ["team", "meeting", "office", "discuss", "people", "corporate", "collaboration", "work"],
+          url: "https://assets.mixkit.co/videos/preview/mixkit-business-team-discussing-work-in-the-office-40628-large.mp4"
+        },
+        {
+          keywords: ["factory", "robot", "robotic", "machinery", "automation", "manufacturing", "industrial"],
+          url: "https://assets.mixkit.co/videos/preview/mixkit-robotic-arm-working-in-a-modern-factory-40635-large.mp4"
+        },
+        {
+          keywords: ["delivery", "package", "shipping", "ecommerce", "store", "product", "box"],
+          url: "https://assets.mixkit.co/videos/preview/mixkit-delivery-man-handing-over-packages-40642-large.mp4"
+        },
+        {
+          keywords: ["network", "connection", "digital", "abstract", "server", "nodes", "ai", "artificial"],
+          url: "https://assets.mixkit.co/videos/preview/mixkit-digital-network-connections-background-40645-large.mp4"
+        }
+      ];
+
+      const matched = VIDEO_TEMPLATES.find(t => t.keywords.some(k => promptText.includes(k)));
+      const videoUrl = matched ? matched.url : "https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-computer-keyboard-40654-large.mp4";
+      
+      return NextResponse.json({ videoUrl });
+    }
+
     // 2. Social ideas generation
     if (body.action === "ideas") {
       const prompt = `You are an expert Instagram content strategist. Generate 5 high-performing Instagram post ideas for this brand.

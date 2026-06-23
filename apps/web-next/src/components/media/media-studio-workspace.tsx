@@ -435,6 +435,107 @@ export function MediaStudioWorkspace() {
     }
   };
 
+  const handleGenerateVideo = async () => {
+    if (!activeProject?.id) {
+      toast.error("No active project selected.");
+      return;
+    }
+
+    if (!prompt.trim()) {
+      toast.error("Please describe the video you want to create");
+      return;
+    }
+
+    setGenerating(true);
+    setLastGenerationRequest({ prompt, format: activeFormat });
+    try {
+      toast.info("Analyzing video concept and generating copy...");
+
+      // 1. Build generation prompt
+      const generationPrompt =
+        enhancedPrompt?.trim() ||
+        buildPremiumEnhancedPrompt(prompt, {
+          name: activePresetData?.name || activeProject?.brand_name || activeProject?.name,
+          tagline: activePresetData?.tagline || activeProject?.brand_tagline || "",
+          description: activePresetData?.description || activeProject?.brand_description || "",
+          domain: activePresetData?.domain || activeProject?.domain || "",
+        });
+
+      // 2. Generate Caption, Hashtags, and Refined Prompt
+      const draft = await generateSocialPostDraft({
+        brandName: activePresetData?.name || activeProject?.brand_name || activeProject?.name || "Brand",
+        brandDescription: activePresetData?.description || activeProject?.brand_description || "",
+        prompt: generationPrompt,
+        platform: "instagram",
+      });
+
+      const safeCaption =
+        draft.caption?.trim() ||
+        `Check out our latest video campaign for ${activePresetData?.name || activeProject?.brand_name || activeProject?.name || "our brand"}.`;
+      const safeHashtags =
+        draft.hashtags && draft.hashtags.length > 0
+          ? draft.hashtags
+          : ["marketing", "business", "video", "ai"];
+      const safeVideoPrompt = draft.imagePrompt?.trim() || generationPrompt;
+
+      setEnhancedPrompt(safeVideoPrompt);
+      setGeneratedCaption(safeCaption);
+      setGeneratedHashtags(safeHashtags);
+
+      toast.info("Generating high-definition video loop...");
+
+      // 3. Generate Video URL
+      const res = await fetch("/api/jobs/generate-social-post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          type: "video", 
+          prompt: safeVideoPrompt,
+          projectId: activeProject.id
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Video generation request failed");
+      }
+      const data = await res.json();
+      const videoUrl = data.videoUrl;
+
+      if (!videoUrl) throw new Error("No video URL returned");
+
+      // 4. Save to Supabase
+      const supabase = getSupabaseBrowserClient();
+      const userRes = await supabase.auth.getUser();
+
+      const serializedCaption = JSON.stringify({
+        text: safeCaption,
+        prompt: prompt,
+        enhanced_prompt: safeVideoPrompt,
+        format: activeFormat,
+        hashtags: safeHashtags
+      });
+
+      const { error } = await supabase.from("media_assets").insert({
+        project_id: activeProject.id,
+        user_id: userRes.data.user?.id ?? null,
+        image_url: videoUrl,
+        caption: serializedCaption,
+        hashtags: safeHashtags.join(",")
+      });
+
+      if (error) throw error;
+
+      toast.success("Video campaign generated and saved to library!");
+      setPrompt("");
+      qc.invalidateQueries({ queryKey: ["media_assets", activeProject.id] });
+    } catch (error: any) {
+      console.error("Video generation error:", error);
+      toast.error(error?.message || "Failed to generate video asset. Please try again.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleRetryLastGeneration = async () => {
     if (!lastGenerationRequest) {
       toast.error("No previous failed generation to retry.");
@@ -883,17 +984,210 @@ export function MediaStudioWorkspace() {
                   </button>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
-                    <svg className="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m22 8-6 4 6 4V8Z"/>
-                      <rect width="14" height="12" x="2" y="6" rx="2" ry="2"/>
-                    </svg>
+                <div className="space-y-6">
+                  {/* Prompt Textarea */}
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Describe video campaign visual target</label>
+                      {aeoPromptsQuery.data && aeoPromptsQuery.data.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                          <span className="font-semibold text-[10px] uppercase tracking-wider text-slate-400">Quick Fill from AEO Prompts:</span>
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                setPrompt(e.target.value);
+                                e.target.value = "";
+                              }
+                            }}
+                            className="bg-slate-50 border border-slate-200 rounded-lg py-1 px-2 text-xs font-bold text-slate-700 focus:outline-none cursor-pointer max-w-[240px] truncate"
+                          >
+                            <option value="">Select a prompt...</option>
+                            {aeoPromptsQuery.data.map((p: any) => (
+                              <option key={p.id} value={p.prompt}>
+                                {p.topic ? `[${p.topic}] ` : ""}{p.prompt}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <textarea
+                        rows={4}
+                        placeholder="Describe the video loop you want to create (e.g., smart factory automation, coding interface, typing on keyboard)..."
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 pr-32 text-sm font-medium focus:border-slate-900 focus:outline-none"
+                      />
+                      <button
+                        onClick={() => {
+                          if (!prompt.trim()) {
+                            toast.error("Enter a base prompt first.");
+                            return;
+                          }
+                          const enhanced = buildPremiumEnhancedPrompt(prompt, {
+                            name: activePresetData?.name || activeProject?.brand_name || activeProject?.name,
+                            tagline: activePresetData?.tagline || activeProject?.brand_tagline || "",
+                            description: activePresetData?.description || activeProject?.brand_description || "",
+                            domain: activePresetData?.domain || activeProject?.domain || "",
+                          });
+                          setEnhancedPrompt(enhanced);
+                          toast.success("AI prompt generated.");
+                        }}
+                        className="absolute bottom-3 right-3 flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold hover:bg-slate-50"
+                      >
+                        <svg className="h-3.5 w-3.5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m15 4 5 5"/>
+                          <path d="M3 21v-3l12-12 3 3-12 12H3Z"/>
+                        </svg>
+                        Enhance with AI
+                      </button>
+                    </div>
                   </div>
-                  <h3 className="mt-4 text-base font-bold text-slate-900">B2B Video Engine</h3>
-                  <p className="mt-1 max-w-xs text-xs font-medium text-slate-500">
-                    Next-generation text-to-video campaign generator. In pipeline.
-                  </p>
+
+                  {/* Brand Presets */}
+                  <div className="space-y-3">
+                    <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Brand Preset</label>
+                      <button
+                        type="button"
+                        onClick={handleAutoFetchBrand}
+                        disabled={isFetchingBrand || !activeProject?.domain}
+                        className="flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                      >
+                        {isFetchingBrand ? (
+                          <svg className="animate-spin h-3 w-3 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                          </svg>
+                        ) : (
+                          <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                          </svg>
+                        )}
+                        Auto Fetch Site Info
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {presets.map((preset) => (
+                        <button
+                          key={preset.id}
+                          onClick={() => setActivePreset(preset.id)}
+                          className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all ${
+                            activePreset === preset.id
+                              ? "border-slate-900 bg-slate-900 text-white"
+                              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                          }`}
+                        >
+                          {preset.logoUrl ? (
+                            <img
+                              src={preset.logoUrl}
+                              alt={preset.name}
+                              className="h-5 w-5 rounded-md object-cover border border-slate-200 shrink-0 shadow-sm"
+                            />
+                          ) : (
+                            <div className={`h-5 w-5 rounded-md flex items-center justify-center text-[10px] font-black shrink-0 shadow-sm ${
+                              activePreset === preset.id
+                                ? "bg-violet-600 text-white"
+                                : "bg-violet-100 text-violet-700"
+                            }`}>
+                              {preset.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          {preset.name}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={handleAddPreset}
+                        className="flex items-center gap-1 rounded-xl border border-dashed border-slate-300 px-4 py-2 text-sm font-bold text-slate-500 hover:bg-slate-50"
+                      >
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14"/><path d="M12 5v14"/>
+                        </svg>
+                        Add New
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Format Grid */}
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Video Format</label>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+                      {FORMATS.map((format) => (
+                        <button
+                          key={format.id}
+                          onClick={() => setActiveFormat(format.id)}
+                          className={`rounded-xl border p-3 text-center transition-all ${
+                            activeFormat === format.id
+                              ? "border-slate-900 bg-slate-50/50"
+                              : "border-slate-200 bg-white hover:bg-slate-50"
+                          }`}
+                        >
+                          <svg className={`mx-auto h-5 w-5 ${activeFormat === format.id ? "text-slate-900" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                            <circle cx="9" cy="9" r="2"/>
+                            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                          </svg>
+                          <p className="mt-1 text-xs font-bold text-slate-800">{format.name}</p>
+                          <p className="text-[10px] font-semibold text-slate-400">{format.size}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Dropdowns */}
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Video Style</label>
+                      <select
+                        value={style}
+                        onChange={(e) => setStyle(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold focus:outline-none"
+                      >
+                        <option value="auto">Cinematic B2B Loop</option>
+                        <option value="motion">Modern 3D Motion Graphics</option>
+                        <option value="corporate">Minimal Corporate Presentation</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Resolution</label>
+                      <select
+                        value={quality}
+                        onChange={(e) => setQuality(e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-semibold focus:outline-none"
+                      >
+                        <option value="high">1080p Full HD</option>
+                        <option value="standard">720p HD</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Generate Button */}
+                  <button
+                    onClick={handleGenerateVideo}
+                    disabled={generating || !prompt.trim()}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3.5 text-base font-bold text-white shadow hover:bg-slate-850 disabled:opacity-60"
+                  >
+                    {generating ? (
+                      <>
+                        <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                        </svg>
+                        Generating B2B Video Loop...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m22 8-6 4 6 4V8Z"/>
+                          <rect width="14" height="12" x="2" y="6" rx="2" ry="2"/>
+                        </svg>
+                        Generate Video Campaign
+                      </>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
@@ -973,11 +1267,22 @@ export function MediaStudioWorkspace() {
               <div key={asset.id} className="group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
                 {/* Image & Ratio badges */}
                 <div className="relative aspect-square overflow-hidden bg-slate-100">
-                  <img
-                    src={asset.url}
-                    alt={asset.prompt}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+                  {asset.url.endsWith(".mp4") || asset.url.includes("/video/") ? (
+                    <video
+                      src={asset.url}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={asset.url}
+                      alt={asset.prompt}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60 p-4 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                       <div className="rounded-lg bg-white/95 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-900 shadow">
