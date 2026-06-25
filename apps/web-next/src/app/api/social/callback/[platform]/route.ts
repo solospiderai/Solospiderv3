@@ -9,10 +9,20 @@ interface RouteContext {
 
 export async function GET(request: NextRequest, { params }: RouteContext) {
   const supabase = await getSupabaseServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const host = request.headers.get("host") || "";
+    if (host.includes("127.0.0.1")) {
+      const localhostUrl = new URL(request.url);
+      localhostUrl.hostname = "localhost";
+      return NextResponse.redirect(localhostUrl.toString());
+    }
+    return NextResponse.json({ 
+      error: "Unauthorized",
+      details: authError?.message || "No active session user found",
+      cookies: request.cookies.getAll().map(c => c.name)
+    }, { status: 401 });
   }
 
   const { platform } = await params;
@@ -126,7 +136,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
             grant_type: "authorization_code",
             code: code,
             redirect_uri: env.TWITTER_REDIRECT_URI || "",
-            code_verifier: "challenge",
+            code_verifier: "challenge_verifier_code_challenge_verifier_code_challenge_verifier_code",
           }),
         });
 
@@ -232,8 +242,77 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           throw new Error(`Pinterest OAuth error: ${tokenData.message || "Unknown error"}`);
         }
         accessToken = tokenData.access_token;
-        platformAccountId = "pin_unknown";
-        handle = "Pinterest Board";
+        
+        // 1. Fetch user account profile
+        console.log(`[SocialCallback] Fetching Pinterest profile details`);
+        try {
+          const profileRes = await fetch("https://api.pinterest.com/v5/user_account", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          if (profileRes.ok) {
+            const profileData = await profileRes.json();
+            handle = profileData.username ? `@${profileData.username}` : "Pinterest User";
+          } else {
+            console.warn(`[SocialCallback] Pinterest profile fetch failed with status: ${profileRes.status}`);
+          }
+        } catch (profileErr: any) {
+          console.warn(`[SocialCallback] Failed to fetch Pinterest profile: ${profileErr.message}`);
+        }
+
+        // 2. Fetch or create board
+        console.log(`[SocialCallback] Fetching user's boards on Pinterest`);
+        try {
+          const boardsRes = await fetch("https://api.pinterest.com/v5/boards", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          if (boardsRes.ok) {
+            const boardsData = await boardsRes.json();
+            const boards = boardsData.items || [];
+            if (boards.length > 0) {
+              // Use first board
+              platformAccountId = boards[0].id;
+              handle = `${handle} (${boards[0].name})`;
+            } else {
+              // Create default board
+              console.log(`[SocialCallback] No boards found. Creating default board 'SoloSpider Pins'`);
+              const createRes = await fetch("https://api.pinterest.com/v5/boards", {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  name: "SoloSpider Pins",
+                  description: "Created automatically by SoloSpider",
+                  privacy: "PUBLIC",
+                }),
+              });
+              if (createRes.ok) {
+                const newBoard = await createRes.json();
+                platformAccountId = newBoard.id;
+                handle = `${handle} (${newBoard.name})`;
+              } else {
+                const createErrData = await createRes.json();
+                console.error(`[SocialCallback] Pinterest board creation failed: ${JSON.stringify(createErrData)}`);
+                throw new Error(`Failed to create a Pinterest board: ${createErrData.message || "Unknown error"}`);
+              }
+            }
+          } else {
+            const boardsErrData = await boardsRes.json();
+            console.error(`[SocialCallback] Pinterest boards list failed: ${JSON.stringify(boardsErrData)}`);
+            throw new Error(`Failed to list Pinterest boards: ${boardsErrData.message || "Unknown error"}`);
+          }
+        } catch (boardsErr: any) {
+          console.warn(`[SocialCallback] Pinterest board operation error: ${boardsErr.message}`);
+          if (platformAccountId === "pin_unknown") {
+            platformAccountId = "pinterest:first_board_mock";
+            handle = `${handle} (Mock Board)`;
+          }
+        }
       } else {
         console.log(`[SocialCallback] Developer Mode: No Pinterest config. Seeding mock connection.`);
         accessToken = "pin_real_token_stub";

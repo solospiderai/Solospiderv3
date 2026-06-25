@@ -367,16 +367,10 @@ export default function IntegrationsSettingsPage() {
       return;
     }
     
-    const width = 600;
-    const height = 650;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
-    
-    // Open OAuth process in a secure popup window
+    // Open OAuth process in a new tab so Twitter renders the full desktop layout (with account switching)
     const oauthWindow = window.open(
       `/api/social/connect/${platform}?projectId=${activeProject.id}`,
-      `Connect ${platform}`,
-      `width=${width},height=${height},left=${left},top=${top},status=no,resizable=yes,scrollbars=yes`
+      "_blank"
     );
 
     // Watch the popup to refresh active accounts list when authorization completes

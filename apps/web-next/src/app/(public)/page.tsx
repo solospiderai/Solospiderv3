@@ -620,70 +620,95 @@ export default function HomePage() {
         {/* PRICING */}
         <section className="relative py-20 md:py-[130px] bg-white" id="pricing">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
+            <div className="text-center max-w-[820px] mx-auto mb-[48px] reveal">
               <div className="mono text-primary mb-[18px]">— Pricing</div>
               <h2 className="mb-[18px]">One Price.<br /><span className="grad-text">Everything Included.</span></h2>
               <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">No feature gating. No per-seat pricing surprises. Pick the plan that fits your volume and get access to every single Solo Spider capability.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
               
-              <div className="bg-white border border-line rounded-3xl p-8 lg:p-9 flex flex-col gap-5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_26px_50px_-22px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal relative">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary">Free forever</span>
-                <h3 className="font-display text-[22px] font-bold tracking-tight text-ink">Starter</h3>
-                <div className="text-[13px] text-muted">For solo creators just getting started</div>
-                <div className="font-display font-black text-[54px] leading-none tracking-tight text-ink mt-2">₹0<small className="text-[14px] font-medium text-muted tracking-normal ml-1.5 font-sans">/month</small></div>
-                <div className="flex flex-col gap-2.5 text-[14px] text-ink-2 border-t border-line pt-5 mt-2">
+              {/* Starter Plan */}
+              <div className="bg-white border border-line rounded-3xl p-8 lg:p-9 flex flex-col gap-6 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal relative">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
+                <h3 className="font-display text-[24px] font-extrabold tracking-tight text-ink uppercase">STARTER</h3>
+                <div className="text-[13px] text-muted -mt-2">For solo creators just getting started</div>
+                <div className="flex items-baseline justify-center gap-1 mt-2">
+                  <span className="font-display font-black text-[52px] leading-none tracking-tight text-ink">₹0</span>
+                  <span className="text-[14px] font-semibold text-muted font-sans ml-1">/month</span>
+                </div>
+                <div className="flex flex-col gap-3.5 text-[14px] text-ink-2 border-t border-line pt-6 mt-2">
                   {["5 blog posts/month", "20 social posts/month", "Basic SEO audit (1 website)", "AEO insights (limited)", "1 connected social account"].map((f, i) => (
-                    <div key={i} className="flex gap-2.5 items-start">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[11px] font-bold mt-0.5">✓</div>
-                      {f}
+                    <div key={i} className="flex gap-3 items-start">
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="leading-tight">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto pt-6 cursor-pointer">Get started free →</button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer">Get started free →</button>
               </div>
 
-              <div className="bg-gradient-to-b from-white to-primary-tint rounded-3xl p-8 lg:p-9 flex flex-col gap-5 transition-all duration-250 hover:-translate-y-1 shadow-[0_30px_60px_-22px_rgba(144,37,242,0.3)] reveal d1 relative">
-                <div className="absolute inset-0 rounded-3xl p-[1.5px] bg-grad [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-white font-display font-extrabold text-[11px] tracking-widest uppercase px-3.5 py-1.5 rounded-lg z-10">Most popular</span>
+              {/* Solo Plan */}
+              <div className="relative border border-primary/20 bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-8 lg:p-9 flex flex-col gap-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45 reveal d1">
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-pink text-white font-display font-extrabold text-[11px] tracking-widest uppercase px-4 py-1.5 rounded-full z-10 shadow-md">Most popular</span>
                 
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary relative z-10">Most popular for solo creators</span>
-                <h3 className="font-display text-[22px] font-bold tracking-tight text-ink relative z-10">Solo</h3>
-                <div className="text-[13px] text-muted relative z-10">For founders, freelancers & creators</div>
-                <div className="font-display font-black text-[54px] leading-none tracking-tight text-primary mt-2 relative z-10">$149<small className="text-[14px] font-medium text-muted tracking-normal ml-1.5 font-sans">/month</small></div>
-                <div className="flex flex-col gap-2.5 text-[14px] text-ink-2 border-t border-line pt-5 mt-2 relative z-10">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Most popular for solo creators</span>
+                <h3 className="font-display text-[24px] font-extrabold tracking-tight text-ink -mt-1 uppercase">SOLO</h3>
+                <div className="text-[13px] text-muted -mt-2">For founders, freelancers & creators</div>
+                <div className="mt-2 flex flex-col items-center justify-center gap-1">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="font-display font-black text-[54px] leading-none tracking-tight text-primary transition-all duration-200">
+                      $149
+                    </span>
+                    <span className="text-[14px] font-semibold text-muted font-sans ml-1">/month</span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3.5 text-[14px] text-ink-2 border-t border-line pt-6 mt-1">
                   {["Unlimited blog posts", "Unlimited social content", "Full SEO audit + auto-fix", "AEO & GRO dashboard", "5 social accounts", "Priority support"].map((f, i) => (
-                    <div key={i} className="flex gap-2.5 items-start">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-primary text-white flex items-center justify-center text-[11px] font-bold mt-0.5">✓</div>
-                      {f}
+                    <div key={i} className="flex gap-3 items-start">
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center mt-0.5">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="leading-tight font-medium text-ink">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad w-full justify-center mt-auto relative z-10 cursor-pointer">Start Solo plan →</button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad w-full justify-center mt-auto cursor-pointer relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Solo plan →</button>
               </div>
 
-              <div className="bg-white border border-line rounded-3xl p-8 lg:p-9 flex flex-col gap-5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_26px_50px_-22px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal d2 relative">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary">Best for teams & client work</span>
-                <h3 className="font-display text-[22px] font-bold tracking-tight text-ink">Agency</h3>
-                <div className="text-[13px] text-muted">For agencies running 10+ clients</div>
-                <div className="font-display font-black text-[54px] leading-none tracking-tight text-ink mt-2">Custom</div>
-                <div className="flex flex-col gap-2.5 text-[14px] text-ink-2 border-t border-line pt-5 mt-2">
+              {/* Agency Plan */}
+              <div className="bg-white border border-line rounded-3xl p-8 lg:p-9 flex flex-col gap-6 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal d2 relative">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for teams & client work</span>
+                <h3 className="font-display text-[24px] font-extrabold tracking-tight text-ink uppercase">AGENCY</h3>
+                <div className="text-[13px] text-muted -mt-2">For agencies running 10+ clients</div>
+                <div className="flex items-baseline justify-center gap-1 mt-2">
+                  <span className="font-display font-black text-[52px] leading-none tracking-tight text-ink">Custom</span>
+                </div>
+                <div className="flex flex-col gap-3.5 text-[14px] text-ink-2 border-t border-line pt-6 mt-8">
                   {["Everything in Solo", "25+ client workspaces", "White-label reports", "Bulk content scheduling", "Team collaboration tools", "Dedicated onboarding call"].map((f, i) => (
-                    <div key={i} className="flex gap-2.5 items-start">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[11px] font-bold mt-0.5">✓</div>
-                      {f}
+                    <div key={i} className="flex gap-3 items-start">
+                      <div className="shrink-0 w-5 h-5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="leading-tight">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto pt-6 cursor-pointer">Talk to us →</button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer">Talk to us →</button>
               </div>
 
             </div>
 
-            <div className="text-center mt-9 text-muted text-[14px] leading-relaxed reveal">
-              All plans include a <strong className="text-ink">14-day free trial</strong>. No credit card required.<br />
-              Annual billing saves <strong className="text-[#67e8f9]">30%</strong>.
+            <div className="text-center mt-12 text-muted text-[14px] leading-relaxed reveal">
+              All plans include a <strong className="text-ink">14-day free trial</strong>. No credit card required.
             </div>
           </div>
         </section>

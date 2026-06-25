@@ -267,6 +267,44 @@ async function publishToTwitter(params: {
   return { postId: json.data?.id || "unknown" };
 }
 
+async function publishToPinterest(params: {
+  accessToken: string;
+  boardId: string;
+  imageUrl: string | null;
+  caption: string;
+}) {
+  if (!params.imageUrl) {
+    throw new Error("Cannot publish: image_url is required for Pinterest publishing");
+  }
+
+  const payload = {
+    board_id: params.boardId,
+    title: params.caption.slice(0, 100),
+    description: params.caption,
+    media_source: {
+      source_type: "image_url",
+      url: params.imageUrl,
+    },
+  };
+
+  const res = await fetch("https://api.pinterest.com/v5/pins", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${params.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const json = await res.json() as any;
+  if (!res.ok) {
+    throw new Error(`Pinterest publish failed: ${JSON.stringify(json)}`);
+  }
+
+  return { postId: json.id || "unknown" };
+}
+
+
 async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
   const { post_id } = job.data;
   console.log(`[PublishWorker] Job ${job.id} — post_id=${post_id}`);
@@ -431,7 +469,22 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
         mode: publishMode,
         external_post_id: result.postId,
       };
+    } else if (scheduledPost.platform === "pinterest" && publishToken && socialAccount.platform_account_id) {
+      const result = await publishToPinterest({
+        accessToken: publishToken,
+        boardId: socialAccount.platform_account_id,
+        imageUrl: scheduledPost.image_url,
+        caption: scheduledPost.caption,
+      });
+      externalPostId = result.postId;
+      publishMode = "pinterest_api";
+      publishMeta = {
+        ...publishMeta,
+        mode: publishMode,
+        external_post_id: result.postId,
+      };
     }
+
 
     await job.updateProgress(90);
 
@@ -472,6 +525,7 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
     await supabase
       .from("social_posts")
       .update({
+        status: "failed",
         publish_error: reason,
         last_publish_attempt_at: attemptAt,
         publish_attempts: nextAttempts,

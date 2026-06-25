@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         if (!clientExists) {
           return NextResponse.redirect(`${request.nextUrl.origin}/api/social/callback/twitter?code=mock_code&state=${projectId}`);
         }
-        oauthUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${env.TWITTER_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.TWITTER_REDIRECT_URI || "")}&state=${projectId}&scope=tweet.read%20tweet.write%20users.read&code_challenge=challenge&code_challenge_method=plain`;
+        oauthUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${env.TWITTER_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.TWITTER_REDIRECT_URI || "")}&state=${projectId}&scope=tweet.read%20tweet.write%20users.read&code_challenge=challenge_verifier_code_challenge_verifier_code_challenge_verifier_code&code_challenge_method=plain`;
         break;
       }
       case "instagram": {
@@ -72,7 +72,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         if (!clientExists) {
           return NextResponse.redirect(`${request.nextUrl.origin}/api/social/callback/pinterest?code=mock_code&state=${projectId}`);
         }
-        oauthUrl = `https://www.pinterest.com/oauth/?consumer_id=${env.PINTEREST_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.PINTEREST_REDIRECT_URI || "")}&response_type=code&scope=boards:read,pins:read,pins:write&state=${projectId}`;
+        oauthUrl = `https://www.pinterest.com/oauth/?consumer_id=${env.PINTEREST_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.PINTEREST_REDIRECT_URI || "")}&response_type=code&scope=user_accounts:read,boards:read,boards:write,pins:read,pins:write&state=${projectId}`;
         break;
       }
       default:

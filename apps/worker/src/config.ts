@@ -22,6 +22,9 @@ const EnvSchema = z.object({
   META_APP_SECRET:          z.string().optional(),
   PAGESPEED_API_KEY:        z.string().optional(),
   GOOGLE_API_KEY:           z.string().optional(),
+  PINTEREST_CLIENT_ID:      z.string().optional(),
+  PINTEREST_CLIENT_SECRET:  z.string().optional(),
+  PINTEREST_REDIRECT_URI:   z.string().optional(),
 });
 
 function loadEnv() {
