@@ -3391,54 +3391,139 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
 
       {view === "heatmap" && (
         runQuery.data?.status !== "done" ? showScanLoadingOrPlaceholder : (
-          <div className="rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 border-b border-slate-50 pb-2.5 flex items-center gap-1.5">
-            <Layers className="h-4 w-4 text-purple-600" /> AI Visibility Grid (Heatmap)
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {modelBreakdown.map((m) => {
-              const info = getModelInfo(m.model);
-              return (
-                <div key={m.model} className="rounded-xl border border-slate-150 bg-slate-50/50 p-5 space-y-4 shadow-sm flex flex-col justify-between">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-slate-800">{info.name}</span>
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold border uppercase tracking-wider ${info.bg} ${info.border} ${info.text}`}>
-                      {m.visibility}%
-                    </span>
-                  </div>
-                  
-                  {/* Glowing visual grid block representing heat */}
-                  <div className="grid grid-cols-5 gap-1.5 py-2">
-                    {Array.from({ length: 15 }).map((_, idx) => {
-                      const isActive = idx < Math.ceil((m.visibility / 100) * 15);
-                      return (
-                        <div 
-                          key={idx} 
-                          className={`h-4.5 rounded-md transition-all ${
-                            isActive 
-                              ? `${info.color} shadow-sm opacity-90` 
-                              : "bg-slate-200/50 opacity-40"
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
-
-                  <p className="text-[10px] text-slate-400 font-extrabold uppercase border-t border-slate-50 pt-2.5">
-                    Mentions: {m.mentions} / {m.total} scans
-                  </p>
-                </div>
-              );
-            })}
-            {modelBreakdown.length === 0 && (
-              <div className="col-span-3 text-center py-12 space-y-3 bg-slate-50/50 border border-dashed border-slate-200 rounded-xl">
-                <AlertCircle className="h-8 w-8 text-slate-400 mx-auto" />
-                <p className="text-xs font-bold text-slate-400 uppercase">No visibility grids mapped</p>
-                <p className="text-xs text-slate-500 font-medium">A scan is required to map HSL-colored visibility gradients.</p>
+          <div className="rounded-2xl border border-slate-150 bg-white p-6 shadow-sm space-y-6">
+            <div className="border-b border-slate-50 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <Layers className="h-4 w-4 text-purple-600" /> AI Visibility Grid (Heatmap)
+                </h3>
+                <p className="text-[10px] font-medium text-slate-400 mt-0.5">Explore brand mentions and citations across search engines and query prompts.</p>
               </div>
-            )}
+              <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">VISIBILITY HEATMAP MATRIX</span>
+            </div>
+
+            {/* Model summaries */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {modelBreakdown.map((m) => {
+                const info = getModelInfo(m.model);
+                return (
+                  <div key={m.model} className="rounded-xl border border-slate-150 bg-slate-50/50 p-4 space-y-3 shadow-sm flex flex-col justify-between">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-extrabold text-slate-800">{info.name}</span>
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold border uppercase tracking-wider ${info.bg} ${info.border} ${info.text}`}>
+                        {m.visibility}%
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-250/30 rounded-full overflow-hidden relative">
+                      <div className={`h-full rounded-full ${info.color}`} style={{ width: `${m.visibility}%` }} />
+                    </div>
+                    <p className="text-[9px] text-slate-400 font-bold uppercase pt-1">
+                      Mentions: {m.mentions} / {m.total} scans
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Heatmap Matrix Table */}
+            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-450 uppercase tracking-wider">
+                      <th className="px-4 py-3 min-w-[280px]">AEO Prompt / Query</th>
+                      <th className="px-4 py-3 text-center">ChatGPT</th>
+                      <th className="px-4 py-3 text-center">Perplexity</th>
+                      <th className="px-4 py-3 text-center">Gemini</th>
+                      <th className="px-4 py-3 text-center">Claude</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-650">
+                    {processedPrompts.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="text-center py-12 text-slate-400 font-semibold">
+                          No prompts scanned. Seed queries and launch scan to populate heatmap.
+                        </td>
+                      </tr>
+                    ) : (
+                      processedPrompts.map((p) => {
+                        const promptResults = (resultsQuery.data || []).filter(
+                          (r: any) => r.prompt_text.toLowerCase() === p.prompt.toLowerCase()
+                        );
+
+                        return (
+                          <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="px-4 py-3.5 flex flex-col gap-1.5 max-w-sm">
+                              <div className="flex">
+                                <span className="px-2 py-0.5 rounded bg-violet-50 border border-violet-100 text-[8px] font-extrabold uppercase text-violet-700 tracking-wide">
+                                  {p.topic || "general"}
+                                </span>
+                              </div>
+                              <span className="text-slate-800 font-bold leading-normal break-words">
+                                "{p.prompt}"
+                              </span>
+                            </td>
+
+                            {DEFAULT_MODELS.map((model) => {
+                              const match = promptResults.find((r: any) => r.model === model);
+                              
+                              if (!match) {
+                                return (
+                                  <td key={model} className="px-4 py-3 text-center align-middle">
+                                    <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-[10px] font-bold bg-slate-50 text-slate-350 border border-slate-100">
+                                      —
+                                    </span>
+                                  </td>
+                                );
+                              }
+
+                              const isCited = match.brand_mentioned;
+                              const pos = match.mention_position;
+                              const sentiment = match.mention_sentiment;
+                              const comps = Array.isArray(match.competitors_mentioned) ? match.competitors_mentioned : [];
+
+                              if (isCited) {
+                                return (
+                                  <td key={model} className="px-4 py-3 text-center align-middle">
+                                    <span className="inline-flex flex-col items-center justify-center px-2.5 py-1.5 rounded-lg text-[10px] font-black tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-100/60 shadow-sm">
+                                      <span className="flex items-center gap-1">✓ Cited {pos ? `#${pos}` : ""}</span>
+                                      {sentiment && <span className="text-[7.5px] font-extrabold uppercase opacity-85 mt-0.5">{sentiment}</span>}
+                                    </span>
+                                  </td>
+                                );
+                              }
+
+                              if (comps.length > 0) {
+                                return (
+                                  <td key={model} className="px-4 py-3 text-center align-middle">
+                                    <span 
+                                      className="inline-flex flex-col items-center justify-center px-2.5 py-1.5 rounded-lg text-[10px] font-black tracking-wide bg-amber-50 text-amber-700 border border-amber-100/60 shadow-sm cursor-help"
+                                      title={`Competitors cited: ${comps.join(", ")}`}
+                                    >
+                                      <span className="flex items-center gap-1">⚠️ Gap</span>
+                                      <span className="text-[7.5px] font-extrabold uppercase opacity-85 truncate max-w-[80px] mt-0.5">{comps[0]}</span>
+                                    </span>
+                                  </td>
+                                );
+                              }
+
+                              return (
+                                <td key={model} className="px-4 py-3 text-center align-middle">
+                                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-[10px] font-bold bg-slate-50 text-slate-400 border border-slate-100">
+                                    ✗ No Cite
+                                  </span>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
         )
       )}
 

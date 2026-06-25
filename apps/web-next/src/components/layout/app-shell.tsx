@@ -157,7 +157,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/en/backlinks",
       icon: Link2,
       isActive: (path) => path.startsWith("/app/en/backlinks"),
-      badge: "coming_soon"
     },
     {
       label: "Social Media",
@@ -189,7 +188,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       to: "/app/en/seo/rank-tracking",
       icon: TrendingUp,
       isActive: (path) => path.startsWith("/app/en/seo/rank-tracking"),
-      badge: "coming_soon"
     },
     {
       label: "Integrations",
@@ -358,7 +356,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <span className="flex-1 flex items-center gap-2 min-w-0">
                   <span className="truncate">{item.label}</span>
                   {item.badge === "coming_soon" && (
-                    <span className="px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-white/[0.05] border border-white/[0.08] text-white/40 rounded-md select-none shrink-0">
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-[#9025F2]/15 border border-[#9025F2]/30 text-[#b260ff] rounded-md select-none shrink-0">
                       Soon
                     </span>
                   )}

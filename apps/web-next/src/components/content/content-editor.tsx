@@ -34,51 +34,74 @@ function computeSEOScore(content: ContentItem) {
   const text = content.generated_content || "";
   const words = text.split(/\s+/).filter(Boolean);
   const wordCount = words.length;
-  const keyword = content.main_keyword.toLowerCase();
+  const keyword = (content.main_keyword || "").toLowerCase();
   const lowerText = text.toLowerCase();
 
   const checks: { label: string; pass: boolean; tip: string }[] = [];
   let totalScore = 0;
-  const maxScore = 6;
+  const maxScore = 10;
 
-  // 1. Title length
-  const titleLen = (content.generated_title || content.h1 || "").length;
+  const addCheck = (label: string, pass: boolean, tip: string) => {
+    checks.push({ label, pass, tip });
+    if (pass) totalScore++;
+  };
+
+  // 1. Title Length
+  const title = content.generated_title || content.h1 || "";
+  const titleLen = title.length;
   const titleOk = titleLen >= 30 && titleLen <= 70;
-  checks.push({ label: "Title Length", pass: titleOk, tip: titleOk ? `${titleLen} chars (good)` : `${titleLen} chars (aim 30-70)` });
-  if (titleOk) totalScore++;
+  addCheck("Title Length", titleOk, titleOk ? `${titleLen} chars (optimal)` : `${titleLen} chars (aim 30-70)`);
 
-  // 2. Word count vs target
-  const wcRatio = wordCount / content.word_count_target;
-  const wcOk = wcRatio >= 0.75 && wcRatio <= 1.35;
-  checks.push({ label: "Word Count", pass: wcOk, tip: `${wordCount} / ${content.word_count_target} target` });
-  if (wcOk) totalScore++;
+  // 2. Keyword in Title
+  const kwInTitle = keyword ? title.toLowerCase().includes(keyword) : false;
+  addCheck("Keyword in Title", kwInTitle, kwInTitle ? "Keyword present in title" : "Keyword missing from title");
 
-  // 3. Keyword in title
-  const kwInTitle = (content.generated_title || "").toLowerCase().includes(keyword);
-  checks.push({ label: "Keyword in Title", pass: kwInTitle, tip: kwInTitle ? "Present" : "Missing" });
-  if (kwInTitle) totalScore++;
+  // 3. Meta Description Length
+  const metaDesc = (content as any).meta_description || "";
+  const metaLen = metaDesc.length;
+  const metaOk = metaLen >= 110 && metaLen <= 160;
+  addCheck("Meta Description Length", metaOk, metaOk ? `${metaLen} chars (optimal)` : `${metaLen} chars (aim 110-160)`);
 
-  // 4. Keyword density
-  const kwCount = (lowerText.match(new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi")) || []).length;
+  // 4. Keyword in Meta Description
+  const kwInMeta = keyword && metaDesc ? metaDesc.toLowerCase().includes(keyword) : false;
+  addCheck("Keyword in Meta", kwInMeta, kwInMeta ? "Keyword present in meta description" : "Keyword missing from meta description");
+
+  // 5. H2 Headings
+  const h2Matches = text.match(/^##\s+.+$/gm) || [];
+  const hasH2 = h2Matches.length >= 3;
+  addCheck("H2 Subheadings", hasH2, hasH2 ? `${h2Matches.length} H2 tags (excellent)` : `${h2Matches.length} found (aim for >= 3)`);
+
+  // 6. H3 Headings
+  const h3Matches = text.match(/^###\s+.+$/gm) || [];
+  const hasH3 = h3Matches.length >= 2;
+  addCheck("H3 Subheadings", hasH3, hasH3 ? `${h3Matches.length} H3 tags (excellent)` : `${h3Matches.length} found (aim for >= 2 for structure)`);
+
+  // 7. Keyword in First 150 Words
+  const first150Words = words.slice(0, 150).join(" ").toLowerCase();
+  const kwInIntro = keyword ? first150Words.includes(keyword) : false;
+  addCheck("Keyword in Intro", kwInIntro, kwInIntro ? "Keyword appears in introduction" : "Keyword missing in first 150 words");
+
+  // 8. Keyword Density
+  const regex = keyword ? new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi") : null;
+  const kwCount = (regex && keyword) ? (lowerText.match(regex) || []).length : 0;
   const density = wordCount > 0 ? (kwCount / wordCount) * 100 : 0;
-  const densityOk = density >= 0.5 && density <= 3;
-  checks.push({ label: "Keyword Density", pass: densityOk, tip: `${density.toFixed(1)}% (aim 0.5-3%)` });
-  if (densityOk) totalScore++;
+  const densityOk = density >= 0.8 && density <= 2.8;
+  addCheck("Keyword Density", densityOk, `${density.toFixed(2)}% density (optimal: 0.8-2.8%)`);
 
-  // 5. Has H2 headings
-  const h2Matches = text.match(/^## /gm) || [];
-  const hasH2 = h2Matches.length >= 2;
-  checks.push({ label: "H2 Headings", pass: hasH2, tip: `${h2Matches.length} found` });
-  if (hasH2) totalScore++;
+  // 9. Word Count vs Target
+  const target = content.word_count_target || 800;
+  const wcRatio = wordCount / target;
+  const wcOk = wcRatio >= 0.8 && wcRatio <= 1.4;
+  addCheck("Word Count", wcOk, `${wordCount} words (target: ${target})`);
 
-  // 6. Readability (avg sentence length)
+  // 10. Sentence Length / Readability
   const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 5);
-  const avgSentenceLen = sentences.length > 0 ? words.length / sentences.length : 0;
-  const readabilityOk = avgSentenceLen >= 10 && avgSentenceLen <= 25;
-  checks.push({ label: "Readability", pass: readabilityOk, tip: `~${avgSentenceLen.toFixed(0)} words/sentence` });
-  if (readabilityOk) totalScore++;
+  const avgSentenceLen = sentences.length > 0 ? wordCount / sentences.length : 0;
+  const readabilityOk = avgSentenceLen >= 8 && avgSentenceLen <= 22;
+  addCheck("Sentence Length", readabilityOk, `~${avgSentenceLen.toFixed(0)} words/sentence (optimal: 8-22)`);
 
-  return { score: Math.round((totalScore / maxScore) * 100), checks, totalScore, maxScore };
+  const score = Math.round((totalScore / maxScore) * 100);
+  return { score, checks, totalScore, maxScore };
 }
 
 export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: string; backHref?: string }) {

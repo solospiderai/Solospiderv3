@@ -24,30 +24,46 @@ export interface TrafficEstimate {
  * Uses page count, content volume, and domain characteristics to produce
  * realistic estimates for small/medium websites.
  */
+function getDomainHash(domain: string): number {
+  let hash = 0;
+  for (let i = 0; i < domain.length; i++) {
+    hash = domain.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash);
+}
+
 function estimateFromCrawlData(
   cleanDomain: string,
   crawledPageCount: number,
   totalWordCount: number
 ): TrafficEstimate {
-  // Heuristic-based estimation for sites without SimilarWeb/Semrush data
-  // A typical small business site with 30-50 pages gets ~500-5000 monthly visits
-  const pagesFactor = Math.max(1, crawledPageCount);
-  const contentFactor = Math.max(1, totalWordCount / 1000); // content richness
+  const hash = getDomainHash(cleanDomain);
+  const baseTraffic = 35 + (hash % 45); // 35 - 80 visits base
 
-  // Base traffic: pages * content quality multiplier
-  // Small site (10 pages, 5k words) ≈ 200-500 visits
-  // Medium site (50 pages, 50k words) ≈ 2000-8000 visits
-  // Large content site (200 pages, 200k words) ≈ 15000-50000 visits
-  const baseMultiplier = 15 + (pagesFactor * 2);
-  const monthlyVisits = Math.round(baseMultiplier * Math.sqrt(contentFactor) * (1 + Math.random() * 0.2));
-  const organicTraffic = Math.round(monthlyVisits * 0.55); // ~55% from organic
-  const organicKeywords = Math.round(pagesFactor * 8 + contentFactor * 2); // keywords ~ pages * 8
-  const backlinks = Math.round(pagesFactor * 3 + Math.sqrt(monthlyVisits) * 0.5);
+  let tldMult = 1.0;
+  if (cleanDomain.endsWith(".in") || cleanDomain.endsWith(".co.in")) {
+    tldMult = 0.65;
+  } else if (cleanDomain.endsWith(".xyz") || cleanDomain.endsWith(".club") || cleanDomain.endsWith(".info")) {
+    tldMult = 0.35;
+  } else if (cleanDomain.endsWith(".ai") || cleanDomain.endsWith(".io") || cleanDomain.endsWith(".co")) {
+    tldMult = 1.1;
+  }
 
-  // Domain authority heuristic: small sites 5-25, medium 15-40
-  const da = Math.min(50, Math.max(5, Math.round(8 + Math.log2(monthlyVisits) * 2)));
+  const nameLen = cleanDomain.split(".")[0].length;
+  let lenMult = 1.0;
+  if (nameLen <= 5) lenMult = 1.2;
+  else if (nameLen > 12) lenMult = 0.75;
 
-  // Detect country from domain TLD
+  const scaleMult = 0.85 + (Math.min(100, crawledPageCount) * 0.003); // very soft scaling by pages
+
+  let organicTraffic = Math.round(baseTraffic * tldMult * lenMult * scaleMult);
+  if (organicTraffic < 10) organicTraffic = 10;
+  if (organicTraffic > 180) organicTraffic = 180; // cap fallback estimate to a realistic level
+
+  const organicKeywords = Math.round(organicTraffic * 0.92) + (hash % 10) + 1;
+  const backlinks = Math.round(organicTraffic * 0.27) + (hash % 5) + 1;
+  const monthlyVisits = Math.round(organicTraffic / 0.55);
+
   let topCountry = "United States";
   if (cleanDomain.endsWith(".in") || cleanDomain.endsWith(".co.in")) topCountry = "India";
   else if (cleanDomain.endsWith(".uk") || cleanDomain.endsWith(".co.uk")) topCountry = "United Kingdom";
@@ -61,10 +77,10 @@ function estimateFromCrawlData(
     organicTraffic,
     organicKeywords,
     backlinks,
-    domainAuthority: da,
-    bounceRate: Number((0.45 + Math.random() * 0.2).toFixed(2)),
-    avgVisitDuration: Math.round(60 + Math.random() * 120),
-    pagesPerVisit: Number((1.5 + Math.random() * 2).toFixed(1)),
+    domainAuthority: Math.min(45, Math.max(5, Math.round(8 + Math.log2(monthlyVisits || 1) * 1.5))),
+    bounceRate: Number((0.45 + (hash % 20) / 100).toFixed(2)),
+    avgVisitDuration: Math.round(60 + (hash % 120)),
+    pagesPerVisit: Number((1.5 + (hash % 20) / 10).toFixed(1)),
     topCountry,
     trafficTrend: "stable",
     source: "Estimated from crawl data (no external traffic source available)",
@@ -127,7 +143,7 @@ Respond ONLY with a valid JSON object:
 Respond ONLY with raw valid JSON. No markdown, no explanation.`;
 
     const res = await queryModel(
-      "perplexity",
+      "gemini",
       searchPrompt,
       "You are a web traffic data analyst. You MUST respond with valid JSON containing traffic estimates. NEVER return zeros for all fields — always provide your best estimate based on available web data, site category, and content volume.",
       1200

@@ -1,7 +1,7 @@
 "use client";
 
-import { ComingSoon } from "@/components/ui/coming-soon";
+import { BacklinksWorkspace } from "@/components/seo/backlinks-workspace";
 
 export default function BacklinksPage() {
-  return <ComingSoon title="Backlinks" />;
+  return <BacklinksWorkspace />;
 }

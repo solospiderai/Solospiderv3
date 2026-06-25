@@ -353,7 +353,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     return 0.233; // 7 days fallback
   }, [timeRange]);
 
-  const trafficNum = Math.round(estimated.organicTraffic * multiplier);
+  const trafficNum = estimated.organicTraffic;
   const trafficValue = trafficNum >= 1000000 
     ? (trafficNum / 1000000).toFixed(1) + "M"
     : trafficNum >= 1000 

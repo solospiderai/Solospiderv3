@@ -4,7 +4,7 @@ const BASE_URL = "https://openrouter.ai/api/v1";
 
 export const MODEL_MAP: Record<string, string> = {
   chatgpt:    "openai/gpt-4o-mini",
-  gemini:     "google/gemini-2.5-flash",
+  gemini:     "google/gemini-3.5-flash",
   claude:     "anthropic/claude-3-haiku",
   perplexity: "perplexity/sonar",
   grok:       "x-ai/grok-3-mini-beta",
@@ -78,7 +78,22 @@ export async function queryModel(
     throw new Error(`OpenRouter ${modelId} → ${res.status}: ${err.slice(0, 300)}`);
   }
 
-  const data = await res.json() as { choices: Array<{ message: { content: string } }> };
+  const data = await res.json() as { 
+    choices: Array<{ message: { content: string } }>;
+    usage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+  
+  const usage = data?.usage;
+  if (usage) {
+    console.log(`[OpenRouter Usage] ${modelId} — Prompt: ${usage.prompt_tokens} tokens | Completion: ${usage.completion_tokens} tokens | Total: ${usage.total_tokens} tokens`);
+  } else {
+    console.log(`[OpenRouter Usage] ${modelId} — No usage metadata available.`);
+  }
+
   const text = data?.choices?.[0]?.message?.content ?? "";
   return { text, latencyMs };
 }

@@ -100,23 +100,25 @@ async function runBlogGeneration(contentId: string, includeToc: boolean) {
       .eq("id", contentId);
 
     // 2. Generate Outline (H2 / H3 headings)
-    const outlinePrompt = `You are an expert content strategist. Generate a structured outline for a blog post with the following details:
+    const outlinePrompt = `You are an expert content strategist and B2B SaaS copywriter. Generate a structured outline and SEO metadata for a blog post with the following details:
 Keyword: "${item.main_keyword}"
-Title: "${item.h1}"
+Title Request: "${item.h1}"
 Tone: "${item.tone}"
 Target Country: "${item.target_country}"
 Additional Details: "${item.details || "None"}"
 
-Return ONLY a clean JSON object containing an array of headings (no markdown blocks, no think tag, no surrounding text).
+Return ONLY a clean JSON object (no markdown blocks, no think tag, no surrounding text).
 JSON format:
 {
-  "h2_list": ["Heading 1", "Heading 2", "Heading 3", "Heading 4"],
-  "meta_description": "A snappy SEO meta description for this article"
+  "seo_title": "A catchy search-optimized title containing the main keyword, between 35 and 60 characters long",
+  "meta_description": "A search-optimized meta description containing the main keyword, between 120 and 155 characters long",
+  "h2_list": ["Heading 1", "Heading 2", "Heading 3", "Heading 4", "Heading 5"]
 }`;
 
     const outlineRaw = await callLLM(outlinePrompt, 800);
     let h2List = ["Introduction", "Core Benefits", "Key Strategies", "Future Outlook", "Conclusion"];
     let metaDescription = `Learn all about ${item.h1} - an in-depth exploration.`;
+    let seoTitle = item.h1;
 
     try {
       // Clean JSON wrappers
@@ -132,6 +134,9 @@ JSON format:
       if (outlineObj.meta_description) {
         metaDescription = outlineObj.meta_description;
       }
+      if (outlineObj.seo_title) {
+        seoTitle = outlineObj.seo_title;
+      }
     } catch (e) {
       console.warn("[runBlogGeneration] Outline JSON parsing failed, using default headings.", e);
     }
@@ -141,6 +146,7 @@ JSON format:
       .update({
         h2_list: h2List,
         meta_description: metaDescription,
+        generated_title: seoTitle,
         sections_completed: 1,
         current_section: "Outline generated. Preparing to write content...",
       })
@@ -169,8 +175,8 @@ JSON format:
         })
         .eq("id", contentId);
 
-      const sectionPrompt = `You are a premium B2B SaaS copywriter. Write a highly detailed, engaging, and professional section for a blog post.
-Article Title: "${item.h1}"
+      const sectionPrompt = `You are a premium B2B SaaS copywriter and SEO content optimizer. Write a highly detailed, engaging, and professional section for a blog post.
+Article Title: "${seoTitle}"
 Main Keyword: "${item.main_keyword}"
 Secondary Keywords: "${(item.secondary_keywords || []).join(", ")}"
 Current Section Heading: "${heading}"
@@ -181,7 +187,14 @@ Internal Links to Include Naturally: "${(item.internal_links || []).join(", ")}"
 Previous Written Content Context:
 ${fullMarkdown.slice(-1000)}
 
-Strive for 250-400 words for this section. Output only the content under the heading (do not repeat the heading title in your output, just write the paragraph text). Use formatting (bullet points, bold text, bolding key phrases) naturally to improve readability.`;
+Strive for 250-400 words for this section. Output only the content under the heading (do not repeat the heading title in your output, just write the paragraph text). Use formatting (bullet points, bold text, bolding key phrases) naturally to improve readability.
+
+Strict SEO Rules to Follow:
+1. Keyword density: Weave the main keyword "${item.main_keyword}" naturally into this section 1-3 times. Ensure density is balanced and fits context.
+2. Structure: Break down long paragraphs. Use H3 subheadings (format: ### Subheading) within this section if needed to introduce specific points or detail.
+3. Sentence Length: Keep sentences concise and clear (average under 20 words).
+4. If this is the FIRST section (typically an introduction or benefits), you MUST include the target keyword "${item.main_keyword}" in the first 100 words of the text.
+5. If this is the LAST section (typically a conclusion or next steps), include a clear final summary and call to action.`;
 
       const sectionText = await callLLM(sectionPrompt, 1200);
       fullMarkdown += `## ${heading}\n\n${sectionText}\n\n`;
@@ -202,7 +215,7 @@ Strive for 250-400 words for this section. Output only the content under the hea
       .from("content_items")
       .update({
         generated_content: fullMarkdown,
-        generated_title: item.h1,
+        generated_title: seoTitle,
         status: "completed",
         sections_completed: totalSections,
         current_section: "Article completed successfully!",

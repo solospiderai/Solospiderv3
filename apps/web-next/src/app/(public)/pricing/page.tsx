@@ -92,22 +92,22 @@ export default function PricingPage() {
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
 
             {/* Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               
               {/* Starter Plan */}
-              <div className="bg-white border border-line rounded-3xl p-8 lg:p-9 flex flex-col gap-6 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
-                <h3 className="font-display text-[24px] font-extrabold tracking-tight text-ink uppercase">STARTER</h3>
-                <div className="text-[13px] text-muted -mt-2">For solo creators just getting started</div>
-                <div className="flex items-baseline justify-center gap-1 mt-2">
-                  <span className="font-display font-black text-[52px] leading-none tracking-tight text-ink">₹0</span>
-                  <span className="text-[14px] font-semibold text-muted font-sans ml-1">/month</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">STARTER</h3>
+                <div className="text-[12px] text-muted -mt-2">For creators just getting started</div>
+                <div className="flex items-baseline justify-center gap-1 mt-1">
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">₹0</span>
+                  <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[14px] text-ink-2 border-t border-line pt-6 mt-2">
+                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
                   {["5 blog posts/month", "20 social posts/month", "Basic SEO audit (1 website)", "AEO insights (limited)", "1 connected social account"].map((f, i) => (
-                    <div key={i} className="flex gap-3 items-start text-left">
-                      <div className="shrink-0 w-5 h-5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <div key={i} className="flex gap-2.5 items-start text-left">
+                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
@@ -115,29 +115,29 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer">Get started free →</button>
+                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</button>
               </div>
 
-              {/* Solo Plan */}
-              <div className="relative border border-primary/20 bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-8 lg:p-9 flex flex-col gap-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45">
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-pink text-white font-display font-extrabold text-[11px] tracking-widest uppercase px-4 py-1.5 rounded-full z-10 shadow-md">Most popular</span>
+              {/* Growth Plan */}
+              <div className="relative border border-primary/20 bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45 overflow-visible">
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-pink text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-3.5 py-1 rounded-full z-10 shadow-md">Most popular</span>
                 
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Most popular for solo creators</span>
-                <h3 className="font-display text-[24px] font-extrabold tracking-tight text-ink -mt-1 uppercase">SOLO</h3>
-                <div className="text-[13px] text-muted -mt-2">For founders, freelancers & creators</div>
-                <div className="mt-2 flex flex-col items-center justify-center gap-1">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink -mt-1 uppercase">GROWTH</h3>
+                <div className="text-[12px] text-muted -mt-2">For founders, freelancers & creators</div>
+                <div className="mt-1 flex flex-col items-center justify-center gap-1">
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="font-display font-black text-[54px] leading-none tracking-tight text-primary transition-all duration-200">
-                      $149
+                    <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary transition-all duration-200">
+                      $199
                     </span>
-                    <span className="text-[14px] font-semibold text-muted font-sans ml-1">/month</span>
+                    <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
                   </div>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[14px] text-ink-2 border-t border-line pt-6 mt-1">
+                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
                   {["Unlimited blog posts", "Unlimited social content", "Full SEO audit + auto-fix", "AEO & GRO dashboard", "5 social accounts", "Priority support"].map((f, i) => (
-                    <div key={i} className="flex gap-3 items-start text-left">
-                      <div className="shrink-0 w-5 h-5 rounded-full bg-primary text-white flex items-center justify-center mt-0.5">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <div key={i} className="flex gap-2.5 items-start text-left">
+                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary text-white flex items-center justify-center mt-0.5">
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
@@ -145,22 +145,23 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={triggerWizard} className="btn btn-grad w-full justify-center mt-auto cursor-pointer relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Solo plan →</button>
+                <button onClick={triggerWizard} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</button>
               </div>
 
-              {/* Agency Plan */}
-              <div className="bg-white border border-line rounded-3xl p-8 lg:p-9 flex flex-col gap-6 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for teams & client work</span>
-                <h3 className="font-display text-[24px] font-extrabold tracking-tight text-ink uppercase">AGENCY</h3>
-                <div className="text-[13px] text-muted -mt-2">For agencies running 10+ clients</div>
-                <div className="flex items-baseline justify-center gap-1 mt-2">
-                  <span className="font-display font-black text-[52px] leading-none tracking-tight text-ink">Custom</span>
+              {/* Scale Plan */}
+              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">SCALE</h3>
+                <div className="text-[12px] text-muted -mt-2">For growing teams & agencies</div>
+                <div className="flex items-baseline justify-center gap-1 mt-1">
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">$699</span>
+                  <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[14px] text-ink-2 border-t border-line pt-6 mt-8">
-                  {["Everything in Solo", "25+ client workspaces", "White-label reports", "Bulk content scheduling", "Team collaboration tools", "Dedicated onboarding call"].map((f, i) => (
-                    <div key={i} className="flex gap-3 items-start text-left">
-                      <div className="shrink-0 w-5 h-5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
+                  {["Everything in GROWTH", "10 client workspaces", "White-label reports", "Bulk content scheduling", "API access parameters", "24/7 dedicated support"].map((f, i) => (
+                    <div key={i} className="flex gap-2.5 items-start text-left">
+                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
@@ -168,7 +169,30 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer">Talk to us →</button>
+                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</button>
+              </div>
+
+              {/* Custom Plan */}
+              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise & custom needs</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">CUSTOM</h3>
+                <div className="text-[12px] text-muted -mt-2">For large teams & custom volume</div>
+                <div className="flex items-baseline justify-center gap-1 mt-1">
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">Custom</span>
+                </div>
+                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-7">
+                  {["Everything in SCALE", "Unlimited client workspaces", "Custom AI model tuning", "Dedicated account manager", "SLA guarantees & custom API", "Dedicated onboarding call"].map((f, i) => (
+                    <div key={i} className="flex gap-2.5 items-start text-left">
+                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
+                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="leading-tight">{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</button>
               </div>
 
             </div>
