@@ -1,7 +1,6 @@
 # Welcome to SoloSpider AI project
 
 ## Project info
-abe jana 
 
 ## How can I edit this code?
 
