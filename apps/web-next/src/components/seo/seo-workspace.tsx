@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -29,7 +29,8 @@ import {
   Search,
   Download,
   TrendingUp,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Wrench
 } from "lucide-react";
 
 interface CrawledPage {
@@ -404,9 +405,12 @@ export function SeoWorkspace() {
     recommendation: string;
     codeSnippet?: string;
     explanation?: string;
+    suggestedValue?: string | null;
     loading: boolean;
     error?: string;
   }>>({});
+
+  const [fixingKeys, setFixingKeys] = useState<Record<string, boolean>>({});
 
   const handleCopyText = (text: string, message = "Copied to clipboard!") => {
     navigator.clipboard.writeText(text);
@@ -519,6 +523,7 @@ export function SeoWorkspace() {
           recommendation: data.recommendation || "",
           codeSnippet: data.codeSnippet,
           explanation: data.explanation || "",
+          suggestedValue: data.suggestedValue,
           loading: false
         }
       }));
@@ -532,6 +537,71 @@ export function SeoWorkspace() {
           error: err.message || "Failed to generate recommendation"
         }
       }));
+    }
+  };
+
+  const handleApplyFix = async (issueId: string, pageUrl: string, suggestedValue: string) => {
+    const cacheKey = `${issueId}-${pageUrl}`;
+    setFixingKeys(prev => ({ ...prev, [cacheKey]: true }));
+    try {
+      const res = await fetch("/api/seo/apply-fix", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          project_id: activeProject?.id,
+          url: pageUrl,
+          issueId,
+          fixValue: suggestedValue
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Server returned ${res.status}`);
+      }
+
+      const data = await res.json();
+      
+      // Determine user-friendly field label
+      const fieldLabel = data.updatedField === "meta_desc" 
+        ? "Meta Description" 
+        : data.updatedField 
+          ? data.updatedField.toUpperCase() 
+          : "Page Elements";
+
+      if (data.noIntegration) {
+        if (typeof window !== "undefined") {
+          toast.info(`Simulated: updated ${fieldLabel} locally in SoloSpider!`, {
+            description: `To sync this change live on your website, connect your CMS.`,
+            action: {
+              label: "Connect CMS",
+              onClick: () => {
+                window.localStorage.setItem("solospider.pending_fix", JSON.stringify({
+                  issueId,
+                  pageUrl,
+                  suggestedValue
+                }));
+                window.location.href = "/app/en/settings/integrations";
+              }
+            },
+            duration: 8000
+          });
+        }
+      } else {
+        toast.success(`Successfully fixed ${fieldLabel} live!`, {
+          description: `Updated value: "${data.updatedValue}"`
+        });
+      }
+      
+      // Invalidate crawled pages query to trigger client-side recalculation of diagnostics and score
+      qc.invalidateQueries({ queryKey: ["crawled_pages", activeProject?.id] });
+    } catch (err: any) {
+      console.error("[ApplyFix UI Error]", err);
+      toast.error(err.message || "Failed to apply automated SEO fix");
+    } finally {
+      setFixingKeys(prev => ({ ...prev, [cacheKey]: false }));
     }
   };
 
@@ -580,6 +650,29 @@ export function SeoWorkspace() {
   const crawledPages = useMemo(() => {
     return (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url));
   }, [crawledPagesQuery.data]);
+
+  useEffect(() => {
+    if (crawledPages.length === 0) return;
+    if (typeof window !== "undefined") {
+      const pendingFixRaw = window.localStorage.getItem("solospider.pending_fix");
+      if (pendingFixRaw) {
+        try {
+          const pendingFix = JSON.parse(pendingFixRaw);
+          if (pendingFix && pendingFix.issueId && pendingFix.pageUrl) {
+            // Expand the issue
+            setExpandedIssues(prev => ({ ...prev, [pendingFix.issueId]: true }));
+            // Trigger recommendation scan
+            triggerAiRecommendation(pendingFix.issueId, { url: pendingFix.pageUrl });
+            toast.success("Resumed your pending SEO fix. Connect your integration and apply it live!");
+          }
+        } catch (e) {
+          console.warn("Failed to parse pending fix:", e);
+        } finally {
+          window.localStorage.removeItem("solospider.pending_fix");
+        }
+      }
+    }
+  }, [crawledPages]);
 
   const filteredPagesList = useMemo(() => {
     const titleCounts: Record<string, number> = {};
@@ -1958,16 +2051,33 @@ export function SeoWorkspace() {
                                                 {aiRecommendations[`${issue.id}-${page.url}`].recommendation}
                                               </div>
                                             </div>
-                                            {aiRecommendations[`${issue.id}-${page.url}`].codeSnippet && (
-                                              <button 
-                                                onClick={() => handleCopyText(aiRecommendations[`${issue.id}-${page.url}`].codeSnippet!, "Schema copied to clipboard!")}
-                                                className="shrink-0 p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg shadow-sm text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                                                title="Copy Code"
-                                              >
-                                                <Copy className="w-3.5 h-3.5" />
-                                                Copy Code
-                                              </button>
-                                            )}
+                                            <div className="flex flex-col gap-2 shrink-0">
+                                              {aiRecommendations[`${issue.id}-${page.url}`].suggestedValue && (
+                                                <button 
+                                                  onClick={() => handleApplyFix(issue.id, page.url, aiRecommendations[`${issue.id}-${page.url}`].suggestedValue!)}
+                                                  disabled={fixingKeys[`${issue.id}-${page.url}`]}
+                                                  className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-lg shadow-sm text-[10px] font-black flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+                                                  title="Apply automated fix to website and database"
+                                                >
+                                                  {fixingKeys[`${issue.id}-${page.url}`] ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                                                  ) : (
+                                                    <Wrench className="w-3.5 h-3.5 text-white" />
+                                                  )}
+                                                  {fixingKeys[`${issue.id}-${page.url}`] ? "Fixing..." : "Apply Fix to Website"}
+                                                </button>
+                                              )}
+                                              {aiRecommendations[`${issue.id}-${page.url}`].codeSnippet && (
+                                                <button 
+                                                  onClick={() => handleCopyText(aiRecommendations[`${issue.id}-${page.url}`].codeSnippet!, "Schema copied to clipboard!")}
+                                                  className="p-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-650 rounded-lg shadow-sm text-[10px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer justify-center"
+                                                  title="Copy Code"
+                                                >
+                                                  <Copy className="w-3.5 h-3.5 text-slate-550" />
+                                                  Copy Code
+                                                </button>
+                                              )}
+                                            </div>
                                           </div>
 
                                           {aiRecommendations[`${issue.id}-${page.url}`].codeSnippet && (

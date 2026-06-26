@@ -53,7 +53,8 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
         : `${pageTopic} - Overview`;
       return {
         recommendation: `Add a single <h1> heading tag at the top of your page content: \n\n# <h1>${suggestedH1}</h1>`,
-        explanation: "Every page must have exactly one <h1> tag serving as the main title of the page's body content. This tells search crawlers what the page is about immediately, which is crucial for keyword weighting."
+        explanation: "Every page must have exactly one <h1> tag serving as the main title of the page's body content. This tells search crawlers what the page is about immediately, which is crucial for keyword weighting.",
+        suggestedValue: suggestedH1
       };
     }
 
@@ -62,7 +63,8 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
       const suggestedDesc = `Explore ${pageTopic} on ${domain}. Discover high-quality insights, solutions, and standard updates regarding ${pageTopic.toLowerCase()} today.`;
       return {
         recommendation: `Add the following meta tag inside the <head> section of your HTML:\n\n<meta name="description" content="${suggestedDesc}">`,
-        explanation: "Meta descriptions determine the text snippet shown under your page title in search engine results. Densely packing natural keywords in 120-160 characters maximizes click-through rates."
+        explanation: "Meta descriptions determine the text snippet shown under your page title in search engine results. Densely packing natural keywords in 120-160 characters maximizes click-through rates.",
+        suggestedValue: suggestedDesc
       };
     }
 
@@ -86,7 +88,8 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
       return {
         recommendation: schemaType,
         codeSnippet: code,
-        explanation: `Structured schema (JSON-LD) translates raw page content into rich search snippets and citation snippets for AI engines (like ChatGPT or Perplexity), boosting visibility and authority.`
+        explanation: `Structured schema (JSON-LD) translates raw page content into rich search snippets and citation snippets for AI engines (like ChatGPT or Perplexity), boosting visibility and authority.`,
+        suggestedValue: schemaType
       };
     }
 
@@ -111,14 +114,17 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
 
       return {
         recommendation: markdown,
-        explanation: `Search engines penalize pages with thin content (< 200 words) as they lack sufficient crawlable context and index value. Expanding this page to 500+ words of rich, structured content will help it rank.`
+        explanation: `Search engines penalize pages with thin content (< 200 words) as they lack sufficient crawlable context and index value. Expanding this page to 500+ words of rich, structured content will help it rank.`,
+        suggestedValue: null
       };
     }
 
     case "duplicate-titles": {
+      const suggestedTitle = `${currentTitle || pageTopic} - Expert Guide`;
       return {
-        recommendation: `1. "${currentTitle || pageTopic} - Expert Guide for 2026"\n2. "What is ${pageTopic}? Key Benefits and Features"\n3. "Comparing ${pageTopic} Solutions - ${siteName}"`,
-        explanation: "Duplicate page titles confuse search indexing bots, forcing your own pages to compete against each other in the search results (keyword cannibalization). Differentiate these titles."
+        recommendation: `1. "${suggestedTitle}"\n2. "What is ${pageTopic}? Key Benefits and Features"\n3. "Comparing ${pageTopic} Solutions - ${siteName}"`,
+        explanation: "Duplicate page titles confuse search indexing bots, forcing your own pages to compete against each other in the search results (keyword cannibalization). Differentiate these titles.",
+        suggestedValue: suggestedTitle
       };
     }
 
@@ -126,21 +132,44 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
       const suggestedTitle = `${currentH1 || pageTopic} | ${siteName}`;
       return {
         recommendation: `<title>${suggestedTitle}</title>`,
-        explanation: "The title tag is the single most important on-page SEO metadata element. It acts as the clickable headline in search results and browser tabs."
+        explanation: "The title tag is the single most important on-page SEO metadata element. It acts as the clickable headline in search results and browser tabs.",
+        suggestedValue: suggestedTitle
+      };
+    }
+
+    case "long-titles": {
+      const suggestedTitle = currentTitle 
+        ? currentTitle.slice(0, 57).trim() + "..."
+        : `${currentH1 || pageTopic} | ${siteName}`;
+      return {
+        recommendation: `Shorten your page title to prevent search truncation: \n\n${suggestedTitle}`,
+        explanation: "Titles over 69 characters are truncated in search engines. Keep it concise.",
+        suggestedValue: suggestedTitle
+      };
+    }
+
+    case "duplicate-descriptions": {
+      const suggestedDesc = `Explore ${pageTopic} on ${domain}. Discover high-quality insights, solutions, and updates regarding ${pageTopic.toLowerCase()} today.`;
+      return {
+        recommendation: `Add the following unique meta tag inside the <head> section of your HTML:\n\n<meta name="description" content="${suggestedDesc}">`,
+        explanation: "Duplicate meta descriptions confuse search engines and lower organic search click-through rate.",
+        suggestedValue: suggestedDesc
       };
     }
 
     case "broken-links": {
       return {
         recommendation: "Redirect this URL to a relevant working page, or restore the missing content.",
-        explanation: "Pages returning error codes (like 404 Not Found) degrade overall domain authority, stop indexing bots in their tracks, and lead to lost visitor trust. Set up a 301 Redirect."
+        explanation: "Pages returning error codes (like 404 Not Found) degrade overall domain authority, stop indexing bots in their tracks, and lead to lost visitor trust. Set up a 301 Redirect.",
+        suggestedValue: null
       };
     }
 
     default:
       return {
         recommendation: `Optimize page elements on ${url} to fix issues in category: ${issueId}.`,
-        explanation: "Standard SEO best practices indicate optimizing headings, metadata, and structured data is key to rank visibility."
+        explanation: "Standard SEO best practices indicate optimizing headings, metadata, and structured data is key to rank visibility.",
+        suggestedValue: null
       };
   }
 }
@@ -208,6 +237,20 @@ Current <h1>: "${currentH1 || "N/A"}"
 Suggest an optimized SEO title between 50-60 characters. Provide a short explanation of why it fits the page.`;
         break;
 
+      case "long-titles":
+        issuePrompt = `The page has a title tag that is too long: "${currentTitle || ""}".
+Page URL: "${url}"
+
+Suggest an optimized SEO title between 50-60 characters that represents this page's content. Explain its benefits.`;
+        break;
+
+      case "duplicate-descriptions":
+        issuePrompt = `The page has a duplicate meta description: "${currentMetaDesc || ""}".
+Page URL: "${url}"
+
+Suggest a unique, professional meta description between 120 and 160 characters. Provide a short explanation of its SEO value.`;
+        break;
+
       case "broken-links":
         issuePrompt = `The page returned a broken or failed status code.
 Page URL: "${url}"
@@ -222,7 +265,7 @@ Provide a clear recommended action (e.g., set up a 301 redirect, restore the res
     }
 
     const systemPrompt = `You are SoloSpider SEO AI, an elite Search Engine Optimization agent.
-Analyze the user's issue and metadata and return a JSON object containing the exact recommendation, optional code snippet, and explanation.
+Analyze the user's issue and metadata and return a JSON object containing the exact recommendation, optional code snippet, explanation, and the structured fix value.
 
 STRICT RESPONSE FORMAT:
 You must output a single valid JSON object. Do not include any markdown formatting wrappers (like \`\`\`json) or extra text.
@@ -230,7 +273,8 @@ JSON Schema:
 {
   "recommendation": "Main suggested text or markdown outline",
   "codeSnippet": "Optional JSON-LD schema or redirect code block",
-  "explanation": "Short contextual explanation of the SEO value"
+  "explanation": "Short contextual explanation of the SEO value",
+  "suggestedValue": "Strictly the plain-text value to apply for fixing the issue. For missing/duplicate/long titles: the suggested title string. For missing/duplicate descriptions: the suggested meta description string. For missing H1: the suggested H1 string. For schema: the schema type (e.g. WebPage, Article, etc.). Return null if not applicable."
 }`;
 
     const prompt = `${systemPrompt}\n\nUser Request:\n${issuePrompt}`;

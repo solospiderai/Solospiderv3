@@ -72,8 +72,8 @@ export default function LoginPage() {
           <div className="flex items-center justify-center mb-8">
             <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[42px] w-auto" />
           </div>
-          <p className="text-lg text-ink-2">
-            Hire Autonomy. Not a team. The autonomous execution layer for every business on earth.
+          <p className="text-lg text-ink-2 font-medium">
+            AI That Works Alongside Your Team. The intelligent execution layer that helps businesses move faster.
           </p>
         </div>
       </div>

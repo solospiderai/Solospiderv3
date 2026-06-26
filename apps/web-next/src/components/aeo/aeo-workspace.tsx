@@ -3430,11 +3430,11 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-450 uppercase tracking-wider">
+                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-455 uppercase tracking-wider">
                       <th className="px-4 py-3 min-w-[280px]">AEO Prompt / Query</th>
                       <th className="px-4 py-3 text-center">ChatGPT</th>
-                      <th className="px-4 py-3 text-center">Perplexity</th>
                       <th className="px-4 py-3 text-center">Gemini</th>
+                      <th className="px-4 py-3 text-center">Perplexity</th>
                       <th className="px-4 py-3 text-center">Claude</th>
                     </tr>
                   </thead>

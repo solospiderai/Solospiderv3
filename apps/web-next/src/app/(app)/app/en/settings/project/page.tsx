@@ -5,7 +5,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Globe, Building2, Sparkles, Link as LinkIcon, Image as ImageIcon, Loader2, Save, ArrowLeft, ShieldCheck, FileText, CheckCircle2 } from "lucide-react";
+import { Globe, Building2, Sparkles, Link as LinkIcon, Image as ImageIcon, Loader2, Save, ArrowLeft, ShieldCheck, FileText, CheckCircle2, Trash2 } from "lucide-react";
 import Link from "next/link";
 
 export default function ProjectSettingsPage() {
@@ -25,6 +25,7 @@ export default function ProjectSettingsPage() {
   const [competitorsInput, setCompetitorsInput] = useState("");
   
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Sync state with active project
   useEffect(() => {
@@ -120,6 +121,34 @@ export default function ProjectSettingsPage() {
     }
   };
 
+  const handleDeleteProject = async () => {
+    if (!window.confirm("Are you sure you want to delete this project? This will permanently remove all crawl runs, audited pages, backlinks, and content items for this project.")) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", activeProject.id);
+
+      if (error) throw error;
+
+      toast.success("Project deleted successfully!");
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("solospider.next.activeProjectId");
+      }
+      await qc.invalidateQueries({ queryKey: ["projects"] });
+      window.location.href = "/app/en/dashboard";
+    } catch (err: any) {
+      console.error("Delete project error:", err);
+      toast.error(err?.message || "Failed to delete project");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-10rem)] w-full items-center justify-center">
@@ -171,6 +200,19 @@ export default function ProjectSettingsPage() {
           >
             Media Studio
           </Link>
+          <button
+            type="button"
+            onClick={handleDeleteProject}
+            disabled={isDeleting}
+            className="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-xs font-bold text-red-650 px-4 py-2.5 shadow-sm transition-all active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+          >
+            {isDeleting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-red-500" />
+            ) : (
+              <Trash2 className="h-3.5 w-3.5 text-red-500" />
+            )}
+            Delete Project
+          </button>
         </div>
       </div>
 

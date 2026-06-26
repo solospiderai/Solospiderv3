@@ -458,3 +458,30 @@ create policy "users_own_content_gaps" on public.aeo_content_gaps
       where p.id = aeo_content_gaps.project_id and p.user_id = auth.uid()
     )
   );
+
+-- 11. Backlink Submissions Table
+create table if not exists public.backlink_submissions (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references public.projects(id) on delete cascade,
+  site text not null,
+  niche text not null,
+  da integer not null,
+  type text not null,
+  status text not null default 'submitted', -- submitted, pending, active, failed
+  outreach_email text,
+  submitted_at timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+-- Enable RLS
+alter table public.backlink_submissions enable row level security;
+
+-- Backlink Submissions Policy
+create policy "users_own_backlink_submissions" on public.backlink_submissions
+  for all using (
+    exists (
+      select 1 from public.projects p
+      where p.id = backlink_submissions.project_id and p.user_id = auth.uid()
+    )
+  );
+

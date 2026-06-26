@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { useAuth } from "@/hooks/useAuth";
@@ -98,6 +98,90 @@ export default function IntegrationsSettingsPage() {
 
   // Active form view: "wordpress" | "shopify" | "magento" | null
   const [activeForm, setActiveForm] = useState<"wordpress" | "shopify" | "magento" | null>(null);
+  const [pendingFix, setPendingFix] = useState<{ issueId: string; pageUrl: string; suggestedValue: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pending = window.localStorage.getItem("solospider.pending_fix");
+      if (pending) {
+        try {
+          setPendingFix(JSON.parse(pending));
+        } catch {}
+      }
+    }
+  }, []);
+
+  // Shopify OAuth Callback Handshake
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const shopifyCode = urlParams.get("shopify_code");
+    const shopParam = urlParams.get("shop");
+
+    if (shopifyCode && shopParam) {
+      const processExchange = async () => {
+        setIsConnectingShopifyOAuth(true);
+        try {
+          const tempAuth = window.localStorage.getItem("solospider.shopify_auth_temp");
+          if (!tempAuth) {
+            toast.error("Shopify OAuth session expired. Please connect again.");
+            return;
+          }
+          const { shopName, clientId, clientSecret } = JSON.parse(tempAuth);
+          
+          let cleanShopParam = shopParam.trim().replace(/https?:\/\//, "").replace(/\/$/, "");
+          let cleanShopName = shopName.trim().replace(/https?:\/\//, "").replace(/\/$/, "");
+          if (!cleanShopName.includes(".myshopify.com")) {
+            cleanShopName = `${cleanShopName}.myshopify.com`;
+          }
+          if (!cleanShopParam.includes(".myshopify.com")) {
+            cleanShopParam = `${cleanShopParam}.myshopify.com`;
+          }
+
+          toast.loading("Exchanging Shopify authorization code...", { id: "shopify-oauth" });
+
+          const response = await fetch("/api/seo/shopify-token-exchange", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              code: shopifyCode,
+              shopName: cleanShopParam,
+              clientId,
+              clientSecret,
+            }),
+          });
+
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || "Token exchange failed");
+          }
+
+          toast.success("Shopify connected successfully!", { id: "shopify-oauth" });
+          window.localStorage.removeItem("solospider.shopify_auth_temp");
+          queryClient.invalidateQueries({ queryKey: ["cms_integrations", user.id] });
+
+          const pending = window.localStorage.getItem("solospider.pending_fix");
+          if (pending) {
+            toast.success("Redirecting back to SEO workspace to complete your fix...");
+            setTimeout(() => {
+              window.location.href = "/app/en/seo";
+            }, 1500);
+          }
+        } catch (err: any) {
+          console.error("[ShopifyOAuth] Exchange error:", err);
+          toast.error(`Shopify OAuth failed: ${err.message}`, { id: "shopify-oauth" });
+        } finally {
+          setIsConnectingShopifyOAuth(false);
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+        }
+      };
+
+      processExchange();
+    }
+  }, [user, queryClient]);
 
   // WordPress form states
   const [wpUrl, setWpUrl] = useState("");
@@ -107,6 +191,10 @@ export default function IntegrationsSettingsPage() {
   // Shopify form states
   const [shopifyShopName, setShopifyShopName] = useState("");
   const [shopifyAccessToken, setShopifyAccessToken] = useState("");
+  const [shopifyClientId, setShopifyClientId] = useState("");
+  const [shopifyClientSecret, setShopifyClientSecret] = useState("");
+  const [shopifyConnectMethod, setShopifyConnectMethod] = useState<"oauth" | "manual">("oauth");
+  const [isConnectingShopifyOAuth, setIsConnectingShopifyOAuth] = useState(false);
 
   // Magento form states
   const [magentoUrl, setMagentoUrl] = useState("");
@@ -222,6 +310,17 @@ export default function IntegrationsSettingsPage() {
       setShopifyAccessToken("");
       setMagentoUrl("");
       setMagentoToken("");
+
+      // Redirect back if pending fix exists
+      if (typeof window !== "undefined") {
+        const pending = window.localStorage.getItem("solospider.pending_fix");
+        if (pending) {
+          toast.success("Redirecting back to SEO workspace to complete your fix...");
+          setTimeout(() => {
+            window.location.href = "/app/en/seo";
+          }, 1500);
+        }
+      }
     },
     onError: (err: any, variables) => {
       const platformLabel = variables.platform.charAt(0).toUpperCase() + variables.platform.slice(1);
@@ -318,6 +417,36 @@ export default function IntegrationsSettingsPage() {
     }
 
     addIntegrationMutation.mutate({ platform: "shopify", credentials: creds });
+  };
+
+  const handleConnectShopifyOAuth = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!shopifyShopName || !shopifyClientId || !shopifyClientSecret) {
+      toast.error("Please fill in Shop Domain, Client ID, and Client Secret.");
+      return;
+    }
+
+    let cleanShop = shopifyShopName.trim();
+    if (!cleanShop.includes("myshopify.com") && !cleanShop.startsWith("http")) {
+      cleanShop = `${cleanShop}.myshopify.com`;
+    }
+    cleanShop = cleanShop.replace(/https?:\/\//, "").replace(/\/$/, "");
+
+    // Save temp auth parameters to trade code later
+    const tempAuth = {
+      shopName: cleanShop,
+      clientId: shopifyClientId.trim(),
+      clientSecret: shopifyClientSecret.trim()
+    };
+    window.localStorage.setItem("solospider.shopify_auth_temp", JSON.stringify(tempAuth));
+
+    // Redirect merchant to Shopify App Installation page
+    const scopes = "read_content,write_content,read_online_store_pages,write_online_store_pages";
+    const redirectUri = `${window.location.origin}/api/seo/shopify-callback`;
+    const authorizeUrl = `https://${cleanShop}/admin/oauth/authorize?client_id=${shopifyClientId.trim()}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+    console.log("[ShopifyOAuth] Redirecting merchant to:", authorizeUrl);
+    window.location.href = authorizeUrl;
   };
 
   const handleEditIntegration = (integration: any) => {
@@ -432,6 +561,35 @@ export default function IntegrationsSettingsPage() {
           </div>
         </div>
       </header>
+
+      {/* Pending SEO Fix action banner */}
+      {pendingFix && (
+        <div className="bg-indigo-50 border border-indigo-250 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200 shadow-sm">
+          <div className="space-y-1 pr-4">
+            <div className="flex items-center gap-1.5 text-xs font-black text-indigo-700 uppercase tracking-widest">
+              <AlertCircle className="w-4 h-4 text-indigo-600 animate-pulse" /> Pending SEO Fix Action
+            </div>
+            <p className="text-sm font-bold text-slate-800 mt-1">
+              Connect your CMS platform to sync the SEO fix to: <span className="font-mono text-indigo-700 bg-indigo-100/50 px-1.5 py-0.5 rounded text-xs select-all">{pendingFix.pageUrl}</span>
+            </p>
+            <p className="text-xs text-slate-500 font-semibold mt-1">
+              Select WordPress or Shopify below, enter your credentials, and click Connect. Once successful, SoloSpider will automatically return you to the workspace to complete the fix.
+            </p>
+          </div>
+          <button 
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.localStorage.removeItem("solospider.pending_fix");
+                setPendingFix(null);
+              }
+            }}
+            className="text-slate-400 hover:text-red-500 text-xs font-bold shrink-0 px-3 py-1.5 rounded-lg border border-transparent hover:border-red-100 hover:bg-red-50 transition-colors cursor-pointer"
+          >
+            Cancel Fix
+          </button>
+        </div>
+      )}
 
       {/* Top HUD Cards (Metrics) */}
       <div className="grid gap-6 md:grid-cols-3">
@@ -619,7 +777,7 @@ export default function IntegrationsSettingsPage() {
 
             {/* Shopify Form */}
             {activeForm === "shopify" && (
-              <form onSubmit={handleAddShopify} className="bg-slate-50/50 rounded-2xl p-5 border border-emerald-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+              <div className="bg-slate-50/50 rounded-2xl p-5 border border-emerald-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
                 <div className="flex items-center justify-between">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
                     <ShopifyIcon className="w-5 h-5" />
@@ -639,53 +797,142 @@ export default function IntegrationsSettingsPage() {
                     <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Shopify URL / Store Name</label>
-                    <input
-                      type="text"
-                      placeholder="my-awesome-store.myshopify.com"
-                      value={shopifyShopName}
-                      onChange={(e) => setShopifyShopName(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Admin API Access Token</label>
-                    <input
-                      type="password"
-                      placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                      value={shopifyAccessToken}
-                      onChange={(e) => setShopifyAccessToken(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                    />
-                  </div>
+
+                {/* Tabs */}
+                <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShopifyConnectMethod("oauth")}
+                    className={`flex-1 text-center py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      shopifyConnectMethod === "oauth" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    }`}
+                  >
+                    Auto-Connect (Recommended)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShopifyConnectMethod("manual")}
+                    className={`flex-1 text-center py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      shopifyConnectMethod === "manual" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                    }`}
+                  >
+                    Manual Access Token
+                  </button>
                 </div>
-                <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                    In Shopify Admin → <strong>Settings → Apps → Develop apps</strong>, create a custom app, configure <strong>write_content</strong> scope, install it, then copy the <strong>Admin API access token</strong> (starts with <code>shpat_</code>). Do NOT use the Client Secret.
-                  </p>
-                </div>
-                {verificationResult && activeForm === "shopify" && (
-                  <div className={`rounded-xl p-3 flex items-start gap-2.5 text-[10px] font-semibold ${
-                    verificationResult.ok
-                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                      : "bg-red-50 border border-red-200 text-red-700"
-                  }`}>
-                    {verificationResult.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
-                    <p>{verificationResult.ok ? verificationResult.message : verificationResult.error}</p>
-                  </div>
+
+                {shopifyConnectMethod === "oauth" ? (
+                  /* Auto-Connect Form */
+                  <form onSubmit={handleConnectShopifyOAuth} className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Shopify URL / Store Name</label>
+                        <input
+                          type="text"
+                          placeholder="my-awesome-store.myshopify.com"
+                          value={shopifyShopName}
+                          onChange={(e) => setShopifyShopName(e.target.value)}
+                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Client ID (from Shopify Partner / Developer App)</label>
+                        <input
+                          type="text"
+                          placeholder="hex string e.g. b6bab3e7..."
+                          value={shopifyClientId}
+                          onChange={(e) => setShopifyClientId(e.target.value)}
+                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Client Secret</label>
+                        <input
+                          type="password"
+                          placeholder="shpss_xxxxxxxxxxxxxxxx"
+                          value={shopifyClientSecret}
+                          onChange={(e) => setShopifyClientSecret(e.target.value)}
+                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <div className="text-[10px] text-slate-600 font-medium leading-relaxed">
+                        <p className="font-bold text-slate-800 mb-1">Pre-requisite (App Settings):</p>
+                        <p>
+                          Ensure your Developer App settings whitelists the redirect URI:<br/>
+                          <code className="bg-slate-100 p-0.5 px-1 rounded font-mono text-[9px] text-[#96BF48]">
+                            {typeof window !== "undefined" ? `${window.location.origin}/api/seo/shopify-callback` : "http://localhost:3000/api/seo/shopify-callback"}
+                          </code>
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isConnectingShopifyOAuth}
+                      className="w-full bg-[#96BF48] hover:bg-[#83aa3d] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      {isConnectingShopifyOAuth ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      {isConnectingShopifyOAuth ? "Connecting to Shopify..." : "Auto-Connect to Shopify"}
+                    </button>
+                  </form>
+                ) : (
+                  /* Manual Form */
+                  <form onSubmit={handleAddShopify} className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Shopify URL / Store Name</label>
+                        <input
+                          type="text"
+                          placeholder="my-awesome-store.myshopify.com"
+                          value={shopifyShopName}
+                          onChange={(e) => setShopifyShopName(e.target.value)}
+                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase text-slate-400">Admin API Access Token</label>
+                        <input
+                          type="password"
+                          placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                          value={shopifyAccessToken}
+                          onChange={(e) => setShopifyAccessToken(e.target.value)}
+                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
+                        In Shopify Admin &rarr; <strong>Settings &rarr; Apps and sales channels &rarr; Develop apps</strong>, configure <strong>write_content</strong> and <strong>write_online_store_pages</strong> API scopes, install the app, then paste the <strong>Admin API access token</strong> (starts with <code>shpat_</code>).
+                      </p>
+                    </div>
+
+                    {verificationResult && activeForm === "shopify" && (
+                      <div className={`rounded-xl p-3 flex items-start gap-2.5 text-[10px] font-semibold ${
+                        verificationResult.ok
+                          ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
+                          : "bg-red-50 border border-red-200 text-red-700"
+                      }`}>
+                        {verificationResult.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
+                        <p>{verificationResult.ok ? verificationResult.message : verificationResult.error}</p>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={addIntegrationMutation.isPending || isVerifying}
+                      className="w-full bg-[#96BF48] hover:bg-[#83aa3d] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                    >
+                      {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      {isVerifying ? "Verifying..." : editingIntegrationId ? "Verify & Update" : "Verify & Save Shopify Connection"}
+                    </button>
+                  </form>
                 )}
-                <button
-                  type="submit"
-                  disabled={addIntegrationMutation.isPending || isVerifying}
-                  className="w-full bg-[#96BF48] hover:bg-[#83aa3d] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                >
-                  {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  {isVerifying ? "Verifying..." : editingIntegrationId ? "Verify & Update" : "Verify & Save Shopify Connection"}
-                </button>
-              </form>
+              </div>
             )}
 
             {/* Magento Form */}
