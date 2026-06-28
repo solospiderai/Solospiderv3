@@ -1045,6 +1045,74 @@ export default function IntegrationsSettingsPage() {
               </div>
             )}
           </div>
+
+          {/* Google Search Console Integration Card */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+            <div className="border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center shadow-sm shrink-0">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.44 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-950">Google Search Console</h3>
+                  <p className="text-xs text-slate-400 font-semibold">Import real backlinks, search queries, clicks, and index coverage from Google.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* What you get */}
+            <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 space-y-3">
+              <p className="text-[10px] font-black text-indigo-700 uppercase tracking-wider">What data becomes real after connecting</p>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: "Backlinks Index", desc: "All URLs linking to your site" },
+                  { label: "Referring Domains", desc: "Unique root domains" },
+                  { label: "Search Queries", desc: "Real keywords people use" },
+                  { label: "Clicks & Impressions", desc: "Google search traffic" },
+                  { label: "Average Position", desc: "Your Google rankings" },
+                  { label: "Index Coverage", desc: "Which pages Google indexed" },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-start gap-2 text-[10px]">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-slate-800">{item.label}</p>
+                      <p className="text-slate-400 font-semibold">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Connection Status & Action */}
+            <div className="flex items-center justify-between gap-4 pt-1">
+              <div className="flex items-center gap-2">
+                <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Not Connected
+                </span>
+                <span className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Free</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  toast.info("Google Search Console OAuth integration coming soon! For now, verify your domain at search.google.com/search-console to prepare.", { duration: 6000 });
+                }}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white text-xs font-extrabold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.98]"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="white" fillOpacity="0.9"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="white" fillOpacity="0.8"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.44 1.18 4.93l3.66-2.84z" fill="white" fillOpacity="0.7"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="white" fillOpacity="0.85"/>
+                </svg>
+                Connect Google Search Console
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Right Column: Social Channels Connection (LinkedIn, Twitter, Instagram, Facebook, Pinterest) */}
