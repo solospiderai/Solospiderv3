@@ -57,6 +57,9 @@ export function BacklinksWorkspace() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
+  // GSC Connection State — defaults to false until GSC OAuth integration is built
+  const [gscConnected] = useState(false);
+
   const cleanDomain = useMemo(() => {
     if (!activeProject?.domain) return "yourdomain.com";
     return activeProject.domain.replace(/^(https?:\/\/)?(www\.)?/, "").replace(/\/$/, "");
@@ -498,6 +501,92 @@ Link: https://${cleanDomain}`;
         </div>
       </div>
 
+      {/* ========================== */}
+      {/* GSC NOT CONNECTED: FULL-PAGE SETUP GUIDE */}
+      {/* ========================== */}
+      {!gscConnected ? (
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          {/* Top Warning Banner */}
+          <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 px-6 py-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center shrink-0">
+              <AlertCircle className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-black text-white tracking-wide">Google Search Console Not Connected</p>
+              <p className="text-[10px] text-white/75 font-semibold">Connect GSC to import real, verified backlinks for <span className="font-bold text-white">{cleanDomain}</span></p>
+            </div>
+          </div>
+
+          <div className="p-6 sm:p-8 space-y-7">
+            {/* Why GSC? */}
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 space-y-1.5">
+              <p className="text-[10px] font-black text-amber-700 uppercase tracking-wider flex items-center gap-1">
+                <Info className="w-3.5 h-3.5" /> Why is Google Search Console required?
+              </p>
+              <p className="text-[10px] text-amber-600 font-semibold leading-relaxed">
+                Unlike Ahrefs or Semrush (which spend millions on crawling the web), SoloSpider uses Google&apos;s free Search Console API to fetch your real backlink data directly from Google&apos;s search index. This means <span className="font-bold">100% accurate data at $0 cost</span>.
+              </p>
+            </div>
+
+            {/* Steps */}
+            <div className="grid gap-5 text-xs font-sans">
+              <div className="flex items-start gap-4">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 text-xs font-black text-violet-700 shrink-0 shadow-sm">1</span>
+                <div className="space-y-1 pt-0.5">
+                  <p className="font-extrabold text-slate-900 text-sm">Verify your domain in Google Search Console</p>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                    Open <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-violet-600 hover:underline font-bold inline-flex items-center gap-0.5">search.google.com/search-console <ExternalLink className="w-2.5 h-2.5" /></a> → Click <span className="font-bold text-slate-700">&quot;Add Property&quot;</span> → Enter <code className="bg-slate-100 px-1.5 py-0.5 rounded text-violet-700 font-mono text-[10px]">{cleanDomain}</code>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 text-xs font-black text-violet-700 shrink-0 shadow-sm">2</span>
+                <div className="space-y-1 pt-0.5">
+                  <p className="font-extrabold text-slate-900 text-sm">Add the DNS verification record</p>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                    Google will give you a TXT record → Go to your domain registrar (GoDaddy, Namecheap, Cloudflare, Shopify) → Add the TXT record to your DNS settings → Click <span className="font-bold text-slate-700">&quot;Verify&quot;</span> in Search Console.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 text-xs font-black text-violet-700 shrink-0 shadow-sm">3</span>
+                <div className="space-y-1 pt-0.5">
+                  <p className="font-extrabold text-slate-900 text-sm">Connect your Google Account in SoloSpider</p>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                    Go to <Link href="/app/en/settings/integrations" className="text-violet-600 hover:underline font-bold">Settings → Integrations</Link> → Click <span className="font-bold text-slate-700">&quot;Connect Google Search Console&quot;</span> → Sign in with the same Google account used for Search Console.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-xs font-black text-emerald-700 shrink-0 shadow-sm">4</span>
+                <div className="space-y-1 pt-0.5">
+                  <p className="font-extrabold text-slate-900 text-sm">Your real backlinks will appear here automatically</p>
+                  <p className="text-[11px] text-slate-500 font-semibold leading-relaxed">
+                    SoloSpider will sync Google&apos;s backlink index to this dashboard. All metrics (DA, referring domains, dofollow ratio) will reflect <span className="font-bold text-emerald-600">real, verified data</span>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Footer */}
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-150 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> 100% Free — No subscription required
+              </span>
+              <Link
+                href="/app/en/settings/integrations"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-200 inline-flex items-center gap-2 active:scale-[0.98]"
+              >
+                Go to Integrations <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : (
+      <>
       {/* METRIC OVERVIEW CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
@@ -1035,6 +1124,9 @@ Link: https://${cleanDomain}`;
 
           </div>
         </div>
+      )}
+
+      </>
       )}
 
     </div>
