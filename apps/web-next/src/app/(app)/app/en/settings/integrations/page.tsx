@@ -1096,11 +1096,10 @@ export default function IntegrationsSettingsPage() {
                 </span>
                 <span className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Free</span>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  toast.info("Google Search Console OAuth integration coming soon! For now, verify your domain at search.google.com/search-console to prepare.", { duration: 6000 });
-                }}
+              <a
+                href="https://search.google.com/search-console"
+                target="_blank"
+                rel="noreferrer"
                 className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white text-xs font-extrabold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.98]"
               >
                 <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
@@ -1110,7 +1109,7 @@ export default function IntegrationsSettingsPage() {
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="white" fillOpacity="0.85"/>
                 </svg>
                 Connect Google Search Console
-              </button>
+              </a>
             </div>
           </div>
         </div>
