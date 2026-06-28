@@ -591,23 +591,77 @@ Link: https://${cleanDomain}`;
 
           {/* List/Table or Setup Placeholder */}
           {filteredSubmissions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 border border-dashed border-slate-200 rounded-2xl text-center space-y-4 bg-slate-50/20">
-              <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-650 shadow-sm animate-pulse">
-                <Link2 className="w-6 h-6" />
+            <div className="flex flex-col p-6 sm:p-8 border border-slate-200 rounded-2xl bg-slate-50/20 space-y-6 text-left">
+              {/* Header */}
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-650 shadow-sm shrink-0">
+                  <Link2 className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-black text-slate-900 leading-tight font-sans">GSC Backlink Integration Guide</h4>
+                  <p className="text-[10px] text-slate-450 font-semibold leading-normal font-sans">
+                    To display verified backlinks for <span className="font-extrabold text-violet-600">{cleanDomain}</span> without paying expensive crawling subscription fees, connect your site with Google Search Console.
+                  </p>
+                </div>
               </div>
-              <div className="space-y-1 max-w-sm">
-                <p className="text-xs font-black text-slate-800">No Backlinks Indexed Yet</p>
-                <p className="text-[10px] text-slate-450 font-semibold leading-normal">
-                  No active backlinks have been indexed for <span className="font-extrabold text-violet-650">{cleanDomain}</span> yet.
-                  Connect Google Search Console to import existing profiles, or use our AI automated runner on the right to submit new ones.
-                </p>
+
+              {/* Steps List */}
+              <div className="grid gap-4 text-xs font-sans">
+                {/* Step 1 */}
+                <div className="flex items-start gap-3">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-100 text-[10px] font-black text-violet-750 shrink-0">1</span>
+                  <div className="space-y-0.5 mt-0.5">
+                    <p className="font-extrabold text-slate-800">Verify your domain in Google Search Console</p>
+                    <p className="text-[10px] text-slate-450 font-semibold">
+                      Go to <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-violet-650 hover:underline font-bold inline-flex items-center gap-0.5">Google Search Console <ExternalLink className="w-2.5 h-2.5" /></a> and register <code className="bg-slate-100 px-1 rounded text-violet-700 font-mono text-[9px]">{cleanDomain}</code> as a property.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="flex items-start gap-3">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-100 text-[10px] font-black text-violet-750 shrink-0">2</span>
+                  <div className="space-y-0.5 mt-0.5">
+                    <p className="font-extrabold text-slate-800">Add TXT/HTML DNS verification record</p>
+                    <p className="text-[10px] text-slate-450 font-semibold">
+                      Add Google&apos;s verification record to your domain registrar (GoDaddy, Namecheap, or Shopify) and click Verify.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="flex items-start gap-3">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-100 text-[10px] font-black text-violet-750 shrink-0">3</span>
+                  <div className="space-y-0.5 mt-0.5">
+                    <p className="font-extrabold text-slate-800">Authorize Google Account in SoloSpider</p>
+                    <p className="text-[10px] text-slate-450 font-semibold">
+                      Navigate to the integrations workspace settings and click the Connect button to grant SoloSpider access to GSC metrics.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="flex items-start gap-3">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-violet-100 text-[10px] font-black text-violet-750 shrink-0">4</span>
+                  <div className="space-y-0.5 mt-0.5">
+                    <p className="font-extrabold text-slate-800">Synchronize backlinks index</p>
+                    <p className="text-[10px] text-slate-455 font-semibold">
+                      Your dashboard will automatically download Google&apos;s crawler graph details for free.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2">
+
+              {/* Action Button */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between font-sans">
+                <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded border border-emerald-150">
+                  Total Cost: $0 (Free)
+                </span>
                 <Link
                   href="/app/en/settings/integrations"
-                  className="bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-700 text-[10px] font-extrabold px-3.5 py-2 rounded-xl transition-all shadow-sm"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-extrabold px-4 py-2 rounded-xl transition-all shadow-md shadow-indigo-150 inline-flex items-center gap-1.5 active:scale-[0.98]"
                 >
-                  Connect Search Console
+                  Go to Integrations Workspace <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>
             </div>
