@@ -589,6 +589,26 @@ Link: https://${cleanDomain}`;
             </div>
           </div>
 
+          {/* GSC Connect Banner (shown above the table if submissions exist) */}
+          {filteredSubmissions.length > 0 && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3.5 flex items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="space-y-0.5">
+                <p className="text-[10px] font-black text-indigo-700 flex items-center gap-1 uppercase tracking-wider font-sans">
+                  <Info className="w-3.5 h-3.5 text-indigo-650 animate-pulse" /> Google Search Console Not Connected
+                </p>
+                <p className="text-[9px] text-slate-500 font-semibold leading-normal font-sans">
+                  To import and verify real search index backlinks pointing to <span className="font-bold text-violet-650">{cleanDomain}</span>, connect your Google Search Console profile.
+                </p>
+              </div>
+              <Link
+                href="/app/en/settings/integrations"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white text-[9px] font-black uppercase tracking-wider px-3.5 py-2 rounded-lg transition-colors cursor-pointer shrink-0 shadow-sm font-sans"
+              >
+                Connect GSC
+              </Link>
+            </div>
+          )}
+
           {/* List/Table or Setup Placeholder */}
           {filteredSubmissions.length === 0 ? (
             <div className="flex flex-col p-6 sm:p-8 border border-slate-200 rounded-2xl bg-slate-50/20 space-y-6 text-left">
