@@ -96,8 +96,8 @@ export default function IntegrationsSettingsPage() {
   const queryClient = useQueryClient();
   const supabase = getSupabaseBrowserClient();
 
-  // Active form view: "wordpress" | "shopify" | "magento" | null
-  const [activeForm, setActiveForm] = useState<"wordpress" | "shopify" | "magento" | null>(null);
+  // Active form view: "wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | null
+  const [activeForm, setActiveForm] = useState<"wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | null>(null);
   const [pendingFix, setPendingFix] = useState<{ issueId: string; pageUrl: string; suggestedValue: string } | null>(null);
 
   useEffect(() => {
@@ -199,6 +199,17 @@ export default function IntegrationsSettingsPage() {
   // Magento form states
   const [magentoUrl, setMagentoUrl] = useState("");
   const [magentoToken, setMagentoToken] = useState("");
+
+  // Meta Ads form states
+  const [metaAdAccountId, setMetaAdAccountId] = useState("");
+  const [metaAccessToken, setMetaAccessToken] = useState("");
+
+  // Google Ads form states
+  const [googleCustomerId, setGoogleCustomerId] = useState("");
+  const [googleDeveloperToken, setGoogleDeveloperToken] = useState("");
+  const [googleClientId, setGoogleClientId] = useState("");
+  const [googleClientSecret, setGoogleClientSecret] = useState("");
+  const [googleRefreshToken, setGoogleRefreshToken] = useState("");
 
   // Editing / Verification states
   const [editingIntegrationId, setEditingIntegrationId] = useState<string | null>(null);
@@ -310,6 +321,13 @@ export default function IntegrationsSettingsPage() {
       setShopifyAccessToken("");
       setMagentoUrl("");
       setMagentoToken("");
+      setMetaAdAccountId("");
+      setMetaAccessToken("");
+      setGoogleCustomerId("");
+      setGoogleDeveloperToken("");
+      setGoogleClientId("");
+      setGoogleClientSecret("");
+      setGoogleRefreshToken("");
 
       // Redirect back if pending fix exists
       if (typeof window !== "undefined") {
@@ -490,6 +508,35 @@ export default function IntegrationsSettingsPage() {
     });
   };
 
+  const handleAddMetaAds = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!metaAdAccountId || !metaAccessToken) {
+      toast.error("Please fill in both Ad Account ID and Access Token.");
+      return;
+    }
+    const creds = {
+      adAccountId: metaAdAccountId.trim(),
+      accessToken: metaAccessToken.trim()
+    };
+    addIntegrationMutation.mutate({ platform: "meta_ads", credentials: creds });
+  };
+
+  const handleAddGoogleAds = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!googleCustomerId || !googleDeveloperToken || !googleClientId || !googleClientSecret || !googleRefreshToken) {
+      toast.error("Please fill in all Google Ads fields.");
+      return;
+    }
+    const creds = {
+      customerId: googleCustomerId.trim(),
+      developerToken: googleDeveloperToken.trim(),
+      clientId: googleClientId.trim(),
+      clientSecret: googleClientSecret.trim(),
+      refreshToken: googleRefreshToken.trim()
+    };
+    addIntegrationMutation.mutate({ platform: "google_ads", credentials: creds });
+  };
+
   const handleSocialConnect = (platform: string) => {
     if (!activeProject) {
       toast.error("Please select a project from the dashboard before connecting social accounts.");
@@ -513,7 +560,9 @@ export default function IntegrationsSettingsPage() {
   };
 
   const isPageLoading = isProjectLoading || isAuthLoading;
-  const connectedIntegrations = cmsIntegrationsQuery.data || [];
+  const allConnectedIntegrations = cmsIntegrationsQuery.data || [];
+  const connectedIntegrations = allConnectedIntegrations.filter((int: any) => ["wordpress", "shopify", "magento"].includes(int.platform));
+  const connectedAdsIntegrations = allConnectedIntegrations.filter((int: any) => ["meta_ads", "google_ads"].includes(int.platform));
   const connectedSocials = socialAccountsQuery.data || [];
 
   if (isPageLoading) {
@@ -1111,6 +1160,228 @@ export default function IntegrationsSettingsPage() {
                 Connect Google Search Console
               </a>
             </div>
+          </div>
+
+          {/* Paid Ads Connections Card */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+            <div className="border-b border-slate-100 pb-3 flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-base font-black text-slate-950">Paid Ads Connections</h3>
+                <p className="text-xs text-slate-400 font-semibold">Connect Google Ads & Meta Ads to optimize and launch AI-driven campaigns.</p>
+              </div>
+            </div>
+
+            {/* Platform Selection Buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => setActiveForm(activeForm === "meta_ads" ? null : "meta_ads")}
+                className={`flex flex-col items-center gap-2.5 p-3 border rounded-xl font-bold transition-all text-xs cursor-pointer ${
+                  activeForm === "meta_ads" ? "border-[#0064E0] bg-[#0064E0]/5 text-[#0064E0]" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
+                }`}
+              >
+                <div className="w-6 h-6 flex items-center justify-center text-blue-600">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                    <path d="M12 6c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 7.5 12 7.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
+                    <path d="M16.5 10c0-2.5-2-4.5-4.5-4.5S7.5 7.5 7.5 10c0 1.2.5 2.3 1.3 3.1-.8.8-1.3 1.9-1.3 3.1 0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5c0-1.2-.5-2.3-1.3-3.1.8-.8 1.3-1.9 1.3-3.1zm-4.5 9c-1.4 0-2.5-1.1-2.5-2.5S10.6 14 12 14s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
+                  </svg>
+                </div>
+                Meta Ads
+              </button>
+              <button
+                onClick={() => setActiveForm(activeForm === "google_ads" ? null : "google_ads")}
+                className={`flex flex-col items-center gap-2.5 p-3 border rounded-xl font-bold transition-all text-xs cursor-pointer ${
+                  activeForm === "google_ads" ? "border-[#FFCC00] bg-[#FFCC00]/5 text-[#9e7a00]" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
+                }`}
+              >
+                <div className="w-6 h-6 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+                    <path d="M16 2.5l-12.3 21.3c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6L24 7c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="#FFCC00" />
+                    <path d="M8 15.5l-5.2 9c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6l5.2-9c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="#4285F4" />
+                    <circle cx="16" cy="20.5" r="4.5" fill="#34A853" />
+                  </svg>
+                </div>
+                Google Ads
+              </button>
+            </div>
+
+            {/* Meta Ads Form */}
+            {activeForm === "meta_ads" && (
+              <form onSubmit={handleAddMetaAds} className="bg-slate-50/50 rounded-2xl p-5 border border-blue-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Meta Ads Connection</h4>
+                  <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+                </div>
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Ad Account ID</label>
+                    <input
+                      type="text"
+                      placeholder="act_xxxxxxxxxxxxxxx"
+                      value={metaAdAccountId}
+                      onChange={(e) => setMetaAdAccountId(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-200 focus:border-blue-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">System User / Access Token</label>
+                    <input
+                      type="password"
+                      placeholder="EAAGxxxxx..."
+                      value={metaAccessToken}
+                      onChange={(e) => setMetaAccessToken(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-200 focus:border-blue-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={addIntegrationMutation.isPending}
+                  className="w-full bg-[#0064E0] hover:bg-[#0052b4] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  {addIntegrationMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  Verify & Save Meta Ads Connection
+                </button>
+              </form>
+            )}
+
+            {/* Google Ads Form */}
+            {activeForm === "google_ads" && (
+              <form onSubmit={handleAddGoogleAds} className="bg-slate-50/50 rounded-2xl p-5 border border-yellow-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Google Ads Connection</h4>
+                  <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+                </div>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Customer ID</label>
+                      <input
+                        type="text"
+                        placeholder="123-456-7890"
+                        value={googleCustomerId}
+                        onChange={(e) => setGoogleCustomerId(e.target.value)}
+                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Developer Token</label>
+                      <input
+                        type="password"
+                        placeholder="dev_token_xyz"
+                        value={googleDeveloperToken}
+                        onChange={(e) => setGoogleDeveloperToken(e.target.value)}
+                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Client ID</label>
+                      <input
+                        type="text"
+                        placeholder="xxxx.apps.googleusercontent.com"
+                        value={googleClientId}
+                        onChange={(e) => setGoogleClientId(e.target.value)}
+                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase text-slate-400">Client Secret</label>
+                      <input
+                        type="password"
+                        placeholder="client_secret_xyz"
+                        value={googleClientSecret}
+                        onChange={(e) => setGoogleClientSecret(e.target.value)}
+                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase text-slate-400">Refresh Token</label>
+                    <input
+                      type="password"
+                      placeholder="1//xxxx_refresh_token"
+                      value={googleRefreshToken}
+                      onChange={(e) => setGoogleRefreshToken(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={addIntegrationMutation.isPending}
+                  className="w-full bg-[#FFCC00] hover:bg-[#e6b800] text-slate-900 text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  {addIntegrationMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  Verify & Save Google Ads Connection
+                </button>
+              </form>
+            )}
+
+            {/* List Connected Ads Integrations */}
+            {connectedAdsIntegrations && connectedAdsIntegrations.length > 0 ? (
+              <div className="space-y-3">
+                {connectedAdsIntegrations.map((int: any) => {
+                  const isMeta = int.platform === "meta_ads";
+                  return (
+                    <div key={int.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-slate-200 rounded-2xl bg-slate-50/20 gap-4 min-w-0 w-full overflow-hidden">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 shrink-0 flex items-center justify-center">
+                          {isMeta ? (
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white">
+                              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                                <path d="M12 6c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 7.5 12 7.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
+                                <path d="M16.5 10c0-2.5-2-4.5-4.5-4.5S7.5 7.5 7.5 10c0 1.2.5 2.3 1.3 3.1-.8.8-1.3 1.9-1.3 3.1 0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5c0-1.2-.5-2.3-1.3-3.1.8-.8 1.3-1.9 1.3-3.1zm-4.5 9c-1.4 0-2.5-1.1-2.5-2.5S10.6 14 12 14s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
+                              </svg>
+                            </div>
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
+                              <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+                                <path d="M16 2.5l-12.3 21.3c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6L24 7c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="white" />
+                                <path d="M8 15.5l-5.2 9c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6l5.2-9c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="#4285F4" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <p className="text-xs font-black text-slate-800 capitalize leading-none">{isMeta ? "Meta Ads Profile" : "Google Ads Profile"}</p>
+                            <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider scale-90">
+                              Connected
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-semibold truncate mt-1">
+                            {isMeta ? `Ad Account: ${int.credentials?.adAccountId}` : `Customer ID: ${int.credentials?.customerId}`}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to disconnect this ads integration?`)) {
+                              disconnectCmsMutation.mutate(int.id);
+                            }
+                          }}
+                          className="border border-slate-200 bg-white hover:border-red-200 hover:text-red-600 text-slate-500 font-semibold p-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm animate-in fade-in"
+                        >
+                          <Trash2 className="w-4 h-4" /> Disconnect
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-8 border border-dashed border-slate-200 rounded-2xl text-center space-y-2">
+                <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-slate-350" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                <p className="text-xs font-bold text-slate-700">No ad channels connected</p>
+                <p className="text-[10px] text-slate-400 font-semibold max-w-sm">
+                  Connect Meta or Google Ads accounts to monitor spend, impressions, clicks, optimize copy with AI, and create new campaigns.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
