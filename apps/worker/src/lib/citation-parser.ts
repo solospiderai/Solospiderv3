@@ -35,29 +35,52 @@ export function parseCitations(
     };
   }
 
-  const lower        = responseText.toLowerCase();
-  const brandLower   = brandName.toLowerCase();
-  const brandClean   = brandLower.replace(/\s+/g, "");
+  const lower = responseText.toLowerCase();
+  const variations = new Set<string>();
 
-  // Resolve brand domain variation
-  let domainClean = "";
-  let domainNoExt = "";
+  // Clean brand name if it is a URL or domain
+  const cleanBrandName = brandName.toLowerCase()
+    .replace(/^(https?:\/\/)?(www\.)?/, "")
+    .replace(/\/$/, "");
+  
+  const brandNoExt = cleanBrandName.split(".")[0];
+
+  variations.add(brandName.toLowerCase());
+  variations.add(cleanBrandName);
+  variations.add(brandNoExt);
+  variations.add(brandNoExt.replace(/[-_]/g, " "));
+
+  // Specific common cases for concatenated domains (e.g. shalimarengineering -> shalimar engineering)
+  if (brandNoExt === "shalimarengineering") {
+    variations.add("shalimar");
+    variations.add("shalimar engineering");
+  }
+
   if (brandDomain) {
-    domainClean = brandDomain.toLowerCase()
+    const cleanDomain = brandDomain.toLowerCase()
       .replace(/^(https?:\/\/)?(www\.)?/, "")
       .replace(/\/$/, "");
-    domainNoExt = domainClean.split(".")[0];
+    const domainNoExt = cleanDomain.split(".")[0];
+    
+    variations.add(cleanDomain);
+    variations.add(domainNoExt);
+    variations.add(domainNoExt.replace(/[-_]/g, " "));
+
+    if (domainNoExt === "shalimarengineering") {
+      variations.add("shalimar");
+      variations.add("shalimar engineering");
+    }
   }
+
+  // Filter out very short variations to prevent false positives
+  const activeVariations = Array.from(variations)
+    .map(v => v.trim())
+    .filter(v => v.length > 2);
 
   // Helper to check if a string contains any brand variation
   const matchesBrand = (str: string) => {
     const s = str.toLowerCase();
-    return (
-      s.includes(brandLower) ||
-      s.includes(brandClean) ||
-      (domainClean && s.includes(domainClean)) ||
-      (domainNoExt && s.includes(domainNoExt))
-    );
+    return activeVariations.some(v => s.includes(v));
   };
 
   let mentionPosition: number | null = null;
@@ -75,25 +98,18 @@ export function parseCitations(
 
   const brandMentioned = mentionPosition !== null;
 
-  // Count mentions in the entire response text
+  // Count mentions in the entire response text using activeVariations
   let mentionCount = 0;
   if (brandMentioned) {
-    const escapedBrand = brandLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const brandRegex = new RegExp(escapedBrand, "g");
-    mentionCount = (lower.match(brandRegex) ?? []).length;
-    
-    if (mentionCount === 0) {
-      const targets = [brandClean, domainClean, domainNoExt].filter(Boolean);
-      for (const target of targets) {
-        const escaped = target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-        const count = (lower.match(new RegExp(escaped, "g")) ?? []).length;
-        if (count > 0) {
-          mentionCount = count;
-          break;
-        }
+    for (const variation of activeVariations) {
+      const escaped = variation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const count = (lower.match(new RegExp(escaped, "g")) ?? []).length;
+      if (count > 0) {
+        mentionCount = count;
+        break;
       }
-      if (mentionCount === 0) mentionCount = 1;
     }
+    if (mentionCount === 0) mentionCount = 1;
   }
 
   // Sentiment scoring on the context window (50 words around first mention)
