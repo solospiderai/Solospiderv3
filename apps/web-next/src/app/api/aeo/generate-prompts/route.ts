@@ -21,7 +21,7 @@ function getSupabaseAdmin() {
   );
 }
 
-async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-2.5-flash") {
+async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-3.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   let text = "";
 
@@ -280,9 +280,9 @@ export async function POST(request: NextRequest) {
 
     const MODEL_MAP: Record<string, string> = {
       chatgpt:    "openai/gpt-4o-mini",
-      gemini:     "google/gemini-2.5-flash",
-      claude:     "anthropic/claude-3-haiku",
-      perplexity: "perplexity/sonar",
+      gemini:     "google/gemini-3.5-flash",
+      claude:     "anthropic/claude-3.5-haiku",
+      perplexity: "anthropic/claude-3.5-sonnet", // Claude 3.5 Sonnet replaces Perplexity Sonar
     };
 
     const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.

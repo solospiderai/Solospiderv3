@@ -40,7 +40,7 @@ async function callLLM(prompt: string, maxTokens = 1500) {
           "X-Title": "SoloSpider",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
+          model: "google/gemini-3.5-flash",
           messages: [{ role: "user", content: prompt }],
           max_tokens: maxTokens,
           temperature: 0.7,

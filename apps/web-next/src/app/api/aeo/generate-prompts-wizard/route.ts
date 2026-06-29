@@ -13,7 +13,7 @@ const GeneratePromptsWizardSchema = z.object({
   limit: z.number().optional().default(25),
 });
 
-async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash", systemPrompt?: string) {
+async function callOpenRouter(prompt: string, model = "google/gemini-3.5-flash", systemPrompt?: string) {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   if (!openrouterKey) {
     throw new Error("OPENROUTER_API_KEY is not defined in environment");
@@ -166,9 +166,9 @@ export async function POST(request: NextRequest) {
 
     const MODEL_MAP: Record<string, string> = {
       chatgpt:    "openai/gpt-4o-mini",
-      gemini:     "google/gemini-2.5-flash",
-      claude:     "anthropic/claude-3-haiku",
-      perplexity: "perplexity/sonar",
+      gemini:     "google/gemini-3.5-flash",
+      claude:     "anthropic/claude-3.5-haiku",
+      perplexity: "anthropic/claude-3.5-sonnet", // Claude 3.5 Sonnet replaces Perplexity Sonar
     };
 
     let webContent = "";

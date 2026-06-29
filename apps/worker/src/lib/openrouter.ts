@@ -3,12 +3,14 @@ import { env } from "../config.js";
 const BASE_URL = "https://openrouter.ai/api/v1";
 
 export const MODEL_MAP: Record<string, string> = {
-  chatgpt:    "openai/gpt-4o-mini",
-  gemini:     "google/gemini-3.5-flash",
-  claude:     "anthropic/claude-3-haiku",
-  perplexity: "perplexity/sonar",
-  grok:       "x-ai/grok-3-mini-beta",
-  deepseek:   "deepseek/deepseek-chat",
+  chatgpt:       "openai/gpt-4o-mini",
+  gemini:        "google/gemini-3.5-flash",
+  claude:        "anthropic/claude-3.5-haiku",
+  perplexity:    "anthropic/claude-3.5-sonnet", // Map perplexity key under-the-hood to premium Claude 3.5 Sonnet
+  grok:          "x-ai/grok-3-mini-beta",
+  deepseek:      "deepseek/deepseek-chat",
+  claude_sonnet: "anthropic/claude-3.5-sonnet",
+  claude_opus:   "anthropic/claude-3-opus",
 };
 
 async function fetchWithRetry(

@@ -9,7 +9,7 @@ const DiscoverTopicsSchema = z.object({
   brandName: z.string().optional().default(""),
 });
 
-async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash") {
+async function callOpenRouter(prompt: string, model = "google/gemini-3.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   let text = "";
 
