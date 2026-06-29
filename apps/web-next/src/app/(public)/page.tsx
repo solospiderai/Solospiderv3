@@ -654,7 +654,7 @@ export default function HomePage() {
 
               {/* Growth Plan */}
               <div className="relative border border-primary/20 bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45 reveal d1 overflow-visible">
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-pink text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-3.5 py-1 rounded-full z-10 shadow-md">Most popular</span>
+                <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink -mt-1 uppercase">GROWTH</h3>

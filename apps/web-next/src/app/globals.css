@@ -51,6 +51,8 @@
   --color-primary-2: var(--primary-2);
   --color-primary-soft: var(--primary-soft);
   --color-primary-tint: var(--primary-tint);
+  --color-pink: var(--pink);
+  --color-accent: var(--accent);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-muted-bg: var(--muted-bg);
