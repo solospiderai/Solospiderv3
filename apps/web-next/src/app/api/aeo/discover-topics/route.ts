@@ -16,34 +16,44 @@ async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash")
   console.log(`[callOpenRouter] Model: ${model} | API Key Loaded: ${openrouterKey ? `${openrouterKey.slice(0, 10)}...${openrouterKey.slice(-5)} (len: ${openrouterKey.length})` : "MISSING"}`);
 
   if (openrouterKey) {
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openrouterKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://solospider.ai",
-          "X-Title": "SoloSpider",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [{ role: "user", content: prompt }],
-          max_tokens: 1500,
-          temperature: 0.3,
-          response_format: { type: "json_object" }
-        }),
-      });
+    // Retry up to 3 times to handle temporary local DNS/network drops
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openrouterKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://solospiderv.ai",
+            "X-Title": "SoloSpider",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: 1500,
+            temperature: 0.3,
+            response_format: { type: "json_object" }
+          }),
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        text = data.choices?.[0]?.message?.content?.trim() || "";
-      } else {
-        const errBody = await response.text();
-        console.warn(`[callOpenRouter] OpenRouter responded with ${response.status}: ${errBody}`);
+        if (response.ok) {
+          const data = await response.json();
+          text = data.choices?.[0]?.message?.content?.trim() || "";
+          break; // Success, exit the retry loop!
+        } else {
+          const errBody = await response.text();
+          console.warn(`[callOpenRouter] (Attempt ${attempt}/3) OpenRouter responded with ${response.status}: ${errBody}`);
+        }
+      } catch (err) {
+        console.warn(`[callOpenRouter] (Attempt ${attempt}/3) Connection failed:`, err);
+        if (attempt === 3) {
+          console.warn("[callOpenRouter] Max attempts reached, falling back to pollinations...");
+        } else {
+          // Brief pause (250ms) before retrying
+          await new Promise(r => setTimeout(r, 250));
+        }
       }
-    } catch (err) {
-      console.warn("[callOpenRouter] OpenRouter failed, falling back to pollinations:", err);
     }
   }
 
