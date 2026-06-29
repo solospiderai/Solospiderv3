@@ -13,7 +13,7 @@ const GeneratePromptsWizardSchema = z.object({
   limit: z.number().optional().default(25),
 });
 
-async function callOpenRouter(prompt: string, model = "google/gemini-3.5-flash", systemPrompt?: string) {
+async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash", systemPrompt?: string) {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   if (!openrouterKey) {
     throw new Error("OPENROUTER_API_KEY is not defined in environment");

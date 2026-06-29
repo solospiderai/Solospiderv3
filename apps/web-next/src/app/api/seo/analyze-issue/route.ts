@@ -295,7 +295,7 @@ JSON Schema:
             "X-Title": "SoloSpider",
           },
           body: JSON.stringify({
-            model: "google/gemini-3.5-flash",
+            model: "google/gemini-2.5-flash",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 800,
             temperature: 0.3,
@@ -307,9 +307,9 @@ JSON Schema:
           const data = await response.json();
           const usage = data?.usage;
           if (usage) {
-            console.log(`[OpenRouter Usage] google/gemini-3.5-flash — Prompt: ${usage.prompt_tokens} tokens | Completion: ${usage.completion_tokens} tokens | Total: ${usage.total_tokens} tokens`);
+            console.log(`[OpenRouter Usage] google/gemini-2.5-flash — Prompt: ${usage.prompt_tokens} tokens | Completion: ${usage.completion_tokens} tokens | Total: ${usage.total_tokens} tokens`);
           } else {
-            console.log(`[OpenRouter Usage] google/gemini-3.5-flash — No usage metadata available.`);
+            console.log(`[OpenRouter Usage] google/gemini-2.5-flash — No usage metadata available.`);
           }
           rawContent = data.choices?.[0]?.message?.content || "";
         } else {

@@ -21,7 +21,7 @@ function getSupabaseAdmin() {
   );
 }
 
-async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-3.5-flash") {
+async function callLLM(prompt: string, maxTokens = 2000, model = "google/gemini-2.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   let text = "";
 
