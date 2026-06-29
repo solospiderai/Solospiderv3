@@ -107,6 +107,11 @@ export async function getProjects(): Promise<Project[]> {
 export async function getSubscription(): Promise<UserSubscription> {
   try {
     const supabase = getSupabaseBrowserClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email === "info@solospider.ai") {
+      return { plan: "custom" };
+    }
+
     const { data, error } = await supabase
       .from("user_subscriptions" as any)
       .select("plan")

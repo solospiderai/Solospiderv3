@@ -201,13 +201,19 @@ export function SocialPlanner() {
 
     // --- Plan-based schedule limit check ---
     const { getPlanConfig } = await import("@/lib/services/projects");
-    const subRes = await supabase
-      .from("user_subscriptions" as any)
-      .select("plan")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const { data: { user } } = await supabase.auth.getUser();
+    let userPlan: import("@/types/project").PlanTier = "free";
+    if (user?.email === "info@solospider.ai") {
+      userPlan = "custom";
+    } else {
+      const subRes = await supabase
+        .from("user_subscriptions" as any)
+        .select("plan")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    }
     const planCfg = getPlanConfig(userPlan);
 
     if (planCfg.socialSchedulePerMonth !== Infinity) {
@@ -244,13 +250,19 @@ export function SocialPlanner() {
   const generateAICaption = async () => {
     // --- Plan gate: AI generation disabled for Starter ---
     const { getPlanConfig } = await import("@/lib/services/projects");
-    const subRes = await supabase
-      .from("user_subscriptions" as any)
-      .select("plan")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const { data: { user: user2 } } = await supabase.auth.getUser();
+    let userPlan: import("@/types/project").PlanTier = "free";
+    if (user2?.email === "info@solospider.ai") {
+      userPlan = "custom";
+    } else {
+      const subRes = await supabase
+        .from("user_subscriptions" as any)
+        .select("plan")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    }
     const planCfg = getPlanConfig(userPlan);
 
     if (!planCfg.socialGenerateEnabled) {

@@ -510,13 +510,19 @@ export function SeoWorkspace() {
     // --- Plan gate: AI fix disabled for Starter ---
     const { getPlanConfig } = await import("@/lib/services/projects");
     const supabase = getSupabaseBrowserClient();
-    const subRes = await supabase
-      .from("user_subscriptions" as any)
-      .select("plan")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const { data: { user } } = await supabase.auth.getUser();
+    let userPlan: import("@/types/project").PlanTier = "free";
+    if (user?.email === "info@solospider.ai") {
+      userPlan = "custom";
+    } else {
+      const subRes = await supabase
+        .from("user_subscriptions" as any)
+        .select("plan")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    }
     const planCfg = getPlanConfig(userPlan);
 
     if (!planCfg.seoAiFixEnabled) {
@@ -787,13 +793,19 @@ export function SeoWorkspace() {
     // --- Plan-based audit frequency check ---
     const { getPlanConfig } = await import("@/lib/services/projects");
     const supabase2 = getSupabaseBrowserClient();
-    const subRes = await supabase2
-      .from("user_subscriptions" as any)
-      .select("plan")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const { data: { user: user2 } } = await supabase2.auth.getUser();
+    let userPlan: import("@/types/project").PlanTier = "free";
+    if (user2?.email === "info@solospider.ai") {
+      userPlan = "custom";
+    } else {
+      const subRes = await supabase2
+        .from("user_subscriptions" as any)
+        .select("plan")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    }
     const planCfg = getPlanConfig(userPlan);
 
     if (planCfg.seoAuditPolicy === "once") {

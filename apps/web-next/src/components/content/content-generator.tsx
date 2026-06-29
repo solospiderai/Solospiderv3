@@ -66,13 +66,19 @@ export function ContentGenerator({ redirectBase = "/app/en/content" }: { redirec
 
       // --- Plan-based blog limit check ---
       const { getPlanConfig } = await import("@/lib/services/projects");
-      const subRes = await supabase
-        .from("user_subscriptions" as any)
-        .select("plan")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+      const { data: { user } } = await supabase.auth.getUser();
+      let userPlan: import("@/types/project").PlanTier = "free";
+      if (user?.email === "info@solospider.ai") {
+        userPlan = "custom";
+      } else {
+        const subRes = await supabase
+          .from("user_subscriptions" as any)
+          .select("plan")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+      }
       const planCfg = getPlanConfig(userPlan);
 
       if (planCfg.blogsPerMonth !== Infinity) {
