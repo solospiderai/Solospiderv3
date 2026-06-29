@@ -10,16 +10,12 @@ import {
   Plug, 
   Globe, 
   Trash2, 
-  Plus, 
   Loader2, 
   CheckCircle2, 
   AlertCircle, 
   FolderKanban,
-  FileCode2,
   RefreshCw,
-  BookOpen,
-  X,
-  ExternalLink
+  Info
 } from "lucide-react";
 
 // Official High-Fidelity Brand SVG Icons
@@ -111,78 +107,6 @@ export default function IntegrationsSettingsPage() {
     }
   }, []);
 
-  // Shopify OAuth Callback Handshake
-  useEffect(() => {
-    if (typeof window === "undefined" || !user) return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const shopifyCode = urlParams.get("shopify_code");
-    const shopParam = urlParams.get("shop");
-
-    if (shopifyCode && shopParam) {
-      const processExchange = async () => {
-        setIsConnectingShopifyOAuth(true);
-        try {
-          const tempAuth = window.localStorage.getItem("solospider.shopify_auth_temp");
-          if (!tempAuth) {
-            toast.error("Shopify OAuth session expired. Please connect again.");
-            return;
-          }
-          const { shopName, clientId, clientSecret } = JSON.parse(tempAuth);
-          
-          let cleanShopParam = shopParam.trim().replace(/https?:\/\//, "").replace(/\/$/, "");
-          let cleanShopName = shopName.trim().replace(/https?:\/\//, "").replace(/\/$/, "");
-          if (!cleanShopName.includes(".myshopify.com")) {
-            cleanShopName = `${cleanShopName}.myshopify.com`;
-          }
-          if (!cleanShopParam.includes(".myshopify.com")) {
-            cleanShopParam = `${cleanShopParam}.myshopify.com`;
-          }
-
-          toast.loading("Exchanging Shopify authorization code...", { id: "shopify-oauth" });
-
-          const response = await fetch("/api/seo/shopify-token-exchange", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              code: shopifyCode,
-              shopName: cleanShopParam,
-              clientId,
-              clientSecret,
-            }),
-          });
-
-          const result = await response.json();
-          if (!response.ok) {
-            throw new Error(result.error || "Token exchange failed");
-          }
-
-          toast.success("Shopify connected successfully!", { id: "shopify-oauth" });
-          window.localStorage.removeItem("solospider.shopify_auth_temp");
-          queryClient.invalidateQueries({ queryKey: ["cms_integrations", user.id] });
-
-          const pending = window.localStorage.getItem("solospider.pending_fix");
-          if (pending) {
-            toast.success("Redirecting back to SEO workspace to complete your fix...");
-            setTimeout(() => {
-              window.location.href = "/app/en/seo";
-            }, 1500);
-          }
-        } catch (err: any) {
-          console.error("[ShopifyOAuth] Exchange error:", err);
-          toast.error(`Shopify OAuth failed: ${err.message}`, { id: "shopify-oauth" });
-        } finally {
-          setIsConnectingShopifyOAuth(false);
-          const cleanUrl = window.location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
-        }
-      };
-
-      processExchange();
-    }
-  }, [user, queryClient]);
-
   // WordPress form states
   const [wpUrl, setWpUrl] = useState("");
   const [wpUsername, setWpUsername] = useState("");
@@ -191,10 +115,6 @@ export default function IntegrationsSettingsPage() {
   // Shopify form states
   const [shopifyShopName, setShopifyShopName] = useState("");
   const [shopifyAccessToken, setShopifyAccessToken] = useState("");
-  const [shopifyClientId, setShopifyClientId] = useState("");
-  const [shopifyClientSecret, setShopifyClientSecret] = useState("");
-  const [shopifyConnectMethod, setShopifyConnectMethod] = useState<"oauth" | "manual">("oauth");
-  const [isConnectingShopifyOAuth, setIsConnectingShopifyOAuth] = useState(false);
 
   // Magento form states
   const [magentoUrl, setMagentoUrl] = useState("");
@@ -211,16 +131,10 @@ export default function IntegrationsSettingsPage() {
   const [googleClientSecret, setGoogleClientSecret] = useState("");
   const [googleRefreshToken, setGoogleRefreshToken] = useState("");
 
-  // Editing / Verification states
+  // Verification states
   const [editingIntegrationId, setEditingIntegrationId] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState<{ ok: boolean; message?: string; error?: string } | null>(null);
-
-  // Setup Guide modal states
-  const [showGuide, setShowGuide] = useState(false);
-  const [guidePlatform, setGuidePlatform] = useState<"wordpress" | "shopify">("wordpress");
-  const [wpGuideTab, setWpGuideTab] = useState<"org" | "com">("org");
-  const [shopifyGuideTab, setShopifyGuideTab] = useState<"standard" | "partner">("standard");
 
   // Fetch connected CMS & Store integrations
   const cmsIntegrationsQuery = useQuery({
@@ -272,12 +186,11 @@ export default function IntegrationsSettingsPage() {
     }
   };
 
-  // General Add Integration mutation (WordPress, Shopify, Magento)
+  // General Add Integration mutation
   const addIntegrationMutation = useMutation({
     mutationFn: async (payload: { platform: string; credentials: any }) => {
       if (!user) throw new Error("Not authenticated");
       
-      // If editing existing integration, update instead of insert
       if (editingIntegrationId) {
         const { data, error } = await supabase
           .from("workspace_integrations")
@@ -329,7 +242,6 @@ export default function IntegrationsSettingsPage() {
       setGoogleClientSecret("");
       setGoogleRefreshToken("");
 
-      // Redirect back if pending fix exists
       if (typeof window !== "undefined") {
         const pending = window.localStorage.getItem("solospider.pending_fix");
         if (pending) {
@@ -401,7 +313,6 @@ export default function IntegrationsSettingsPage() {
       appPassword: wpPassword.trim()
     };
 
-    // Verify first
     const result = await verifyCredentials("wordpress", creds);
     if (!result.ok) {
       toast.error("WordPress verification failed", { description: result.error });
@@ -417,17 +328,15 @@ export default function IntegrationsSettingsPage() {
       toast.error("Please fill in all Shopify credentials fields.");
       return;
     }
-    let cleanShop = shopifyShopName.trim();
-    if (!cleanShop.includes("myshopify.com") && !cleanShop.startsWith("http")) {
+    let cleanShop = shopifyShopName.trim().replace(/https?:\/\//, "").replace(/\/$/, "");
+    if (!cleanShop.includes(".myshopify.com")) {
       cleanShop = `${cleanShop}.myshopify.com`;
     }
-    cleanShop = cleanShop.replace(/https?:\/\//, "");
     const creds = {
-      shopName: cleanShop,
+      shopName: cleanShop.replace(".myshopify.com", ""),
       accessToken: shopifyAccessToken.trim()
     };
 
-    // Verify first
     const result = await verifyCredentials("shopify", creds);
     if (!result.ok) {
       toast.error("Shopify verification failed", { description: result.error });
@@ -435,55 +344,6 @@ export default function IntegrationsSettingsPage() {
     }
 
     addIntegrationMutation.mutate({ platform: "shopify", credentials: creds });
-  };
-
-  const handleConnectShopifyOAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!shopifyShopName || !shopifyClientId || !shopifyClientSecret) {
-      toast.error("Please fill in Shop Domain, Client ID, and Client Secret.");
-      return;
-    }
-
-    let cleanShop = shopifyShopName.trim();
-    if (!cleanShop.includes("myshopify.com") && !cleanShop.startsWith("http")) {
-      cleanShop = `${cleanShop}.myshopify.com`;
-    }
-    cleanShop = cleanShop.replace(/https?:\/\//, "").replace(/\/$/, "");
-
-    // Save temp auth parameters to trade code later
-    const tempAuth = {
-      shopName: cleanShop,
-      clientId: shopifyClientId.trim(),
-      clientSecret: shopifyClientSecret.trim()
-    };
-    window.localStorage.setItem("solospider.shopify_auth_temp", JSON.stringify(tempAuth));
-
-    // Redirect merchant to Shopify App Installation page
-    const scopes = "read_content,write_content,read_online_store_pages,write_online_store_pages";
-    const redirectUri = `${window.location.origin}/api/seo/shopify-callback`;
-    const authorizeUrl = `https://${cleanShop}/admin/oauth/authorize?client_id=${shopifyClientId.trim()}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-    console.log("[ShopifyOAuth] Redirecting merchant to:", authorizeUrl);
-    window.location.href = authorizeUrl;
-  };
-
-  const handleEditIntegration = (integration: any) => {
-    setEditingIntegrationId(integration.id);
-    setVerificationResult(null);
-    if (integration.platform === "wordpress") {
-      setWpUrl(integration.credentials?.siteUrl || "");
-      setWpUsername(integration.credentials?.username || "");
-      setWpPassword(integration.credentials?.appPassword || "");
-      setActiveForm("wordpress");
-    } else if (integration.platform === "shopify") {
-      setShopifyShopName(integration.credentials?.shopName || "");
-      setShopifyAccessToken(""); // Don't pre-fill token for security
-      setActiveForm("shopify");
-    } else if (integration.platform === "magento") {
-      setMagentoUrl(integration.credentials?.siteUrl || "");
-      setMagentoToken("");
-      setActiveForm("magento");
-    }
   };
 
   const handleAddMagento = (e: React.FormEvent) => {
@@ -543,13 +403,11 @@ export default function IntegrationsSettingsPage() {
       return;
     }
     
-    // Open OAuth process in a new tab so Twitter renders the full desktop layout (with account switching)
     const oauthWindow = window.open(
       `/api/social/connect/${platform}?projectId=${activeProject.id}`,
       "_blank"
     );
 
-    // Watch the popup to refresh active accounts list when authorization completes
     const checkTimer = setInterval(() => {
       if (!oauthWindow || oauthWindow.closed) {
         clearInterval(checkTimer);
@@ -557,6 +415,26 @@ export default function IntegrationsSettingsPage() {
         toast.info(`Refreshed connected ${platform} profiles.`);
       }
     }, 1000);
+  };
+
+  const handleEditIntegration = (integration: any) => {
+    setEditingIntegrationId(integration.id);
+    setVerificationResult(null);
+    
+    if (integration.platform === "wordpress") {
+      setWpUrl(integration.credentials?.siteUrl || "");
+      setWpUsername(integration.credentials?.username || "");
+      setWpPassword("");
+      setActiveForm("wordpress");
+    } else if (integration.platform === "shopify") {
+      setShopifyShopName(integration.credentials?.shopName || "");
+      setShopifyAccessToken("");
+      setActiveForm("shopify");
+    } else if (integration.platform === "magento") {
+      setMagentoUrl(integration.credentials?.siteUrl || "");
+      setMagentoToken("");
+      setActiveForm("magento");
+    }
   };
 
   const isPageLoading = isProjectLoading || isAuthLoading;
@@ -568,12 +446,11 @@ export default function IntegrationsSettingsPage() {
   if (isPageLoading) {
     return (
       <div className="flex h-[450px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-655" />
       </div>
     );
   }
 
-  // Helper to render connection status badge - shows Sandbox for stub tokens, Connected for real
   const renderStatusBadge = (account: any) => {
     const isSandbox = !account?.access_token || 
       account.access_token.includes("stub") || 
@@ -590,7 +467,8 @@ export default function IntegrationsSettingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 p-6 animate-slide-in">
+    <div className="mx-auto max-w-4xl space-y-8 p-6 animate-slide-in">
+      
       {/* Header */}
       <header className="flex flex-col gap-4 border-b border-slate-100 pb-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-4">
@@ -600,29 +478,26 @@ export default function IntegrationsSettingsPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="bg-violet-100 text-violet-700 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-violet-200">
-                Integrations Workspace
+                Setup Integrations
               </span>
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">Integrations & Channels</h1>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-none">Connections & Integrations</h1>
             <p className="mt-1.5 max-w-2xl text-xs font-semibold text-slate-500 leading-normal">
-              Connect external CMS and store platforms for synchronization, and authorize social API channels for automated scheduling and publication.
+              Direct connection interface for all store channels, paid advertisements, search console tracking, and social media posting.
             </p>
           </div>
         </div>
       </header>
 
-      {/* Pending SEO Fix action banner */}
+      {/* Pending SEO Fix Action Banner */}
       {pendingFix && (
-        <div className="bg-indigo-50 border border-indigo-250 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-200 shadow-sm">
+        <div className="bg-indigo-50 border border-indigo-250 rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in shadow-sm">
           <div className="space-y-1 pr-4">
-            <div className="flex items-center gap-1.5 text-xs font-black text-indigo-700 uppercase tracking-widest">
-              <AlertCircle className="w-4 h-4 text-indigo-600 animate-pulse" /> Pending SEO Fix Action
+            <div className="flex items-center gap-1.5 text-xs font-black text-indigo-700 tracking-widest">
+              <AlertCircle className="w-4 h-4 text-indigo-605 animate-pulse" /> Pending SEO Fix Action
             </div>
             <p className="text-sm font-bold text-slate-800 mt-1">
-              Connect your CMS platform to sync the SEO fix to: <span className="font-mono text-indigo-700 bg-indigo-100/50 px-1.5 py-0.5 rounded text-xs select-all">{pendingFix.pageUrl}</span>
-            </p>
-            <p className="text-xs text-slate-500 font-semibold mt-1">
-              Select WordPress or Shopify below, enter your credentials, and click Connect. Once successful, SoloSpider will automatically return you to the workspace to complete the fix.
+              Connect WordPress or Shopify to automatically sync the SEO fix to: <span className="font-mono text-indigo-700 bg-indigo-100/50 px-1.5 py-0.5 rounded text-xs select-all">{pendingFix.pageUrl}</span>
             </p>
           </div>
           <button 
@@ -633,441 +508,218 @@ export default function IntegrationsSettingsPage() {
                 setPendingFix(null);
               }
             }}
-            className="text-slate-400 hover:text-red-500 text-xs font-bold shrink-0 px-3 py-1.5 rounded-lg border border-transparent hover:border-red-100 hover:bg-red-50 transition-colors cursor-pointer"
+            className="text-slate-450 hover:text-red-500 text-xs font-bold px-3 py-1.5 rounded-lg border border-transparent hover:border-red-100 hover:bg-red-50 transition-colors cursor-pointer"
           >
             Cancel Fix
           </button>
         </div>
       )}
 
-      {/* Top HUD Cards (Metrics) */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Active Project Target */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100/50 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 opacity-5">
-            <FolderKanban className="w-14 h-14 text-violet-600" />
-          </div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <FolderKanban className="h-4 w-4 text-violet-500" />
-            Active Project Target
-          </div>
-          <p className="mt-3 text-lg font-black text-slate-900 truncate">
-            {activeProject?.brand_name || activeProject?.name || "No project selected"}
-          </p>
-          <p className="mt-1 text-xs font-semibold text-slate-400 truncate">
-            {activeProject?.domain || "Select website to proceed"}
-          </p>
-        </div>
+      {/* Unified Screen Workspace Grid */}
+      <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
 
-        {/* CMS & Stores Metric Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100/50 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 opacity-5">
-            <Globe className="w-14 h-14 text-indigo-600" />
-          </div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <Globe className="h-4 w-4 text-indigo-500" />
-            Connected Platforms & Stores
-          </div>
-          <p className="mt-3 text-lg font-black text-slate-900">{connectedIntegrations.length}</p>
-          <p className="mt-1 text-xs font-semibold text-slate-400">WordPress, Shopify, Magento active</p>
-        </div>
-
-        {/* Social Accounts Metric Card */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-100/50 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 opacity-5">
-            <Plug className="w-14 h-14 text-pink-600" />
-          </div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <Plug className="h-4 w-4 text-pink-500" />
-            Active Social Channels
-          </div>
-          <p className="mt-3 text-lg font-black text-slate-900">{connectedSocials.length} connected</p>
-          <p className="mt-1 text-xs font-semibold text-slate-400">Ready for automated sharing</p>
-        </div>
-      </div>
-
-      <div className="grid gap-8 lg:grid-cols-12 items-start">
-        
-        {/* Left Column: CMS & Store Connections (Shopify, Magento, WordPress) */}
-        <div className="lg:col-span-7 space-y-6">
+        {/* Column 1: Store Integrations & Paid Campaigns */}
+        <div className="space-y-8">
+          
+          {/* Card 1: CMS & Store Fronts */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-3 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-base font-black text-slate-950">CMS & E-Commerce Connections</h3>
-                <p className="text-xs text-slate-400 font-semibold">Publish generated drafts, products, and articles to your store or blog.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setGuidePlatform("wordpress");
-                  setShowGuide(true);
-                }}
-                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm border border-indigo-100 shrink-0"
-              >
-                <BookOpen className="w-3.5 h-3.5" /> Setup Guide
-              </button>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">CMS & Stores</h3>
+              <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Publish generated drafts and sync products directly.</p>
             </div>
 
             {/* Platform Selection Buttons */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 onClick={() => setActiveForm(activeForm === "wordpress" ? null : "wordpress")}
-                className={`flex flex-col items-center gap-2.5 p-3 border rounded-xl font-bold transition-all text-xs cursor-pointer ${
+                className={`flex flex-col items-center gap-2 p-2.5 border rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
                   activeForm === "wordpress" ? "border-[#21759B] bg-[#21759B]/5 text-[#1e6180]" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <WordPressIcon className="w-6 h-6" />
+                <WordPressIcon className="w-5 h-5" />
                 WordPress
               </button>
               <button
                 onClick={() => setActiveForm(activeForm === "shopify" ? null : "shopify")}
-                className={`flex flex-col items-center gap-2.5 p-3 border rounded-xl font-bold transition-all text-xs cursor-pointer ${
+                className={`flex flex-col items-center gap-2 p-2.5 border rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
                   activeForm === "shopify" ? "border-[#96BF48] bg-[#96BF48]/5 text-[#5e8e3e]" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <ShopifyIcon className="w-6 h-6" />
+                <ShopifyIcon className="w-5 h-5" />
                 Shopify
               </button>
               <button
                 onClick={() => setActiveForm(activeForm === "magento" ? null : "magento")}
-                className={`flex flex-col items-center gap-2.5 p-3 border rounded-xl font-bold transition-all text-xs cursor-pointer ${
+                className={`flex flex-col items-center gap-2 p-2.5 border rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
                   activeForm === "magento" ? "border-[#EE672F] bg-[#EE672F]/5 text-[#c65120]" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <MagentoIcon className="w-6 h-6" />
+                <MagentoIcon className="w-5 h-5" />
                 Magento
               </button>
             </div>
 
             {/* WordPress Form */}
             {activeForm === "wordpress" && (
-              <form onSubmit={handleAddWordPress} className="bg-slate-50/50 rounded-2xl p-5 border border-indigo-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                    <WordPressIcon className="w-5 h-5" />
-                    Configure WordPress Site
-                  </h4>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setGuidePlatform("wordpress");
-                        setShowGuide(true);
-                      }}
-                      className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
-                    >
-                      <BookOpen className="w-3.5 h-3.5" /> Setup Guide
-                    </button>
-                    <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
-                  </div>
+              <form onSubmit={handleAddWordPress} className="bg-slate-50/50 rounded-2xl p-4 border border-indigo-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <h4 className="text-[11px] font-black uppercase text-slate-700">WordPress Setup</h4>
+                
+                {/* Embedded WordPress Step-by-Step Guide */}
+                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2.5 text-[11px]">
+                  <p className="font-extrabold text-indigo-700 uppercase tracking-wide text-[9px]">How to connect:</p>
+                  <ol className="list-decimal list-inside space-y-1.5 text-slate-500 font-medium leading-relaxed">
+                    <li>Log in to your WordPress dashboard.</li>
+                    <li>Go to <strong className="text-slate-700">Users &rarr; Profile</strong> in the left-hand menu.</li>
+                    <li>Scroll to the bottom, type a name (e.g. <code className="bg-slate-100 px-1 rounded">SoloSpider</code>) and click <strong className="text-slate-700">Add New Application Password</strong>.</li>
+                    <li>Copy the 24-character password and paste it below with your URL and login username.</li>
+                  </ol>
                 </div>
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">WordPress Site URL</label>
-                    <input
-                      type="text"
-                      placeholder="https://myblogsite.com"
-                      value={wpUrl}
-                      onChange={(e) => setWpUrl(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">WP Admin Username</label>
-                      <input
-                        type="text"
-                        placeholder="admin"
-                        value={wpUsername}
-                        onChange={(e) => setWpUsername(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Application Password</label>
-                      <input
-                        type="password"
-                        placeholder="xxxx xxxx xxxx xxxx"
-                        value={wpPassword}
-                        onChange={(e) => setWpPassword(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                      />
-                    </div>
-                  </div>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="WordPress Site URL (https://myblogsite.com)"
+                    value={wpUrl}
+                    onChange={(e) => setWpUrl(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                  <input
+                    type="text"
+                    placeholder="WP Admin Username"
+                    value={wpUsername}
+                    onChange={(e) => setWpUsername(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Application Password (xxxx xxxx xxxx xxxx)"
+                    value={wpPassword}
+                    onChange={(e) => setWpPassword(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-indigo-500 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
                 </div>
-                <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                    {wpUrl.toLowerCase().includes(".wordpress.com")
-                      ? <>For WordPress.com sites, generate an <strong>Application Password</strong> at <a href="https://wordpress.com/me/security/application-passwords" target="_blank" rel="noopener" className="text-indigo-600 underline">wordpress.com/me/security</a>. Do NOT use your login password.</>
-                      : <>Create an <strong>Application Password</strong> in your WP Admin under <strong>Users → Profile → Application Passwords</strong>. Do NOT use your login password.</>}
-                  </p>
-                </div>
-                {verificationResult && (
-                  <div className={`rounded-xl p-3 flex items-start gap-2.5 text-[10px] font-semibold ${
-                    verificationResult.ok
-                      ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                      : "bg-red-50 border border-red-200 text-red-700"
-                  }`}>
-                    {verificationResult.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
-                    <p>{verificationResult.ok ? verificationResult.message : verificationResult.error}</p>
-                  </div>
-                )}
+
                 <button
                   type="submit"
                   disabled={addIntegrationMutation.isPending || isVerifying}
-                  className="w-full bg-[#21759B] hover:bg-[#1a5b79] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                  className="w-full bg-[#21759B] hover:bg-[#1a5b78] text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
                 >
                   {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  {isVerifying ? "Verifying..." : editingIntegrationId ? "Verify & Update" : "Verify & Save WordPress Connection"}
+                  {isVerifying ? "Verifying..." : "Verify & Save Connection"}
                 </button>
               </form>
             )}
 
             {/* Shopify Form */}
             {activeForm === "shopify" && (
-              <div className="bg-slate-50/50 rounded-2xl p-5 border border-emerald-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                    <ShopifyIcon className="w-5 h-5" />
-                    Configure Shopify Store
-                  </h4>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setGuidePlatform("shopify");
-                        setShowGuide(true);
-                      }}
-                      className="text-xs font-bold text-emerald-600 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
-                    >
-                      <BookOpen className="w-3.5 h-3.5" /> Setup Guide
-                    </button>
-                    <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600 cursor-pointer">Cancel</button>
+              <form onSubmit={handleAddShopify} className="bg-slate-50/50 rounded-2xl p-4 border border-lime-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <h4 className="text-[11px] font-black uppercase text-slate-700">Shopify Custom App</h4>
+
+                {/* Embedded Shopify Custom App Guide */}
+                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2.5 text-[11px]">
+                  <p className="font-extrabold text-lime-700 uppercase tracking-wide text-[9px]">How to connect:</p>
+                  <ol className="list-decimal list-inside space-y-1.5 text-slate-500 font-medium leading-relaxed">
+                    <li>In Shopify, go to <strong className="text-slate-700">Settings &rarr; Apps and sales channels &rarr; Develop apps</strong>.</li>
+                    <li>Click <strong className="text-slate-700">Create an app</strong>, configure scopes for <code className="bg-slate-100 px-1 rounded">write_content</code>, and install it.</li>
+                    <li>Copy the revealed <strong className="text-slate-700">Admin API access token</strong> (starts with <code className="bg-slate-100 px-1 rounded">shpat_</code>) and paste below.</li>
+                  </ol>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="shopify-store-handle"
+                      value={shopifyShopName}
+                      onChange={(e) => setShopifyShopName(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                    />
+                    <span className="text-xs text-slate-400 font-bold bg-slate-100 px-3.5 py-2.5 rounded-xl border border-slate-200">.myshopify.com</span>
                   </div>
+                  <input
+                    type="password"
+                    placeholder="Admin API Access Token (shpat_...)"
+                    value={shopifyAccessToken}
+                    onChange={(e) => setShopifyAccessToken(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
                 </div>
 
-                {/* Tabs */}
-                <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
-                  <button
-                    type="button"
-                    onClick={() => setShopifyConnectMethod("oauth")}
-                    className={`flex-1 text-center py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                      shopifyConnectMethod === "oauth" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                    }`}
-                  >
-                    Auto-Connect (Recommended)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShopifyConnectMethod("manual")}
-                    className={`flex-1 text-center py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
-                      shopifyConnectMethod === "manual" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                    }`}
-                  >
-                    Manual Access Token
-                  </button>
-                </div>
-
-                {shopifyConnectMethod === "oauth" ? (
-                  /* Auto-Connect Form */
-                  <form onSubmit={handleConnectShopifyOAuth} className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400">Shopify URL / Store Name</label>
-                        <input
-                          type="text"
-                          placeholder="my-awesome-store.myshopify.com"
-                          value={shopifyShopName}
-                          onChange={(e) => setShopifyShopName(e.target.value)}
-                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400">Client ID (from Shopify Partner / Developer App)</label>
-                        <input
-                          type="text"
-                          placeholder="hex string e.g. b6bab3e7..."
-                          value={shopifyClientId}
-                          onChange={(e) => setShopifyClientId(e.target.value)}
-                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400">Client Secret</label>
-                        <input
-                          type="password"
-                          placeholder="shpss_xxxxxxxxxxxxxxxx"
-                          value={shopifyClientSecret}
-                          onChange={(e) => setShopifyClientSecret(e.target.value)}
-                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                      <div className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                        <p className="font-bold text-slate-800 mb-1">Pre-requisite (App Settings):</p>
-                        <p>
-                          Ensure your Developer App settings whitelists the redirect URI:<br/>
-                          <code className="bg-slate-100 p-0.5 px-1 rounded font-mono text-[9px] text-[#96BF48]">
-                            {typeof window !== "undefined" ? `${window.location.origin}/api/seo/shopify-callback` : "http://localhost:3000/api/seo/shopify-callback"}
-                          </code>
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isConnectingShopifyOAuth}
-                      className="w-full bg-[#96BF48] hover:bg-[#83aa3d] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                    >
-                      {isConnectingShopifyOAuth ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                      {isConnectingShopifyOAuth ? "Connecting to Shopify..." : "Auto-Connect to Shopify"}
-                    </button>
-                  </form>
-                ) : (
-                  /* Manual Form */
-                  <form onSubmit={handleAddShopify} className="space-y-4">
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400">Shopify URL / Store Name</label>
-                        <input
-                          type="text"
-                          placeholder="my-awesome-store.myshopify.com"
-                          value={shopifyShopName}
-                          onChange={(e) => setShopifyShopName(e.target.value)}
-                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase text-slate-400">Admin API Access Token</label>
-                        <input
-                          type="password"
-                          placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                          value={shopifyAccessToken}
-                          onChange={(e) => setShopifyAccessToken(e.target.value)}
-                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#96BF48] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                      <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                        In Shopify Admin &rarr; <strong>Settings &rarr; Apps and sales channels &rarr; Develop apps</strong>, configure <strong>write_content</strong> and <strong>write_online_store_pages</strong> API scopes, install the app, then paste the <strong>Admin API access token</strong> (starts with <code>shpat_</code>).
-                      </p>
-                    </div>
-
-                    {verificationResult && activeForm === "shopify" && (
-                      <div className={`rounded-xl p-3 flex items-start gap-2.5 text-[10px] font-semibold ${
-                        verificationResult.ok
-                          ? "bg-emerald-50 border border-emerald-200 text-emerald-700"
-                          : "bg-red-50 border border-red-200 text-red-700"
-                      }`}>
-                        {verificationResult.ok ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
-                        <p>{verificationResult.ok ? verificationResult.message : verificationResult.error}</p>
-                      </div>
-                    )}
-
-                    <button
-                      type="submit"
-                      disabled={addIntegrationMutation.isPending || isVerifying}
-                      className="w-full bg-[#96BF48] hover:bg-[#83aa3d] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                    >
-                      {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                      {isVerifying ? "Verifying..." : editingIntegrationId ? "Verify & Update" : "Verify & Save Shopify Connection"}
-                    </button>
-                  </form>
-                )}
-              </div>
+                <button
+                  type="submit"
+                  disabled={addIntegrationMutation.isPending || isVerifying}
+                  className="w-full bg-[#96BF48] hover:bg-[#83aa3d] text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isVerifying ? "Verifying..." : "Verify & Save Shopify"}
+                </button>
+              </form>
             )}
 
             {/* Magento Form */}
             {activeForm === "magento" && (
-              <form onSubmit={handleAddMagento} className="bg-slate-50/50 rounded-2xl p-5 border border-orange-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                    <MagentoIcon className="w-5 h-5" />
-                    Configure Magento Site
-                  </h4>
-                  <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600">Cancel</button>
-                </div>
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Magento Store Endpoint URL</label>
-                    <input
-                      type="text"
-                      placeholder="https://magentostore.com"
-                      value={magentoUrl}
-                      onChange={(e) => setMagentoUrl(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-[#EE672F] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Integration / Access Token</label>
-                    <input
-                      type="password"
-                      placeholder="magento_integration_access_token_xyz"
-                      value={magentoToken}
-                      onChange={(e) => setMagentoToken(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-[#EE672F] rounded-xl p-3 outline-none font-semibold text-slate-800"
-                    />
-                  </div>
-                </div>
-                <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
-                    Create an integration in Magento Admin panel under **System &gt; Extensions &gt; Integrations**, activate it, and paste the Access Token here.
+              <form onSubmit={handleAddMagento} className="bg-slate-50/50 rounded-2xl p-4 border border-orange-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <h4 className="text-[11px] font-black uppercase text-slate-700">Magento Setup</h4>
+                
+                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2 text-[11px]">
+                  <p className="font-extrabold text-orange-700 uppercase tracking-wide text-[9px]">How to connect:</p>
+                  <p className="text-slate-500 font-medium leading-relaxed">
+                    Create an integration in Magento panel under <strong className="text-slate-700">System &rarr; Extensions &rarr; Integrations</strong>, authorize it, and copy the access token below.
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Magento Store Endpoint URL"
+                    value={magentoUrl}
+                    onChange={(e) => setMagentoUrl(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-[#EE672F] rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Magento Access Token"
+                    value={magentoToken}
+                    onChange={(e) => setMagentoToken(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-[#EE672F] rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
                 </div>
                 <button
                   type="submit"
                   disabled={addIntegrationMutation.isPending}
-                  className="w-full bg-[#EE672F] hover:bg-[#d65a25] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                  className="w-full bg-[#EE672F] hover:bg-[#d65a25] text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  {addIntegrationMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Verify & Save Magento Connection
+                  Verify & Save Magento
                 </button>
               </form>
             )}
 
             {/* List Connected CMS / Store Integrations */}
             {connectedIntegrations && connectedIntegrations.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5 pt-2 border-t border-slate-100">
                 {connectedIntegrations.map((int: any) => {
                   const isWp = int.platform === "wordpress";
                   const isShopify = int.platform === "shopify";
-                  const isMagento = int.platform === "magento";
 
                   return (
-                    <div key={int.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-slate-200 rounded-2xl bg-slate-50/20 gap-4 min-w-0 w-full overflow-hidden">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-                          {isWp ? <WordPressIcon className="w-10 h-10 rounded-xl shadow-sm" /> : isShopify ? <ShopifyIcon className="w-10 h-10 rounded-xl shadow-sm" /> : <MagentoIcon className="w-10 h-10 rounded-xl shadow-sm" />}
+                    <div key={int.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50/30 gap-4">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 shrink-0 flex items-center justify-center">
+                          {isWp ? <WordPressIcon className="w-8 h-8 rounded-lg shadow-sm" /> : isShopify ? <ShopifyIcon className="w-8 h-8 rounded-lg shadow-sm" /> : <MagentoIcon className="w-8 h-8 rounded-lg shadow-sm" />}
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <h4 className="text-xs font-black text-slate-800 flex items-center gap-1.5 min-w-0 w-full">
-                            <span className="truncate block flex-1 min-w-0">{isWp ? int.credentials?.siteUrl : isShopify ? int.credentials?.shopName : int.credentials?.siteUrl}</span>
-                            <span className="bg-emerald-500/15 text-emerald-600 border border-emerald-500/10 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">
-                              Active
-                            </span>
-                          </h4>
-                          <p className="text-[10px] font-semibold text-slate-400 mt-1 truncate">
-                            Platform: <span className="font-extrabold uppercase">{int.platform}</span> 
-                            {isWp && ` | User: ${int.credentials?.username || "admin"}`}
-                            {!isWp && ` | Credentials Secured`}
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-black text-slate-800 capitalize leading-none">{int.platform}</p>
+                          <p className="text-[9px] text-slate-450 font-semibold truncate mt-1">
+                            {isWp ? int.credentials?.siteUrl : `${int.credentials?.shopName}.myshopify.com`}
                           </p>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                      <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => handleEditIntegration(int)}
-                          className="border border-slate-200 bg-white hover:border-indigo-200 hover:text-indigo-600 text-slate-500 font-semibold p-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                          className="border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 font-semibold p-1 px-2.5 rounded-lg text-[10px] flex items-center gap-1 transition-all cursor-pointer shadow-sm"
                         >
-                          <RefreshCw className="w-4 h-4" /> Edit
+                          <RefreshCw className="w-3.5 h-3.5" /> Edit
                         </button>
                         <button
                           onClick={() => {
@@ -1075,410 +727,263 @@ export default function IntegrationsSettingsPage() {
                               disconnectCmsMutation.mutate(int.id);
                             }
                           }}
-                          className="border border-slate-200 bg-white hover:border-red-200 hover:text-red-600 text-slate-500 font-semibold p-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                          className="border border-slate-200 bg-white hover:border-red-200 hover:text-red-650 text-slate-500 font-semibold p-1 px-2.5 rounded-lg text-[10px] flex items-center gap-1 transition-all cursor-pointer shadow-sm"
                         >
-                          <Trash2 className="w-4 h-4" /> Disconnect
+                          <Trash2 className="w-3.5 h-3.5" /> Disconnect
                         </button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center p-8 border border-dashed border-slate-200 rounded-2xl text-center space-y-2">
-                <Globe className="w-8 h-8 text-slate-300" />
-                <p className="text-xs font-bold text-slate-700">No stores or sites connected</p>
-                <p className="text-[10px] text-slate-400 font-semibold max-w-sm">
-                  Connecting WordPress, Shopify, or Magento allows SoloSpider to deploy products and articles directly to your digital storefront.
-                </p>
-              </div>
-            )}
+            ) : null}
           </div>
 
-          {/* Google Search Console Integration Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-            <div className="border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-green-500 flex items-center justify-center shadow-sm shrink-0">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.44 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-950">Google Search Console</h3>
-                  <p className="text-xs text-slate-400 font-semibold">Import real backlinks, search queries, clicks, and index coverage from Google.</p>
-                </div>
-              </div>
+          {/* Card 2: Google Search Console */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Google Search Console</h3>
+              <p className="text-[11px] text-slate-450 font-semibold mt-0.5">Sync search volume, impressions, keywords, and backlinks.</p>
             </div>
 
-            {/* What you get */}
-            <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 space-y-3">
-              <p className="text-[10px] font-black text-indigo-700 uppercase tracking-wider">What data becomes real after connecting</p>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { label: "Backlinks Index", desc: "All URLs linking to your site" },
-                  { label: "Referring Domains", desc: "Unique root domains" },
-                  { label: "Search Queries", desc: "Real keywords people use" },
-                  { label: "Clicks & Impressions", desc: "Google search traffic" },
-                  { label: "Average Position", desc: "Your Google rankings" },
-                  { label: "Index Coverage", desc: "Which pages Google indexed" },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-start gap-2 text-[10px]">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-bold text-slate-800">{item.label}</p>
-                      <p className="text-slate-400 font-semibold">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* Embedded GSC Step-by-Step Guide */}
+            <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-3.5 space-y-2 text-[11px]">
+              <p className="font-extrabold text-blue-700 uppercase tracking-wide text-[9px]">GSC Connection Steps:</p>
+              <ol className="list-decimal list-inside space-y-1.5 text-slate-550 font-semibold leading-relaxed">
+                <li>Go to <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-blue-600 underline">search.google.com/search-console</a>.</li>
+                <li>Click <strong className="text-slate-700">Add Property</strong> in the top dropdown, and verify ownership of your domain using DNS TXT record or HTML file upload.</li>
+                <li>Once verified, click the connect button below to authorize GSC access for SoloSpider.</li>
+              </ol>
             </div>
 
-            {/* Connection Status & Action */}
-            <div className="flex items-center justify-between gap-4 pt-1">
-              <div className="flex items-center gap-2">
-                <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  Not Connected
-                </span>
-                <span className="text-[9px] text-emerald-600 font-black uppercase tracking-wider">Free</span>
-              </div>
+            <div className="flex items-center justify-between border-t border-slate-150 pt-3.5">
+              <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                Not Connected
+              </span>
               <a
                 href="https://search.google.com/search-console"
                 target="_blank"
                 rel="noreferrer"
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white text-xs font-extrabold py-2.5 px-5 rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-md active:scale-[0.98]"
+                className="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
               >
-                <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="white" fillOpacity="0.9"/>
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="white" fillOpacity="0.8"/>
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.44 1.18 4.93l3.66-2.84z" fill="white" fillOpacity="0.7"/>
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="white" fillOpacity="0.85"/>
-                </svg>
-                Connect Google Search Console
+                Connect Search Console
               </a>
             </div>
           </div>
 
-          {/* Paid Ads Connections Card */}
+        </div>
+
+        {/* Column 2: Paid Campaigns & Social Channels */}
+        <div className="space-y-8">
+          
+          {/* Card 3: Paid Ads (Google & Meta) */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-3 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-base font-black text-slate-950">Paid Ads Connections</h3>
-                <p className="text-xs text-slate-400 font-semibold">Connect Google Ads & Meta Ads to optimize and launch AI-driven campaigns.</p>
-              </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Paid Campaigns</h3>
+              <p className="text-[11px] text-slate-450 font-semibold mt-0.5">Optimize copy, track conversion statistics, and deploy campaigns.</p>
             </div>
 
-            {/* Platform Selection Buttons */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Selection buttons */}
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => setActiveForm(activeForm === "meta_ads" ? null : "meta_ads")}
-                className={`flex flex-col items-center gap-2.5 p-3 border rounded-xl font-bold transition-all text-xs cursor-pointer ${
+                className={`flex flex-col items-center gap-2 p-2.5 border rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
                   activeForm === "meta_ads" ? "border-[#0064E0] bg-[#0064E0]/5 text-[#0064E0]" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <div className="w-6 h-6 flex items-center justify-center text-blue-600">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                    <path d="M12 6c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 7.5 12 7.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
-                    <path d="M16.5 10c0-2.5-2-4.5-4.5-4.5S7.5 7.5 7.5 10c0 1.2.5 2.3 1.3 3.1-.8.8-1.3 1.9-1.3 3.1 0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5c0-1.2-.5-2.3-1.3-3.1.8-.8 1.3-1.9 1.3-3.1zm-4.5 9c-1.4 0-2.5-1.1-2.5-2.5S10.6 14 12 14s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
-                  </svg>
-                </div>
                 Meta Ads
               </button>
               <button
                 onClick={() => setActiveForm(activeForm === "google_ads" ? null : "google_ads")}
-                className={`flex flex-col items-center gap-2.5 p-3 border rounded-xl font-bold transition-all text-xs cursor-pointer ${
+                className={`flex flex-col items-center gap-2 p-2.5 border rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
                   activeForm === "google_ads" ? "border-[#FFCC00] bg-[#FFCC00]/5 text-[#9e7a00]" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
                 }`}
               >
-                <div className="w-6 h-6 flex items-center justify-center">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-                    <path d="M16 2.5l-12.3 21.3c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6L24 7c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="#FFCC00" />
-                    <path d="M8 15.5l-5.2 9c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6l5.2-9c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="#4285F4" />
-                    <circle cx="16" cy="20.5" r="4.5" fill="#34A853" />
-                  </svg>
-                </div>
                 Google Ads
               </button>
             </div>
 
             {/* Meta Ads Form */}
             {activeForm === "meta_ads" && (
-              <form onSubmit={handleAddMetaAds} className="bg-slate-50/50 rounded-2xl p-5 border border-blue-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Meta Ads Connection</h4>
-                  <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+              <form onSubmit={handleAddMetaAds} className="bg-slate-50/50 rounded-2xl p-4 border border-blue-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <h4 className="text-[11px] font-black uppercase text-slate-700">Meta Ads Config</h4>
+
+                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2.5 text-[11px]">
+                  <p className="font-extrabold text-blue-750 uppercase tracking-wide text-[9px]">Meta Connection Steps:</p>
+                  <ol className="list-decimal list-inside space-y-1.5 text-slate-500 font-medium leading-relaxed">
+                    <li>Find your Ad Account ID in Meta Ads Manager dashboard.</li>
+                    <li>Generate a User / System access token under Developer Apps in <strong className="text-slate-700">developers.facebook.com</strong> with scopes: <code className="bg-slate-100 px-0.5">ads_management</code>, <code className="bg-slate-100 px-0.5">ads_read</code>.</li>
+                  </ol>
                 </div>
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Ad Account ID</label>
-                    <input
-                      type="text"
-                      placeholder="act_xxxxxxxxxxxxxxx"
-                      value={metaAdAccountId}
-                      onChange={(e) => setMetaAdAccountId(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-blue-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">System User / Access Token</label>
-                    <input
-                      type="password"
-                      placeholder="EAAGxxxxx..."
-                      value={metaAccessToken}
-                      onChange={(e) => setMetaAccessToken(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-blue-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                    />
-                  </div>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Meta Ad Account ID (act_xxxxxxxxxxxx)"
+                    value={metaAdAccountId}
+                    onChange={(e) => setMetaAdAccountId(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-blue-500 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                  <input
+                    type="password"
+                    placeholder="System User Access Token"
+                    value={metaAccessToken}
+                    onChange={(e) => setMetaAccessToken(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-blue-500 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
                 </div>
                 <button
                   type="submit"
                   disabled={addIntegrationMutation.isPending}
-                  className="w-full bg-[#0064E0] hover:bg-[#0052b4] text-white text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                  className="w-full bg-[#0064E0] hover:bg-[#0052b4] text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
                 >
-                  {addIntegrationMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Verify & Save Meta Ads Connection
+                  Save Meta Ads
                 </button>
               </form>
             )}
 
             {/* Google Ads Form */}
             {activeForm === "google_ads" && (
-              <form onSubmit={handleAddGoogleAds} className="bg-slate-50/50 rounded-2xl p-5 border border-yellow-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">Google Ads Connection</h4>
-                  <button type="button" onClick={() => setActiveForm(null)} className="text-xs font-bold text-slate-400 hover:text-slate-600">Cancel</button>
+              <form onSubmit={handleAddGoogleAds} className="bg-slate-50/50 rounded-2xl p-4 border border-yellow-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <h4 className="text-[11px] font-black uppercase text-slate-700">Google Ads Credentials</h4>
+
+                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-1 text-[10px] text-slate-550 font-medium leading-relaxed">
+                  <p className="font-extrabold text-[#9e7a00] uppercase tracking-wide text-[9px] mb-1">Google API Keys:</p>
+                  <p>Customer ID: Your 10-digit Google Ads Account number.</p>
+                  <p>Developer Token: Obtained from Google Ads API Center.</p>
+                  <p>Client ID / Secret: Created in Google Cloud Console Credentials.</p>
+                  <p>Refresh Token: Obtained via OAuth consent authorization flow.</p>
                 </div>
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Customer ID</label>
-                      <input
-                        type="text"
-                        placeholder="123-456-7890"
-                        value={googleCustomerId}
-                        onChange={(e) => setGoogleCustomerId(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Developer Token</label>
-                      <input
-                        type="password"
-                        placeholder="dev_token_xyz"
-                        value={googleDeveloperToken}
-                        onChange={(e) => setGoogleDeveloperToken(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Client ID</label>
-                      <input
-                        type="text"
-                        placeholder="xxxx.apps.googleusercontent.com"
-                        value={googleClientId}
-                        onChange={(e) => setGoogleClientId(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase text-slate-400">Client Secret</label>
-                      <input
-                        type="password"
-                        placeholder="client_secret_xyz"
-                        value={googleClientSecret}
-                        onChange={(e) => setGoogleClientSecret(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase text-slate-400">Refresh Token</label>
+
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      placeholder="Customer ID"
+                      value={googleCustomerId}
+                      onChange={(e) => setGoogleCustomerId(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                    />
                     <input
                       type="password"
-                      placeholder="1//xxxx_refresh_token"
-                      value={googleRefreshToken}
-                      onChange={(e) => setGoogleRefreshToken(e.target.value)}
-                      className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                      placeholder="Developer Token"
+                      value={googleDeveloperToken}
+                      onChange={(e) => setGoogleDeveloperToken(e.target.value)}
+                      className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
                     />
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Client ID"
+                    value={googleClientId}
+                    onChange={(e) => setGoogleClientId(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-2.5 outline-none font-semibold text-slate-880"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Client Secret"
+                    value={googleClientSecret}
+                    onChange={(e) => setGoogleClientSecret(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-2.5 outline-none font-semibold text-slate-880"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Refresh Token"
+                    value={googleRefreshToken}
+                    onChange={(e) => setGoogleRefreshToken(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-yellow-500 rounded-xl p-2.5 outline-none font-semibold text-slate-880"
+                  />
                 </div>
                 <button
                   type="submit"
                   disabled={addIntegrationMutation.isPending}
-                  className="w-full bg-[#FFCC00] hover:bg-[#e6b800] text-slate-900 text-xs font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                  className="w-full bg-[#FFCC00] hover:bg-[#e6b800] text-slate-900 text-xs font-bold py-2.5 rounded-xl transition-all shadow-sm cursor-pointer"
                 >
-                  {addIntegrationMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-                  Verify & Save Google Ads Connection
+                  Save Google Ads
                 </button>
               </form>
             )}
 
-            {/* List Connected Ads Integrations */}
+            {/* Connected Ads Integrations list */}
             {connectedAdsIntegrations && connectedAdsIntegrations.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2.5 pt-2 border-t border-slate-100">
                 {connectedAdsIntegrations.map((int: any) => {
                   const isMeta = int.platform === "meta_ads";
                   return (
-                    <div key={int.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-slate-200 rounded-2xl bg-slate-50/20 gap-4 min-w-0 w-full overflow-hidden">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-                          {isMeta ? (
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white">
-                              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                                <path d="M12 6c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 7.5 12 7.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
-                                <path d="M16.5 10c0-2.5-2-4.5-4.5-4.5S7.5 7.5 7.5 10c0 1.2.5 2.3 1.3 3.1-.8.8-1.3 1.9-1.3 3.1 0 2.5 2 4.5 4.5 4.5s4.5-2 4.5-4.5c0-1.2-.5-2.3-1.3-3.1.8-.8 1.3-1.9 1.3-3.1zm-4.5 9c-1.4 0-2.5-1.1-2.5-2.5S10.6 14 12 14s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5z" />
-                              </svg>
-                            </div>
-                          ) : (
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center">
-                              <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
-                                <path d="M16 2.5l-12.3 21.3c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6L24 7c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="white" />
-                                <path d="M8 15.5l-5.2 9c-.4.7-.1 1.7.6 2.1l5.2 3c.7.4 1.7.1 2.1-.6l5.2-9c.4-.7.1-1.7-.6-2.1l-5.2-3c-.7-.4-1.7-.1-2.1.6z" fill="#4285F4" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs font-black text-slate-800 capitalize leading-none">{isMeta ? "Meta Ads Profile" : "Google Ads Profile"}</p>
-                            <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider scale-90">
-                              Connected
-                            </span>
-                          </div>
-                          <p className="text-[10px] text-slate-400 font-semibold truncate mt-1">
+                    <div key={int.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50/30 gap-4">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="min-w-0">
+                          <p className="text-[11px] font-black text-slate-850 capitalize leading-none">{isMeta ? "Meta Ads Connection" : "Google Ads Connection"}</p>
+                          <p className="text-[9px] text-slate-450 font-semibold truncate mt-1">
                             {isMeta ? `Ad Account: ${int.credentials?.adAccountId}` : `Customer ID: ${int.credentials?.customerId}`}
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          onClick={() => {
-                            if (confirm(`Are you sure you want to disconnect this ads integration?`)) {
-                              disconnectCmsMutation.mutate(int.id);
-                            }
-                          }}
-                          className="border border-slate-200 bg-white hover:border-red-200 hover:text-red-600 text-slate-500 font-semibold p-2 px-3.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-sm animate-in fade-in"
-                        >
-                          <Trash2 className="w-4 h-4" /> Disconnect
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Are you sure you want to disconnect this ads integration?`)) {
+                            disconnectCmsMutation.mutate(int.id);
+                          }
+                        }}
+                        className="border border-slate-200 bg-white hover:border-red-200 hover:text-red-600 text-slate-500 font-semibold p-1 px-2.5 rounded-lg text-[10px] flex items-center gap-1 transition-all cursor-pointer shadow-sm shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Disconnect
+                      </button>
                     </div>
                   );
                 })}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center p-8 border border-dashed border-slate-200 rounded-2xl text-center space-y-2">
-                <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8 text-slate-350" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <p className="text-xs font-bold text-slate-700">No ad channels connected</p>
-                <p className="text-[10px] text-slate-400 font-semibold max-w-sm">
-                  Connect Meta or Google Ads accounts to monitor spend, impressions, clicks, optimize copy with AI, and create new campaigns.
-                </p>
-              </div>
-            )}
+            ) : null}
           </div>
-        </div>
 
-        {/* Right Column: Social Channels Connection (LinkedIn, Twitter, Instagram, Facebook, Pinterest) */}
-        <div className="lg:col-span-5 space-y-6">
+          {/* Card 4: Social Channels */}
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 pb-3 flex items-start justify-between gap-4">
-              <div>
-                <h3 className="text-base font-black text-slate-950">Social Media API Channels</h3>
-                <p className="text-xs text-slate-400 font-semibold">Schedule publishing across connected social networks.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setGuidePlatform("wordpress");
-                  setShowGuide(true);
-                }}
-                className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm border border-indigo-100 shrink-0"
-              >
-                <BookOpen className="w-3.5 h-3.5" /> Setup Guide
-              </button>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">Social Channels</h3>
+              <p className="text-[11px] text-slate-450 font-semibold mt-0.5">Auto-schedule posts and track engagement stats across handles.</p>
             </div>
 
-            <div className="space-y-4">
-              {/* SOCIAL PLATFORMS LIST */}
+            <div className="space-y-3">
               {[
-                {
-                  id: "linkedin",
-                  name: "LinkedIn Profile",
-                  desc: "Publish updates and articles",
-                  customIcon: LinkedInIcon
-                },
-                {
-                  id: "twitter",
-                  name: "X (Twitter) Profile",
-                  desc: "Publish tweets and threads",
-                  customIcon: XIcon
-                },
-                {
-                  id: "instagram",
-                  name: "Instagram Profile",
-                  desc: "Schedule carousel and image posts",
-                  customIcon: InstagramIcon
-                },
-                {
-                  id: "facebook",
-                  name: "Facebook Page",
-                  desc: "Publish articles and campaign updates",
-                  customIcon: FacebookIcon
-                },
-                {
-                  id: "pinterest",
-                  name: "Pinterest Board",
-                  desc: "Schedule image pins and links",
-                  customIcon: PinterestIcon
-                }
+                { id: "linkedin", name: "LinkedIn Profile", desc: "Share updates and articles", customIcon: LinkedInIcon },
+                { id: "twitter", name: "X (Twitter) Profile", desc: "Share tweets and threads", customIcon: XIcon },
+                { id: "instagram", name: "Instagram Profile", desc: "Auto-share carousel updates", customIcon: InstagramIcon },
+                { id: "facebook", name: "Facebook Page", desc: "Share campaign announcements", customIcon: FacebookIcon },
+                { id: "pinterest", name: "Pinterest Board", desc: "Auto-pin graphics and links", customIcon: PinterestIcon }
               ].map((plat) => {
                 const connectedAccount = connectedSocials.find((acc: any) => acc.platform === plat.id);
                 const isConnected = Boolean(connectedAccount);
                 const BrandIcon = plat.customIcon;
 
                 return (
-                  <div key={plat.id} className="p-4 border border-slate-200 rounded-2xl space-y-3.5 hover:border-slate-300 transition-colors">
-                    <div className="flex items-center justify-between min-w-0 w-full gap-4">
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <div className="w-9 h-9 shrink-0 flex items-center justify-center">
-                          <BrandIcon className="w-9 h-9 rounded-xl shadow-sm" />
+                  <div key={plat.id} className="p-3.5 border border-slate-100 rounded-2xl hover:border-slate-200 transition-colors space-y-2">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 shrink-0 flex items-center justify-center">
+                          <BrandIcon className="w-8 h-8 rounded-lg shadow-sm" />
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <span className="text-xs font-black text-slate-800 block truncate">{plat.name}</span>
-                          <p className="text-[9px] text-slate-400 font-semibold truncate">{plat.desc}</p>
+                        <div className="min-w-0">
+                          <span className="text-[11px] font-black text-slate-800 block truncate">{plat.name}</span>
+                          <p className="text-[9px] text-slate-450 font-semibold truncate leading-none mt-1">{plat.desc}</p>
                         </div>
                       </div>
 
-                      {/* Connect / Connected + Edit buttons */}
                       {isConnected ? (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1">
                           {renderStatusBadge(connectedAccount)}
-                          
-                          {/* Change Account / Edit Button */}
                           <button
                             onClick={() => handleSocialConnect(plat.id)}
-                            className="p-2 border border-slate-200 rounded-xl hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50/30 transition-colors cursor-pointer text-slate-500 shadow-sm"
-                            title="Change Account / Re-authenticate"
+                            className="p-1 border border-slate-200 rounded-lg hover:border-indigo-200 hover:text-indigo-600 transition-colors cursor-pointer text-slate-450"
                           >
                             <RefreshCw className="w-3.5 h-3.5" />
                           </button>
-
-                          {/* Disconnect Button */}
                           <button
                             onClick={() => {
                               if (confirm(`Are you sure you want to disconnect this ${plat.name} account?`)) {
                                 disconnectSocialMutation.mutate(connectedAccount.id);
                               }
                             }}
-                            className="p-2 border border-slate-200 rounded-xl hover:border-red-200 hover:text-red-500 hover:bg-red-50/30 transition-colors cursor-pointer text-slate-500 shadow-sm"
-                            title="Disconnect Account"
+                            className="p-1 border border-slate-200 rounded-lg hover:border-red-200 hover:text-red-500 transition-colors cursor-pointer text-slate-450"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1486,26 +991,22 @@ export default function IntegrationsSettingsPage() {
                       ) : (
                         <button
                           onClick={() => handleSocialConnect(plat.id)}
-                          className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                          className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-all cursor-pointer"
                         >
                           Connect
                         </button>
                       )}
                     </div>
 
-                    {/* Account Handle Info Card */}
                     {isConnected && (
-                      <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-2.5 text-[10px] font-semibold text-slate-500 flex items-center justify-between">
+                      <div className="bg-slate-50/50 border border-slate-100 rounded-lg p-2 text-[9px] font-semibold text-slate-500 flex items-center justify-between">
                         <span className="truncate max-w-[200px]">
                           {connectedAccount?.access_token?.includes("stub") || connectedAccount?.access_token?.includes("mock")
-                            ? "Sandbox Mode — no real API calls"
+                            ? "Sandbox Mode"
                             : `Account: ${connectedAccount?.handle}`}
                         </span>
-                        <span className="text-emerald-500 font-bold flex items-center gap-1 shrink-0">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> 
-                          {connectedAccount?.access_token?.includes("stub") || connectedAccount?.access_token?.includes("mock")
-                            ? "Simulated"
-                            : "API Ready"}
+                        <span className="text-emerald-500 font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> API Ready
                         </span>
                       </div>
                     )}
@@ -1514,332 +1015,11 @@ export default function IntegrationsSettingsPage() {
               })}
             </div>
           </div>
+
         </div>
 
       </div>
 
-      {/* Setup Guide Modal */}
-      {showGuide && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="relative bg-white rounded-3xl max-w-3xl w-full border border-slate-100 shadow-2xl p-6 md:p-8 flex flex-col max-h-[85vh] animate-in zoom-in-95 duration-200">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowGuide(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Modal Header */}
-            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                <BookOpen className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-slate-900">Integration Setup Guide</h3>
-                <p className="text-xs text-slate-500 font-semibold">Step-by-step instructions to connect your external platforms</p>
-              </div>
-            </div>
-
-            {/* Platform Selector Tabs */}
-            <div className="flex border-b border-slate-100 mt-4">
-              <button
-                onClick={() => setGuidePlatform("wordpress")}
-                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  guidePlatform === "wordpress"
-                    ? "border-[#21759B] text-[#21759B]"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <WordPressIcon className="w-5 h-5" />
-                WordPress
-              </button>
-              <button
-                onClick={() => setGuidePlatform("shopify")}
-                className={`flex-1 py-3 text-sm font-bold border-b-2 transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  guidePlatform === "shopify"
-                    ? "border-[#96BF48] text-[#96BF48]"
-                    : "border-transparent text-slate-500 hover:text-slate-700"
-                }`}
-              >
-                <ShopifyIcon className="w-5 h-5" />
-                Shopify
-              </button>
-            </div>
-
-            {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto mt-4 pr-2 space-y-4 max-h-[50vh]">
-              {guidePlatform === "wordpress" ? (
-                <>
-                  {/* WordPress Subtabs */}
-                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                    <button
-                      onClick={() => setWpGuideTab("org")}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        wpGuideTab === "org"
-                          ? "bg-white text-[#21759B] shadow-sm"
-                          : "text-slate-600 hover:text-slate-800"
-                      }`}
-                    >
-                      Self-Hosted (.org)
-                    </button>
-                    <button
-                      onClick={() => setWpGuideTab("com")}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        wpGuideTab === "com"
-                          ? "bg-white text-[#21759B] shadow-sm"
-                          : "text-slate-600 hover:text-slate-800"
-                      }`}
-                    >
-                      Hosted (WordPress.com)
-                    </button>
-                  </div>
-
-                  {/* WordPress Warning Alert */}
-                  <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="text-[11px] text-slate-600 font-semibold leading-relaxed">
-                      <span className="font-bold text-amber-700">Important Security Requirement:</span> You must use an <strong>Application Password</strong> instead of your regular site account password. Main logins will fail verification for security reasons.
-                    </div>
-                  </div>
-
-                  {wpGuideTab === "org" ? (
-                    // WordPress.org Steps
-                    <div className="space-y-4">
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Log in to WP Admin</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Navigate to your WordPress dashboard (e.g. <code>https://your-site.com/wp-admin</code>) and sign in.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Go to your Profile settings</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">In the left-hand sidebar menu, click on <strong>Users</strong> → <strong>Profile</strong> (or edit the user profile you plan to publish with).</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Generate Application Password</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Scroll to the bottom of the page to find the <strong>Application Passwords</strong> section. Enter a name (e.g., <code>SoloSpider</code>) and click <strong>Add New Application Password</strong>.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Copy the password</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Copy the newly generated 24-character password (separated by spaces, e.g. <code>xxxx xxxx xxxx xxxx xxxx xxxx</code>). Keep it safe as you will not see it again.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Save connection in SoloSpider</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter your website base URL, your WordPress username (or admin email), and paste the copied Application Password. Click <strong>Verify & Save Connection</strong>.</p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    // WordPress.com Steps
-                    <div className="space-y-4">
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Log in & Go to Security Settings</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Log in to WordPress.com and navigate to the <strong>Two-Step Authentication</strong> page: <a href="https://wordpress.com/me/security/two-step" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-bold inline-flex items-center gap-0.5">wordpress.com/me/security/two-step <ExternalLink className="w-3 h-3" /></a></p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Enable Two-Step Authentication (2FA)</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">WordPress.com requires 2FA to be active to use application passwords. If not enabled, turn on 2FA using your mobile number or authenticator app.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Generate WordPress.com App Password</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Once 2FA is active, navigate to the <strong>Application Passwords</strong> page: <a href="https://wordpress.com/me/security/application-passwords" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-bold inline-flex items-center gap-0.5">wordpress.com/me/security/application-passwords <ExternalLink className="w-3 h-3" /></a></p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Name and generate password</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter an application name (e.g. <code>SoloSpider</code>) and click <strong>Generate Password</strong>. Copy the 16-character string immediately.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Save connection in SoloSpider</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter your blog site URL (e.g. <code>https://solospiderai.wordpress.com</code>), your WordPress.com email address/username, and paste the 16-character generated password.</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  {/* Shopify Subtabs */}
-                  <div className="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                    <button
-                      onClick={() => setShopifyGuideTab("standard")}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        shopifyGuideTab === "standard"
-                          ? "bg-white text-[#96BF48] shadow-sm"
-                          : "text-slate-600 hover:text-slate-800"
-                      }`}
-                    >
-                      Merchant Store (Custom App)
-                    </button>
-                    <button
-                      onClick={() => setShopifyGuideTab("partner")}
-                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                        shopifyGuideTab === "partner"
-                          ? "bg-white text-[#96BF48] shadow-sm"
-                          : "text-slate-600 hover:text-slate-800"
-                      }`}
-                    >
-                      Developer Partners (App Dashboard)
-                    </button>
-                  </div>
-
-                  {/* Shopify Warning Alert */}
-                  <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3 flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div className="text-[11px] text-slate-600 font-semibold leading-relaxed">
-                      <span className="font-bold text-amber-700">Important Credentials Note:</span> In SoloSpider, you must enter the **Admin API Access Token** (starts with <code>shpat_</code>). Do <strong>NOT</strong> enter your Shopify API Client Secret or API Key.
-                    </div>
-                  </div>
-
-                  {shopifyGuideTab === "standard" ? (
-                    // Shopify Custom App steps
-                    <div className="space-y-4">
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Log in to Shopify Store Admin</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Log in to your store admin panel at <code>admin.shopify.com</code>.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Navigate to Custom App settings</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Click on <strong>Settings</strong> (bottom left gear) → <strong>Apps and sales channels</strong> → <strong>Develop apps</strong> (top right), then click <strong>Create an app</strong>.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Configure Scopes</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Click **Configure Admin API scopes**. Scroll down and check <strong>write_content</strong> and <strong>read_content</strong> permissions, then click <strong>Save</strong>.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Install Custom App</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Go to the **API credentials** tab, and click **Install app** (confirm the installation popup).</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Copy Admin API access token</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Under **Admin API access token**, click **Reveal token once** and copy it (it starts with <code>shpat_</code>). Keep it safe as Shopify only displays it once.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">6</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Save connection in SoloSpider</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Enter your store URL (e.g. <code>my-store.myshopify.com</code>) and paste the token. Click **Verify & Save Shopify Connection**.</p>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    // Shopify Partner Store steps
-                    <div className="space-y-4">
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">1</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Log in to Shopify Dev Dashboard</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Navigate to Shopify Dev Dashboard: <a href="https://dev.shopify.com" target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline font-bold inline-flex items-center gap-0.5">dev.shopify.com <ExternalLink className="w-3 h-3" /></a>, log in, and go to **Apps** → click **Create app**.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">2</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Set Allowed URLs</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Under **Client credentials**, set **App URL** to <code>https://example.com</code> and **Allowed redirection URLs** to <code>https://example.com/auth/callback</code>.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">3</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Configure Scopes</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Under **API Access** or **Versions/Scopes**, select the scopes: <code>write_content</code> and <code>read_content</code>, then click save.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">4</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Perform App Authorization</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">Visit this URL in a new browser tab to trigger the installation flow:</p>
-                          <pre className="bg-slate-50 border border-slate-150 p-2 rounded-lg text-[9px] font-mono whitespace-pre-wrap break-all mt-1 select-all">
-                            {"https://{your-store}.myshopify.com/admin/oauth/authorize?client_id={client_id}&scope=write_content,read_content&redirect_uri=https://example.com/auth/callback"}
-                          </pre>
-                          <p className="text-[9px] text-slate-400 font-medium mt-1">Replace <code>{`{your-store}`}</code> with store handle (e.g. <code>uw0abf-vd</code>) and <code>{`{client_id}`}</code> with Client ID from App settings.</p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
-                        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center mt-0.5">5</div>
-                        <div>
-                          <h4 className="text-xs font-black text-slate-800">Retrieve code and exchange</h4>
-                          <p className="text-[11px] text-slate-500 mt-0.5 font-medium">After hitting Install, copy the authorization code from the redirected browser URL parameter (e.g. <code>?code=CODE</code>) and exchange it to retrieve the permanent Admin API access token (starts with <code>shpat_</code>).</p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="border-t border-slate-100 pt-4 flex justify-end">
-              <button
-                onClick={() => setShowGuide(false)}
-                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-5 rounded-xl cursor-pointer transition-all shadow-sm"
-              >
-                Got it, thanks!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

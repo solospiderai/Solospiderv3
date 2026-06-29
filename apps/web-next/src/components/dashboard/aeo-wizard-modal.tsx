@@ -93,7 +93,8 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
       return;
     }
     if (user && !canAddProject) {
-      toast.error(`Your ${currentPlan} plan is limited to ${projectLimit} project(s).`);
+      toast.error(`Your plan allows ${projectLimit} project(s). Upgrade your plan to add more.`);
+      window.location.href = "/pricing";
       return;
     }
 

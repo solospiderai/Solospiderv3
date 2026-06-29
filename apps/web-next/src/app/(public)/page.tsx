@@ -732,7 +732,7 @@ export default function HomePage() {
             </div>
 
             <div className="text-center mt-12 text-muted text-[14px] leading-relaxed reveal">
-              All plans include a <strong className="text-ink">14-day free trial</strong>. No credit card required.
+              All plans include a <strong className="text-ink">7-day free trial</strong>. Credit card required.
             </div>
           </div>
         </section>
@@ -753,7 +753,7 @@ export default function HomePage() {
                 { q: "What's AEO and GRO — do I really need it?", a: "AEO (Answer Engine Optimisation) and GRO (Generative Result Optimisation) help you appear in AI-generated search results — like Google's AI Overviews, ChatGPT, and Gemini answers. AI search is growing rapidly. Brands that optimise for it now will have a significant advantage. Yes, you need it." },
                 { q: "How is Solo Spider different from just using ChatGPT?", a: "ChatGPT can write — but it can't publish, schedule, audit, post, or track your SEO and AI visibility. Solo Spider wraps powerful AI writing with an end-to-end marketing workflow. It's the difference between having an ingredient and having a meal." },
                 { q: "Can I manage multiple clients or brands?", a: "Yes. The Agency plan supports 25+ separate client workspaces, each with their own brand settings, content calendars, and reports. You can manage everything without ever logging out." },
-                { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 14-day free trial. No credit card required. You can also use the Starter plan for free, forever." },
+                { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 7-day free trial. Credit card required. You can also use the Starter plan for free, forever." },
               ].map((faq, i) => (
                 <div key={i} className={`bg-white border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] reveal ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
@@ -797,7 +797,7 @@ export default function HomePage() {
               
               <div className="flex justify-center flex-wrap gap-x-8 gap-y-4 text-[13.5px] text-ink-2">
                 <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Free plan available, always</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>14-day trial on all paid plans</span>
+                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>7-day trial on all paid plans</span>
                 <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Cancel anytime, no questions asked</span>
                 <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Setup in under 5 minutes</span>
                 <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Used by 2,000+ marketers across India</span>

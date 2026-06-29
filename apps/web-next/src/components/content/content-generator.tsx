@@ -64,6 +64,36 @@ export function ContentGenerator({ redirectBase = "/app/en/content" }: { redirec
     try {
       const supabase = getSupabaseBrowserClient();
 
+      // --- Plan-based blog limit check ---
+      const { getPlanConfig } = await import("@/lib/services/projects");
+      const subRes = await supabase
+        .from("user_subscriptions" as any)
+        .select("plan")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+      const planCfg = getPlanConfig(userPlan);
+
+      if (planCfg.blogsPerMonth !== Infinity) {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+        const { count } = await supabase
+          .from("content_items")
+          .select("id", { count: "exact", head: true })
+          .eq("project_id", effectiveProjectId)
+          .gte("created_at", startOfMonth);
+        
+        if ((count ?? 0) >= planCfg.blogsPerMonth) {
+          toast.error(`You've used all ${planCfg.blogsPerMonth} blog posts for this month. Upgrade your plan for unlimited blogs.`);
+          setLoading(false);
+          window.location.href = "/pricing";
+          return;
+        }
+      }
+      // --- End plan check ---
+
+
       // Map Article Size to word count target
       let wc = 1200;
       if (articleSize.includes("Small")) wc = 800;

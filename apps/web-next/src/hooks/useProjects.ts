@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createProject, getPlanLimit, getProjects, getSubscription } from "@/lib/services/projects";
-import type { Project } from "@/types/project";
+import type { Project, PlanTier } from "@/types/project";
 
 const ACTIVE_PROJECT_KEY = "solospider.next.activeProjectId";
 
@@ -63,7 +63,7 @@ export function useProjects() {
     [projects, activeProjectId],
   );
 
-  const currentPlan = subscriptionQuery.data?.plan || "free";
+  const currentPlan = (subscriptionQuery.data?.plan || "free") as PlanTier;
   const projectLimit = getPlanLimit(currentPlan);
   const canAddProject = projects.length < projectLimit;
 

@@ -486,6 +486,25 @@ export function SeoWorkspace() {
   };
 
   const triggerAiRecommendation = async (issueId: string, pageItem: { url: string; detail?: string | number | null }) => {
+    // --- Plan gate: AI fix disabled for Starter ---
+    const { getPlanConfig } = await import("@/lib/services/projects");
+    const supabase = getSupabaseBrowserClient();
+    const subRes = await supabase
+      .from("user_subscriptions" as any)
+      .select("plan")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const planCfg = getPlanConfig(userPlan);
+
+    if (!planCfg.seoAiFixEnabled) {
+      toast.error("AI Fix is not available on the Starter plan. You can view recommendations only. Upgrade to Growth or higher.");
+      window.location.href = "/pricing";
+      return;
+    }
+    // --- End plan gate ---
+
     const cacheKey = `${issueId}-${pageItem.url}`;
     
     // Set loading state
@@ -743,6 +762,45 @@ export function SeoWorkspace() {
       toast.error("No website URL configured for this project.");
       return;
     }
+
+    // --- Plan-based audit frequency check ---
+    const { getPlanConfig } = await import("@/lib/services/projects");
+    const supabase2 = getSupabaseBrowserClient();
+    const subRes = await supabase2
+      .from("user_subscriptions" as any)
+      .select("plan")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const planCfg = getPlanConfig(userPlan);
+
+    if (planCfg.seoAuditPolicy === "once") {
+      // Starter: only 1 audit ever
+      const { count } = await supabase2
+        .from("crawl_runs" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", activeProject.id);
+      if ((count ?? 0) > 0) {
+        toast.error("Your Starter plan allows only one SEO audit. Upgrade to Growth for weekly audits.");
+        window.location.href = "/pricing";
+        return;
+      }
+    } else if (planCfg.seoAuditPolicy === "weekly") {
+      // Growth/Scale: 1 audit per week
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const { count } = await supabase2
+        .from("crawl_runs" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", activeProject.id)
+        .gte("created_at", weekAgo);
+      if ((count ?? 0) > 0) {
+        toast.error("You can run one SEO audit per week on your plan. Please wait until next week or upgrade.");
+        return;
+      }
+    }
+    // --- End plan check ---
+
     setCrawling(true);
     try {
       toast.info("🕷️ Launching Site Crawler locally...");

@@ -184,8 +184,8 @@ export function SocialPlanner() {
     }
   });
 
-  // Handle post generation
-  const handleSchedulePost = () => {
+  // Handle post scheduling with plan limit check
+  const handleSchedulePost = async () => {
     if (!activeProject) {
       toast.error("Please select a project first.");
       return;
@@ -198,6 +198,34 @@ export function SocialPlanner() {
       toast.error("Caption text cannot be empty.");
       return;
     }
+
+    // --- Plan-based schedule limit check ---
+    const { getPlanConfig } = await import("@/lib/services/projects");
+    const subRes = await supabase
+      .from("user_subscriptions" as any)
+      .select("plan")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const planCfg = getPlanConfig(userPlan);
+
+    if (planCfg.socialSchedulePerMonth !== Infinity) {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const { count } = await supabase
+        .from("social_posts" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("project_id", activeProject.id)
+        .gte("created_at", startOfMonth);
+
+      if ((count ?? 0) >= planCfg.socialSchedulePerMonth) {
+        toast.error(`You've used all ${planCfg.socialSchedulePerMonth} scheduled posts this month. Upgrade for unlimited scheduling.`);
+        window.location.href = "/pricing";
+        return;
+      }
+    }
+    // --- End plan check ---
 
     const scheduledDateTime = new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString();
 
@@ -212,8 +240,26 @@ export function SocialPlanner() {
     });
   };
 
-  // Generate AI Caption simulating Supabase edge function call
+  // Generate AI Caption — disabled for Starter plan
   const generateAICaption = async () => {
+    // --- Plan gate: AI generation disabled for Starter ---
+    const { getPlanConfig } = await import("@/lib/services/projects");
+    const subRes = await supabase
+      .from("user_subscriptions" as any)
+      .select("plan")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const userPlan = (subRes.data?.plan || "free") as import("@/types/project").PlanTier;
+    const planCfg = getPlanConfig(userPlan);
+
+    if (!planCfg.socialGenerateEnabled) {
+      toast.error("AI content generation is not available on the Starter plan. Upgrade to Growth or higher.");
+      window.location.href = "/pricing";
+      return;
+    }
+    // --- End plan gate ---
+
     if (!aiPrompt.trim()) {
       toast.error("Please enter an AI prompt to guide the generator.");
       return;

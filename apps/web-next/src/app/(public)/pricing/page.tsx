@@ -104,7 +104,16 @@ export default function PricingPage() {
                   <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
                 </div>
                 <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
-                  {["5 blog posts/month", "20 social posts/month", "Basic SEO audit (1 website)", "AEO insights (limited)", "1 connected social account"].map((f, i) => (
+                  {[
+                    "1 project",
+                    "1 AI model (+$50/extra)",
+                    "5 blog posts/month",
+                    "30 social posts (schedule only)",
+                    "1 SEO audit (total)",
+                    "SEO recommendations only",
+                    "5 social media connections",
+                    "SoloSpider branding on reports",
+                  ].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start text-left">
                       <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
                         <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
@@ -119,8 +128,8 @@ export default function PricingPage() {
               </div>
 
               {/* Growth Plan */}
-              <div className="relative border border-primary/20 bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45 overflow-visible">
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-pink text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-3.5 py-1 rounded-full z-10 shadow-md">Most popular</span>
+              <div className="relative border-2 border-[#9025F2] bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
+                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#9025F2] to-pink text-white font-display font-extrabold text-[11px] tracking-widest uppercase px-4 py-1.5 rounded-full z-15 shadow-lg border border-white/20 whitespace-nowrap">Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink -mt-1 uppercase">GROWTH</h3>
@@ -134,7 +143,17 @@ export default function PricingPage() {
                   </div>
                 </div>
                 <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
-                  {["Unlimited blog posts", "Unlimited social content", "Full SEO audit + auto-fix", "AEO & GRO dashboard", "5 social accounts", "Priority support"].map((f, i) => (
+                  {[
+                    "5 projects (+$50/extra)",
+                    "4 AI models (+$50/extra)",
+                    "Unlimited blog posts",
+                    "Unlimited social scheduling",
+                    "30 AI media studio posts/mo",
+                    "Weekly SEO audit + AI fix",
+                    "Unlimited AEO/GEO",
+                    "5 social media connections",
+                    "Priority support",
+                  ].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start text-left">
                       <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary text-white flex items-center justify-center mt-0.5">
                         <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
@@ -158,7 +177,19 @@ export default function PricingPage() {
                   <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
                 </div>
                 <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
-                  {["Everything in GROWTH", "10 client workspaces", "White-label reports", "Bulk content scheduling", "API access parameters", "24/7 dedicated support"].map((f, i) => (
+                  {[
+                    "10 projects (+$50/extra)",
+                    "7 AI models (+$50/extra)",
+                    "Unlimited blog posts",
+                    "Unlimited social scheduling",
+                    "30 AI media studio posts/mo",
+                    "Weekly SEO audit + AI fix",
+                    "Unlimited AEO/GEO",
+                    "5 social media connections",
+                    "Your brand logo on reports",
+                    "API access (coming soon)",
+                    "24/7 dedicated support",
+                  ].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start text-left">
                       <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
                         <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
@@ -174,14 +205,26 @@ export default function PricingPage() {
 
               {/* Custom Plan */}
               <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise & custom needs</span>
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">CUSTOM</h3>
                 <div className="text-[12px] text-muted -mt-2">For large teams & custom volume</div>
                 <div className="flex items-baseline justify-center gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">Custom</span>
                 </div>
                 <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-7">
-                  {["Everything in SCALE", "Unlimited client workspaces", "Custom AI model tuning", "Dedicated account manager", "SLA guarantees & custom API", "Dedicated onboarding call"].map((f, i) => (
+                  {[
+                    "Custom projects",
+                    "Custom AI models",
+                    "Custom blog generation",
+                    "Custom social & media studio",
+                    "Custom SEO audit + AI fix",
+                    "Custom AEO/GEO",
+                    "Custom social connections",
+                    "Your brand on reports",
+                    "Full API access",
+                    "Custom SLA & support",
+                    "Dedicated onboarding call",
+                  ].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start text-left">
                       <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
                         <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
@@ -198,7 +241,7 @@ export default function PricingPage() {
             </div>
 
             <div className="text-center mt-12 text-muted text-[14px] leading-relaxed">
-              All plans include a <strong className="text-ink">14-day free trial</strong>. No credit card required.
+              All plans include a <strong className="text-ink">7-day free trial</strong>. Credit card required.
             </div>
           </div>
         </section>
