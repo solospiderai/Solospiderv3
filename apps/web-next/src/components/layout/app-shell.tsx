@@ -207,6 +207,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const handleSignOut = async () => {
     const supabase = getSupabaseBrowserClient();
+    if (typeof window !== "undefined") {
+      window.localStorage.clear();
+    }
     await supabase.auth.signOut();
     toast.success("Signed out successfully");
     router.replace("/login");

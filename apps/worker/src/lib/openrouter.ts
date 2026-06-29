@@ -4,13 +4,13 @@ const BASE_URL = "https://openrouter.ai/api/v1";
 
 export const MODEL_MAP: Record<string, string> = {
   chatgpt:       "openai/gpt-4o-mini",
-  gemini:        "google/gemini-3.5-flash",
-  claude:        "anthropic/claude-3.5-haiku",
-  perplexity:    "anthropic/claude-3.5-sonnet", // Map perplexity key under-the-hood to premium Claude 3.5 Sonnet
-  grok:          "x-ai/grok-3-mini-beta",
+  gemini:        "google/gemini-2.5-flash",
+  claude:        "anthropic/claude-3-haiku",
+  perplexity:    "anthropic/claude-sonnet-4", // Maps under-the-hood to Claude 3.5 Sonnet
+  grok:          "x-ai/grok-4.3",
   deepseek:      "deepseek/deepseek-chat",
-  claude_sonnet: "anthropic/claude-3.5-sonnet",
-  claude_opus:   "anthropic/claude-3-opus",
+  claude_sonnet: "anthropic/claude-sonnet-4",
+  claude_opus:   "anthropic/claude-opus-4",
 };
 
 async function fetchWithRetry(
@@ -48,7 +48,11 @@ export async function queryModel(
   prompt: string,
   systemPrompt?: string,
   maxTokens?: number
-): Promise<{ text: string; latencyMs: number }> {
+): Promise<{ 
+  text: string; 
+  latencyMs: number; 
+  usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } 
+}> {
   const modelId = MODEL_MAP[modelKey];
   if (!modelId) throw new Error(`Unknown model key: ${modelKey}`);
 
@@ -97,5 +101,9 @@ export async function queryModel(
   }
 
   const text = data?.choices?.[0]?.message?.content ?? "";
-  return { text, latencyMs };
+  return { 
+    text, 
+    latencyMs,
+    usage: usage ?? { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+  };
 }

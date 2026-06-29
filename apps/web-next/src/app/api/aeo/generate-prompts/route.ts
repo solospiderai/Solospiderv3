@@ -280,9 +280,9 @@ export async function POST(request: NextRequest) {
 
     const MODEL_MAP: Record<string, string> = {
       chatgpt:    "openai/gpt-4o-mini",
-      gemini:     "google/gemini-3.5-flash",
-      claude:     "anthropic/claude-3.5-haiku",
-      perplexity: "anthropic/claude-3.5-sonnet", // Claude 3.5 Sonnet replaces Perplexity Sonar
+      gemini:     "google/gemini-2.5-flash",
+      claude:     "anthropic/claude-3-haiku",
+      perplexity: "anthropic/claude-sonnet-4", // Claude 3.5 Sonnet replaces Perplexity Sonar
     };
 
     const promptText = `You are an expert SEO and Answer Engine Optimization (AEO/GEO) query researcher.

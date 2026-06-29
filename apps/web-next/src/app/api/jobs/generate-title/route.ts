@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
             "X-Title": "SoloSpider",
           },
           body: JSON.stringify({
-            model: "google/gemini-3.5-flash",
+            model: "google/gemini-2.5-flash",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 150,
             temperature: 0.7,

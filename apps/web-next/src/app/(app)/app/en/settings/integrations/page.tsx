@@ -92,8 +92,8 @@ export default function IntegrationsSettingsPage() {
   const queryClient = useQueryClient();
   const supabase = getSupabaseBrowserClient();
 
-  // Active form view: "wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | null
-  const [activeForm, setActiveForm] = useState<"wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | null>(null);
+  // Active form view: "wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | "google_search_console" | null
+  const [activeForm, setActiveForm] = useState<"wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | "google_search_console" | null>(null);
   const [pendingFix, setPendingFix] = useState<{ issueId: string; pageUrl: string; suggestedValue: string } | null>(null);
 
   useEffect(() => {
@@ -130,6 +130,11 @@ export default function IntegrationsSettingsPage() {
   const [googleClientId, setGoogleClientId] = useState("");
   const [googleClientSecret, setGoogleClientSecret] = useState("");
   const [googleRefreshToken, setGoogleRefreshToken] = useState("");
+
+  // Google Search Console form states
+  const [gscClientId, setGscClientId] = useState("");
+  const [gscClientSecret, setGscClientSecret] = useState("");
+  const [gscRefreshToken, setGscRefreshToken] = useState("");
 
   // Verification states
   const [editingIntegrationId, setEditingIntegrationId] = useState<string | null>(null);
@@ -241,6 +246,9 @@ export default function IntegrationsSettingsPage() {
       setGoogleClientId("");
       setGoogleClientSecret("");
       setGoogleRefreshToken("");
+      setGscClientId("");
+      setGscClientSecret("");
+      setGscRefreshToken("");
 
       if (typeof window !== "undefined") {
         const pending = window.localStorage.getItem("solospider.pending_fix");
@@ -417,6 +425,28 @@ export default function IntegrationsSettingsPage() {
     }, 1000);
   };
 
+  const handleAddGoogleSearchConsole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!gscClientId || !gscClientSecret || !gscRefreshToken) {
+      toast.error("Please fill in all Google Search Console credential fields.");
+      return;
+    }
+    const creds = {
+      clientId: gscClientId.trim(),
+      clientSecret: gscClientSecret.trim(),
+      refreshToken: gscRefreshToken.trim(),
+    };
+
+    const result = await verifyCredentials("google_search_console", creds);
+    if (!result.ok) {
+      toast.error("Google Search Console verification failed", { description: result.error });
+      return;
+    }
+
+    addIntegrationMutation.mutate({ platform: "google_search_console", credentials: creds });
+    setActiveForm(null);
+  };
+
   const handleEditIntegration = (integration: any) => {
     setEditingIntegrationId(integration.id);
     setVerificationResult(null);
@@ -434,6 +464,11 @@ export default function IntegrationsSettingsPage() {
       setMagentoUrl(integration.credentials?.siteUrl || "");
       setMagentoToken("");
       setActiveForm("magento");
+    } else if (integration.platform === "google_search_console") {
+      setGscClientId(integration.credentials?.clientId || "");
+      setGscClientSecret("");
+      setGscRefreshToken("");
+      setActiveForm("google_search_console");
     }
   };
 
@@ -747,28 +782,112 @@ export default function IntegrationsSettingsPage() {
             </div>
 
             {/* Embedded GSC Step-by-Step Guide */}
-            <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-3.5 space-y-2 text-[11px]">
+            <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-4 space-y-3 text-[11px]">
               <p className="font-extrabold text-blue-700 uppercase tracking-wide text-[9px]">GSC Connection Steps:</p>
-              <ol className="list-decimal list-inside space-y-1.5 text-slate-550 font-semibold leading-relaxed">
-                <li>Go to <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-blue-600 underline">search.google.com/search-console</a>.</li>
-                <li>Click <strong className="text-slate-700">Add Property</strong> in the top dropdown, and verify ownership of your domain using DNS TXT record or HTML file upload.</li>
-                <li>Once verified, click the connect button below to authorize GSC access for SoloSpider.</li>
+              <ol className="list-decimal list-inside space-y-2 text-slate-550 font-semibold leading-relaxed">
+                <li>Make sure your website domain is verified on <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Google Search Console</a>.</li>
+                <li>Open the <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">OAuth Consent Screen</a> in your Google Cloud Console. Choose <strong className="text-slate-700">External</strong>, fill in the app name (e.g. <code className="bg-slate-100 px-1 rounded">SoloSpider</code>) and contact email, and save. Under <strong className="text-slate-700">Test Users</strong>, add the Google email address of your Search Console account.</li>
+                <li>Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Credentials Page</a>, click <strong className="text-slate-700">Create Credentials &rarr; OAuth client ID</strong>, select <strong className="text-slate-700">Web application</strong>, and add <code className="bg-slate-100 px-1 rounded text-slate-700">https://developers.google.com/oauthplayground</code> under <strong className="text-slate-700">Authorized Redirect URIs</strong>. Click Create to get your <strong className="text-slate-700">Client ID</strong> and <strong className="text-slate-700">Client Secret</strong>.</li>
+                <li>Open the <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Google OAuth Playground</a>. Click the gear icon ⚙️ (top-right), check <strong className="text-slate-700">Use your own OAuth credentials</strong>, and enter your Client ID &amp; Secret. On the left, select <strong className="text-slate-700">Google Search Console API v3</strong> (or input <code className="bg-slate-100 px-1 rounded">https://www.googleapis.com/auth/webmasters.readonly</code>), click <strong className="text-slate-700">Authorize APIs</strong>, log in, and click <strong className="text-slate-700">Exchange authorization code for tokens</strong> to get your <strong className="text-slate-700">Refresh Token</strong>.</li>
               </ol>
             </div>
 
-            <div className="flex items-center justify-between border-t border-slate-150 pt-3.5">
-              <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                Not Connected
-              </span>
-              <a
-                href="https://search.google.com/search-console"
-                target="_blank"
-                rel="noreferrer"
-                className="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
-              >
-                Connect Search Console
-              </a>
-            </div>
+            {/* GSC Form */}
+            {activeForm === "google_search_console" && (
+              <form onSubmit={handleAddGoogleSearchConsole} className="bg-slate-50/50 rounded-2xl p-4 border border-blue-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <h4 className="text-[11px] font-black uppercase text-slate-700">Google Search Console Setup</h4>
+
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Client ID (from Google Cloud Console)"
+                    value={gscClientId}
+                    onChange={(e) => setGscClientId(e.target.value)}
+                    className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Client Secret"
+                    value={gscClientSecret}
+                    onChange={(e) => setGscClientSecret(e.target.value)}
+                    className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Refresh Token"
+                    value={gscRefreshToken}
+                    onChange={(e) => setGscRefreshToken(e.target.value)}
+                    className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                  />
+                </div>
+
+                {verificationResult && (
+                  <div className={`p-2.5 rounded-xl border text-[10px] font-bold flex gap-2 items-center ${
+                    verificationResult.ok ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"
+                  }`}>
+                    {verificationResult.ok ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                    <span>{verificationResult.message || verificationResult.error}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isVerifying || addIntegrationMutation.isPending}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[11px] py-2 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {(isVerifying || addIntegrationMutation.isPending) ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Saving Connection...
+                    </>
+                  ) : (
+                    "Save & Connect"
+                  )}
+                </button>
+              </form>
+            )}
+
+            {/* GSC Actions / Status */}
+            {(() => {
+              const gsc = allConnectedIntegrations.find((int: any) => int.platform === "google_search_console");
+              return (
+                <div className="flex items-center justify-between border-t border-slate-150 pt-3.5">
+                  {gsc ? (
+                    <>
+                      <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" /> Connected
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleEditIntegration(gsc)}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold py-1.5 px-3 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => disconnectCmsMutation.mutate(gsc.id)}
+                          className="bg-red-50 hover:bg-red-100 text-red-650 border border-red-200/50 text-[10px] font-bold py-1.5 px-3 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Disconnect
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <span className="bg-amber-500/10 text-amber-600 border border-amber-500/20 text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                        Not Connected
+                      </span>
+                      <button
+                        onClick={() => setActiveForm(activeForm === "google_search_console" ? null : "google_search_console")}
+                        className="bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-extrabold py-2 px-4 rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                      >
+                        {activeForm === "google_search_console" ? "Close Setup" : "Connect Search Console"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
         </div>

@@ -368,7 +368,28 @@ export function SeoWorkspace() {
   const [showKeywordsModal, setShowKeywordsModal] = useState(false);
   const [showBacklinksModal, setShowBacklinksModal] = useState(false);
 
+  // Google Search Console query
+  const gscQuery = useQuery({
+    queryKey: ["search_analytics", activeProject?.id],
+    enabled: !!activeProject?.id,
+    queryFn: async () => {
+      const res = await fetch(`/api/seo/search-analytics?projectId=${activeProject!.id}`);
+      if (!res.ok) throw new Error("Failed to load search console metrics");
+      return res.json();
+    }
+  });
+
+  const gsc = gscQuery.data;
+
   const dynamicKeywords = useMemo(() => {
+    if (gsc?.connected && Array.isArray(gsc.topQueries) && gsc.topQueries.length > 0) {
+      return gsc.topQueries.map((q: any) => ({
+        query: q.query,
+        pos: q.position,
+        volume: q.impressions,
+      }));
+    }
+
     const cleanBrand = (activeProject?.brand_name || activeProject?.name || "brand").toLowerCase().trim();
     const cleanDomain = activeProject?.domain
       ? activeProject.domain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0].split(".")[0]
@@ -381,7 +402,7 @@ export function SeoWorkspace() {
       { query: `${cleanBrand} pricing`, pos: 2, volume: 1600 },
       { query: `buy ${cleanDomain} online`, pos: 8, volume: 3200 },
     ];
-  }, [activeProject]);
+  }, [activeProject, gsc]);
 
   const dynamicBacklinks = useMemo(() => {
     const cleanBrand = activeProject?.brand_name || activeProject?.name || "Brand";
@@ -1270,8 +1291,17 @@ export function SeoWorkspace() {
         visualStability: 0,
       };
     }
-    return getDomainSeoMetrics(activeProject.domain, crawledPages.length, domainInfo.location, projectMetadata);
-  }, [activeProject, domainInfo, crawledPages.length, projectMetadata]);
+    const baseMetrics = getDomainSeoMetrics(activeProject.domain, crawledPages.length, domainInfo.location, projectMetadata);
+
+    if (gsc?.connected) {
+      return {
+        ...baseMetrics,
+        organicTraffic: gsc.organicTraffic,
+      };
+    }
+
+    return baseMetrics;
+  }, [activeProject, domainInfo, crawledPages.length, projectMetadata, gsc]);
 
   const crawlStats = useMemo(() => {
     const total = crawledPages.length;
@@ -2794,19 +2824,28 @@ export function SeoWorkspace() {
               <span>Timeframe</span>
               <span className="text-right">Estimated Organic Visits</span>
             </div>
-            {[
-              { label: "5 Months Ago", value: Math.round(metrics.organicTraffic * 0.75) },
-              { label: "4 Months Ago", value: Math.round(metrics.organicTraffic * 0.82) },
-              { label: "3 Months Ago", value: Math.round(metrics.organicTraffic * 0.88) },
-              { label: "2 Months Ago", value: Math.round(metrics.organicTraffic * 0.91) },
-              { label: "1 Month Ago", value: Math.round(metrics.organicTraffic * 0.96) },
-              { label: "Current Month", value: metrics.organicTraffic },
-            ].map((row, idx) => (
-              <div key={idx} className="grid grid-cols-2 p-3 border-b border-slate-200 last:border-b-0 text-xs font-semibold text-slate-700">
-                <span>{row.label}</span>
-                <span className="text-right font-bold text-slate-900">{row.value.toLocaleString()}</span>
-              </div>
-            ))}
+            {gsc?.connected && Array.isArray(gsc.sparklineTraffic) && gsc.sparklineTraffic.length > 0 ? (
+              gsc.sparklineTraffic.slice(-7).map((row: any, idx: number) => (
+                <div key={idx} className="grid grid-cols-2 p-3 border-b border-slate-200 last:border-b-0 text-xs font-semibold text-slate-700">
+                  <span>{row.date ? new Date(row.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : `Day ${idx + 1}`}</span>
+                  <span className="text-right font-bold text-slate-900">{row.value.toLocaleString()} clicks</span>
+                </div>
+              ))
+            ) : (
+              [
+                { label: "5 Months Ago", value: Math.round(metrics.organicTraffic * 0.75) },
+                { label: "4 Months Ago", value: Math.round(metrics.organicTraffic * 0.82) },
+                { label: "3 Months Ago", value: Math.round(metrics.organicTraffic * 0.88) },
+                { label: "2 Months Ago", value: Math.round(metrics.organicTraffic * 0.91) },
+                { label: "1 Month Ago", value: Math.round(metrics.organicTraffic * 0.96) },
+                { label: "Current Month", value: metrics.organicTraffic },
+              ].map((row, idx) => (
+                <div key={idx} className="grid grid-cols-2 p-3 border-b border-slate-200 last:border-b-0 text-xs font-semibold text-slate-700">
+                  <span>{row.label}</span>
+                  <span className="text-right font-bold text-slate-900">{row.value.toLocaleString()} visits</span>
+                </div>
+              ))
+            )}
           </div>
           <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl space-y-1">
             <h4 className="text-xs font-extrabold text-indigo-900">💡 Trajectory Analysis</h4>
@@ -2832,7 +2871,7 @@ export function SeoWorkspace() {
               <span className="text-center">Position</span>
               <span className="text-right">Search Volume</span>
             </div>
-            {dynamicKeywords.map((kw, idx) => (
+            {dynamicKeywords.map((kw: any, idx: number) => (
               <div key={idx} className="grid grid-cols-4 p-3 border-b border-slate-200 last:border-b-0 text-xs font-semibold text-slate-700 items-center">
                 <span className="col-span-2 font-bold text-slate-900 truncate">{kw.query}</span>
                 <span className="text-center font-bold text-indigo-650 bg-indigo-50 rounded px-1.5 py-0.5 w-fit mx-auto text-[10px]">#{kw.pos}</span>

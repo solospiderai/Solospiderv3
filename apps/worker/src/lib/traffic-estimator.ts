@@ -89,6 +89,7 @@ export async function estimateRealTraffic(
   crawledPageCount: number = 0,
   totalWordCount: number = 0
 ): Promise<TrafficEstimate | null> {
+  try {
     let cleanDomain = domain.trim().toLowerCase();
     cleanDomain = cleanDomain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0];
 

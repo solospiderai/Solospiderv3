@@ -5,7 +5,7 @@ import { readJson } from "@/server/api";
 export const runtime = "nodejs";
 
 const VerifySchema = z.object({
-  platform: z.enum(["wordpress", "shopify", "magento"]),
+  platform: z.enum(["wordpress", "shopify", "magento", "google_search_console"]),
   credentials: z.any(),
 });
 
@@ -213,6 +213,59 @@ async function verifyShopify(credentials: any) {
   }
 }
 
+async function verifyGoogleSearchConsole(credentials: any) {
+  const clientId = credentials.clientId || credentials.client_id;
+  const clientSecret = credentials.clientSecret || credentials.client_secret;
+  const refreshToken = credentials.refreshToken || credentials.refresh_token;
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    return { ok: false, error: "Missing Client ID, Client Secret, or Refresh Token." };
+  }
+
+  try {
+    // 1. Exchange refresh token for an access token
+    const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text();
+      return { ok: false, error: `Google OAuth Token exchange failed: ${errText}` };
+    }
+
+    const tokenData = await tokenRes.json();
+    const accessToken = tokenData.access_token;
+
+    // 2. Fetch the user's sites list to verify Search Console permissions
+    const sitesRes = await fetch("https://www.googleapis.com/webmasters/v3/sites", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!sitesRes.ok) {
+      const errText = await sitesRes.text();
+      return { ok: false, error: `Failed to query Webmasters API: ${errText}` };
+    }
+
+    const sitesData = await sitesRes.json();
+    const sites = sitesData.siteEntry || [];
+    return { 
+      ok: true, 
+      message: `Google Search Console connected successfully! Found ${sites.length} site(s) on your Google account.` 
+    };
+  } catch (err: any) {
+    return { ok: false, error: `Google API connection failed: ${err.message}` };
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const parsed = VerifySchema.safeParse(await readJson(request));
@@ -227,6 +280,8 @@ export async function POST(request: NextRequest) {
       result = await verifyWordPress(credentials);
     } else if (platform === "shopify") {
       result = await verifyShopify(credentials);
+    } else if (platform === "google_search_console") {
+      result = await verifyGoogleSearchConsole(credentials);
     } else {
       // Magento - basic connectivity check
       result = { ok: true, message: "Magento credentials saved (no verification available yet)." };

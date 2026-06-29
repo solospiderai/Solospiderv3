@@ -9,9 +9,11 @@ const DiscoverTopicsSchema = z.object({
   brandName: z.string().optional().default(""),
 });
 
-async function callOpenRouter(prompt: string, model = "google/gemini-3.5-flash") {
+async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash") {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
   let text = "";
+
+  console.log(`[callOpenRouter] Model: ${model} | API Key Loaded: ${openrouterKey ? `${openrouterKey.slice(0, 10)}...${openrouterKey.slice(-5)} (len: ${openrouterKey.length})` : "MISSING"}`);
 
   if (openrouterKey) {
     try {
@@ -29,6 +31,7 @@ async function callOpenRouter(prompt: string, model = "google/gemini-3.5-flash")
           messages: [{ role: "user", content: prompt }],
           max_tokens: 1500,
           temperature: 0.3,
+          response_format: { type: "json_object" }
         }),
       });
 
@@ -36,7 +39,8 @@ async function callOpenRouter(prompt: string, model = "google/gemini-3.5-flash")
         const data = await response.json();
         text = data.choices?.[0]?.message?.content?.trim() || "";
       } else {
-        console.warn(`[callOpenRouter] OpenRouter responded with ${response.status}: ${await response.text()}`);
+        const errBody = await response.text();
+        console.warn(`[callOpenRouter] OpenRouter responded with ${response.status}: ${errBody}`);
       }
     } catch (err) {
       console.warn("[callOpenRouter] OpenRouter failed, falling back to pollinations:", err);
@@ -111,6 +115,8 @@ export async function POST(request: NextRequest) {
 2. DISCOVER exactly 6-8 relevant, high-volume search-phrase keywords/topics (representing unbranded keywords or query themes that actual customers use when looking for products or services in this niche, e.g. 'best budget friendly perfumes', 'long lasting fragrance for women', 'perfume vs eau de toilette', 'perfume sampler sets', 'perfume gift ideas for men') for conversational search engine optimization (AEO/GEO).
 3. IDENTIFY exactly 3 actual competitors of this brand (their brand names and website domain names, if possible).
    CRITICAL FOR COMPETITORS: Verify carefully that each competitor is of the exact same business model, rank, and category as the target brand. For instance, if the website is a specific academic university, the competitors MUST be other actual, comparable higher-education universities in the same market or state, not boards, government databases, non-academic portals, or generic abbreviation domains like 'gtu'.
+
+FALLBACK INSTRUCTION: If the "CRAWLED HOMEPAGE CONTENT" section below is empty or says "No page content crawled.", you MUST use your own general pre-trained web knowledge about the domain name "${domain}" and brand name "${brandName}" to deduce the location, topics, and identify 3 actual competitors. Do not return empty arrays.
 
 Business Metadata:
 - Provided Brand Name: "${brandName}"

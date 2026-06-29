@@ -183,8 +183,52 @@ Instructions:
     }
   };
 
-  const perplexityCache = new Map<string, { text: string; latencyMs: number }>();
-  const perplexityLock = new Map<string, Promise<{ text: string; latencyMs: number }>>();
+  const tokenReport: Record<string, { prompt: number; completion: number; total: number; cost: number }> = {};
+
+  const trackTokens = (modelKey: string, usage: any) => {
+    if (!tokenReport[modelKey]) {
+      tokenReport[modelKey] = { prompt: 0, completion: 0, total: 0, cost: 0 };
+    }
+    const prompt = usage?.prompt_tokens || 0;
+    const completion = usage?.completion_tokens || 0;
+    const total = usage?.total_tokens || 0;
+
+    let rateInput = 0;
+    let rateOutput = 0;
+
+    if (modelKey === "gemini") {
+      rateInput = 0.075;
+      rateOutput = 0.30;
+    } else if (modelKey === "chatgpt") {
+      rateInput = 0.15;
+      rateOutput = 0.60;
+    } else if (modelKey === "claude") {
+      rateInput = 0.25;
+      rateOutput = 1.25;
+    } else if (modelKey === "deepseek") {
+      rateInput = 0.14;
+      rateOutput = 0.28;
+    } else if (modelKey === "perplexity" || modelKey === "claude_sonnet") {
+      rateInput = 3.00;
+      rateOutput = 15.00;
+    } else if (modelKey === "grok") {
+      rateInput = 5.00;
+      rateOutput = 15.00;
+    } else if (modelKey === "claude_opus") {
+      rateInput = 15.00;
+      rateOutput = 75.00;
+    }
+
+    const cost = ((prompt * rateInput) / 1000000) + ((completion * rateOutput) / 1000000);
+
+    tokenReport[modelKey].prompt += prompt;
+    tokenReport[modelKey].completion += completion;
+    tokenReport[modelKey].total += total;
+    tokenReport[modelKey].cost += cost;
+  };
+
+  const perplexityCache = new Map<string, { text: string; latencyMs: number; usage?: any }>();
+  const perplexityLock = new Map<string, Promise<{ text: string; latencyMs: number; usage?: any }>>();
 
   const getPerplexityGrounding = async (promptId: string, promptText: string) => {
     if (perplexityCache.has(promptId)) {
@@ -200,10 +244,11 @@ Instructions:
         const searchSysPrompt = `You are a real-time search engine query synthesizer. Provide a detailed summary of live web search results, top sources, links, comparison of brands, and a list of competitor brands visible on the web for this query. Be objective and cite real websites.`;
         const res = await queryModel("perplexity", promptText, searchSysPrompt);
         perplexityCache.set(promptId, res);
+        trackTokens("perplexity", res.usage);
         return res;
       } catch (err) {
         console.error(`[PromptScanWorker] Failed to query Perplexity Sonar grounding context for "${promptText}":`, err);
-        const fallback = { text: "No live search context available due to lookup timeout or error.", latencyMs: 0 };
+        const fallback = { text: "No live search context available due to lookup timeout or error.", latencyMs: 0, usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 } };
         perplexityCache.set(promptId, fallback);
         return fallback;
       }
@@ -242,6 +287,7 @@ Instructions:
 
         console.log(`[PromptScanWorker] Querying model: ${modelKey} for prompt "${prompt.prompt.slice(0, 50)}…"`);
         res = await queryModel(modelKey, prompt.prompt, enrichedSystemPrompt);
+        trackTokens(modelKey, res.usage);
       }
 
       responseText = res.text;
@@ -360,6 +406,23 @@ Instructions:
 
   await Promise.all(workers);
   await saveRunProgress(true);
+
+  // Print final SoloSpider Token and Cost report to worker terminal
+  console.log("\n========================================================");
+  console.log("            SOLOSPIDER TOKEN & COST REPORT              ");
+  console.log("========================================================");
+  let grandTotalCost = 0;
+  for (const [model, stats] of Object.entries(tokenReport)) {
+    console.log(`Model: ${model}`);
+    console.log(`  - Input (Prompt) Tokens: ${stats.prompt}`);
+    console.log(`  - Output (Completion) Tokens: ${stats.completion}`);
+    console.log(`  - Total Tokens: ${stats.total}`);
+    console.log(`  - Estimated Cost: $${stats.cost.toFixed(5)}`);
+    grandTotalCost += stats.cost;
+  }
+  console.log("--------------------------------------------------------");
+  console.log(`GRAND TOTAL RUN COST: $${grandTotalCost.toFixed(4)}`);
+  console.log("========================================================\n");
 
   // ── 4. Mark complete ─────────────────────────────────────────────────────────
   await supabase.from("prompt_scan_runs").update({
