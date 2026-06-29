@@ -239,15 +239,15 @@ Instructions:
     }
 
     const searchPromise = (async () => {
-      console.log(`[PromptScanWorker] Querying Perplexity Sonar for live search grounding: "${promptText.slice(0, 50)}…"`);
+      console.log(`[PromptScanWorker] Querying Gemini for live search grounding: "${promptText.slice(0, 50)}…"`);
       try {
         const searchSysPrompt = `You are a real-time search engine query synthesizer. Provide a detailed summary of live web search results, top sources, links, comparison of brands, and a list of competitor brands visible on the web for this query. Be objective and cite real websites.`;
-        const res = await queryModel("perplexity", promptText, searchSysPrompt);
+        const res = await queryModel("gemini", promptText, searchSysPrompt);
         perplexityCache.set(promptId, res);
-        trackTokens("perplexity", res.usage);
+        trackTokens("gemini", res.usage);
         return res;
       } catch (err) {
-        console.error(`[PromptScanWorker] Failed to query Perplexity Sonar grounding context for "${promptText}":`, err);
+        console.error(`[PromptScanWorker] Failed to query Gemini grounding context for "${promptText}":`, err);
         const fallback = { text: "No live search context available due to lookup timeout or error.", latencyMs: 0, usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 } };
         perplexityCache.set(promptId, fallback);
         return fallback;
