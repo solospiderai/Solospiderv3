@@ -193,31 +193,16 @@ export function estimateDomainMetrics(domain: string, crawledPageCount: number, 
     };
   }
 
-  // 2. Normal/local sites - estimate using domain hash + page count (temporary until real data loads)
-  const baseTraffic = 35 + (hash % 45); // 35 - 80 visits base
+  // 2. Normal/local sites - estimate using domain hash + page count (temporary until real GSC data is loaded)
+  const baseVisits = 450 + (hash % 300);
+  const pageMult = crawledPageCount * 185;
+  
+  let organicTraffic = baseVisits + pageMult;
+  if (organicTraffic < 250) organicTraffic = 250;
 
-  let tldMult = 1.0;
-  if (cleanHost.endsWith(".in") || cleanHost.endsWith(".co.in")) {
-    tldMult = 0.65;
-  } else if (cleanHost.endsWith(".xyz") || cleanHost.endsWith(".club") || cleanHost.endsWith(".info")) {
-    tldMult = 0.35;
-  } else if (cleanHost.endsWith(".ai") || cleanHost.endsWith(".io") || cleanHost.endsWith(".co")) {
-    tldMult = 1.1;
-  }
-
-  const nameLen = cleanHost.split(".")[0].length;
-  let lenMult = 1.0;
-  if (nameLen <= 5) lenMult = 1.2;
-  else if (nameLen > 12) lenMult = 0.75;
-
-  const scaleMult = 0.85 + (Math.min(100, crawledPageCount) * 0.003); // very soft scaling by pages
-
-  let organicTraffic = Math.round(baseTraffic * tldMult * lenMult * scaleMult);
-  if (organicTraffic < 10) organicTraffic = 10;
-  if (organicTraffic > 180) organicTraffic = 180; // cap fallback estimate to a realistic level
-
-  const organicKeywords = Math.round(organicTraffic * 0.92) + (hash % 10) + 1;
-  const backlinks = Math.round(organicTraffic * 0.27) + (hash % 5) + 1;
+  const organicKeywords = Math.round(crawledPageCount * 12.5) + (hash % 150) + 10;
+  const backlinks = Math.round(crawledPageCount * 65.2) + (hash % 200) + 25;
+  const domainAuthority = Math.min(85, Math.max(8, Math.round(12 + (crawledPageCount * 0.45) + (hash % 8))));
 
   const trendDir = (hash % 2 === 0) ? 1 : -1;
 
@@ -241,7 +226,7 @@ export function estimateDomainMetrics(domain: string, crawledPageCount: number, 
     organicTraffic,
     organicKeywords,
     backlinks,
-    domainAuthority: 0,
+    domainAuthority,
     sparklineTraffic,
     sparklineImpressions,
     sparklineBacklinks,
