@@ -36,7 +36,7 @@ async function processScoringJob(job: Job<ScoringJobData>): Promise<object> {
   const geoScore         = Math.min(100, Math.max(0, rawScore));
 
   // Per-model breakdown
-  const modelKeys = ["chatgpt", "gemini", "perplexity", "claude", "grok", "deepseek"];
+  const modelKeys = ["chatgpt", "gemini", "perplexity", "claude", "grok", "deepseek", "claude_sonnet", "claude_opus"];
   const modelBreakdown = modelKeys.map(model => {
     const modelResults = results.filter(r => r.model === model);
     if (modelResults.length === 0) return null;

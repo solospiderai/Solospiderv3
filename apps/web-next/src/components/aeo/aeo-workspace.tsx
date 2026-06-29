@@ -18,14 +18,25 @@ import {
 
 type AeoView = "overview" | "prompt-generation" | "crawler" | "opportunities" | "citations" | "heatmap" | "fanouts" | "referrals";
 
-const DEFAULT_MODELS = ["chatgpt", "gemini", "perplexity", "claude"];
+const DEFAULT_MODELS = ["gemini", "chatgpt", "claude", "deepseek", "grok", "claude_sonnet", "claude_opus"];
+
+export const PLAN_MODELS: Record<string, string[]> = {
+  free: ["gemini"],
+  growth: ["gemini", "chatgpt", "claude", "deepseek"],
+  scale: ["gemini", "chatgpt", "claude", "deepseek", "grok", "claude_sonnet", "claude_opus"],
+  custom: ["gemini", "chatgpt", "claude", "deepseek", "grok", "claude_sonnet", "claude_opus"],
+};
 
 // AI Model Helper mapping for premium avatars and custom colors
 const MODEL_DETAILS: Record<string, { name: string; color: string; bg: string; border: string; text: string }> = {
-  chatgpt: { name: "ChatGPT", color: "bg-emerald-500", bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-700" },
   gemini: { name: "Google Gemini", color: "bg-blue-500", bg: "bg-blue-50", border: "border-blue-100", text: "text-blue-700" },
-  perplexity: { name: "Perplexity AI", color: "bg-cyan-500", bg: "bg-cyan-50", border: "border-cyan-100", text: "text-cyan-700" },
-  claude: { name: "Anthropic Claude", color: "bg-amber-500", bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-700" },
+  chatgpt: { name: "ChatGPT", color: "bg-emerald-500", bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-700" },
+  claude: { name: "Claude 3.5 Haiku", color: "bg-amber-500", bg: "bg-amber-50", border: "border-amber-100", text: "text-amber-700" },
+  perplexity: { name: "Claude 3.5 Sonnet", color: "bg-orange-500", bg: "bg-orange-50", border: "border-orange-100", text: "text-orange-700" }, // Maps under-the-hood to Claude 3.5 Sonnet
+  deepseek: { name: "DeepSeek Chat", color: "bg-sky-500", bg: "bg-sky-50", border: "border-sky-100", text: "text-sky-700" },
+  grok: { name: "xAI Grok", color: "bg-slate-900", bg: "bg-slate-50", border: "border-slate-200", text: "text-slate-800" },
+  claude_sonnet: { name: "Claude 3.5 Sonnet", color: "bg-orange-500", bg: "bg-orange-50", border: "border-orange-100", text: "text-orange-700" },
+  claude_opus: { name: "Claude 3 Opus", color: "bg-red-500", bg: "bg-red-50", border: "border-red-100", text: "text-red-700" },
 };
 
 const getModelInfo = (model: string) => {
@@ -37,10 +48,14 @@ const getModelInfo = (model: string) => {
 };
 
 const MODEL_HEX: Record<string, string> = {
-  chatgpt: "#10b981",
   gemini: "#3b82f6",
-  perplexity: "#06b6d4",
+  chatgpt: "#10b981",
   claude: "#f59e0b",
+  perplexity: "#f97316", // Claude 3.5 Sonnet
+  deepseek: "#0ea5e9",
+  grok: "#1e293b",
+  claude_sonnet: "#f97316",
+  claude_opus: "#ef4444",
 };
 
 const getSearchVolume = (text: string) => {
@@ -358,7 +373,11 @@ function getSeededRandom(seedStr: string) {
 
 export function AeoWorkspace({ view }: { view: AeoView }) {
   const qc = useQueryClient();
-  const { activeProject } = useProjects();
+  const { activeProject, currentPlan } = useProjects();
+  const allowedModels = useMemo(() => {
+    const plan = currentPlan || "free";
+    return PLAN_MODELS[plan] ?? PLAN_MODELS.free;
+  }, [currentPlan]);
   const [seeding, setSeeding] = useState(false);
   const [generatingPrompts, setGeneratingPrompts] = useState(false);
   const [scanning, setScanning] = useState(false);
@@ -1382,7 +1401,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         body: JSON.stringify({
           project_id: activeProject.id,
           brand_name: activeProject.brand_name || activeProject.name,
-          models: DEFAULT_MODELS,
+          models: allowedModels,
           competitors: activeCompetitors,
         }),
       });
@@ -1401,7 +1420,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
         id: data.run_id,
         status: "pending",
         completed: 0,
-        total_prompts: (promptsQuery.data?.length || 5) * DEFAULT_MODELS.length,
+        total_prompts: (promptsQuery.data?.length || 5) * allowedModels.length,
         brand_mentioned_count: 0,
         finished_at: null,
         error: null,
@@ -1688,7 +1707,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                 Scanning AI Engines...
               </h3>
               <p className="text-xs font-medium text-slate-500">
-                Querying {DEFAULT_MODELS.length} AI models with {promptsQuery.data?.length || 0} brand prompts
+                Querying {allowedModels.length} AI models with {promptsQuery.data?.length || 0} brand prompts
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -1728,7 +1747,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
 
           {/* Model status grid */}
           <div className="relative z-10 grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {DEFAULT_MODELS.map((model, idx) => {
+            {(runQuery.data?.models as string[] || allowedModels).map((model: string, idx: number) => {
               const info = getModelInfo(model);
               const completed = runQuery.data?.completed ?? 0;
               const promptCount = promptsQuery.data?.length || 5;
@@ -1899,7 +1918,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             </div>
             <div className="rounded-xl border border-amber-100 bg-white p-4 text-center space-y-1 shadow-sm">
               <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Models Scanned</p>
-              <p className="text-2xl font-black text-amber-700">{(runQuery.data?.models || DEFAULT_MODELS).length}</p>
+              <p className="text-2xl font-black text-amber-700">{(runQuery.data?.models || allowedModels).length}</p>
             </div>
           </div>
 
@@ -2214,7 +2233,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
               <div className="flex flex-col gap-2">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Target Answer Engines</span>
                 <div className="flex flex-wrap gap-1.5 pt-0.5">
-                  {DEFAULT_MODELS.map((model) => {
+                  {allowedModels.map((model) => {
                     const info = getModelInfo(model);
                     return (
                       <span key={model} className={`px-2 py-0.5 rounded text-[10px] font-bold border ${info.bg} ${info.border} ${info.text}`}>
@@ -3432,16 +3451,18 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                   <thead>
                     <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-455 uppercase tracking-wider">
                       <th className="px-4 py-3 min-w-[280px]">AEO Prompt / Query</th>
-                      <th className="px-4 py-3 text-center">ChatGPT</th>
-                      <th className="px-4 py-3 text-center">Gemini</th>
-                      <th className="px-4 py-3 text-center">Perplexity</th>
-                      <th className="px-4 py-3 text-center">Claude</th>
+                      {allowedModels.map((model) => {
+                        const info = getModelInfo(model);
+                        return (
+                          <th key={model} className="px-4 py-3 text-center">{info.name}</th>
+                        );
+                      })}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-650">
                     {processedPrompts.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="text-center py-12 text-slate-400 font-semibold">
+                        <td colSpan={allowedModels.length + 1} className="text-center py-12 text-slate-400 font-semibold">
                           No prompts scanned. Seed queries and launch scan to populate heatmap.
                         </td>
                       </tr>
@@ -3464,7 +3485,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                               </span>
                             </td>
 
-                            {DEFAULT_MODELS.map((model) => {
+                            {allowedModels.map((model) => {
                               const match = promptResults.find((r: any) => r.model === model);
                               
                               if (!match) {
