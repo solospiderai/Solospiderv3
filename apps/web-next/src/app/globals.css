@@ -6,23 +6,23 @@
 @source "../app/**/*.{ts,tsx,js,jsx}";
 
 :root {
-  --bg: #fbfaf7;
-  --bg-2: #f3f2eb;
-  --panel: #ffffff;
-  --panel-2: #ffffff;
-  --line: #e2e1da;
-  --line-2: #d1d5db;
+  --bg: #FFFFFF;
+  --bg-2: #F8F6FF;
+  --panel: #FFFFFF;
+  --panel-2: #F9F9FB;
+  --line: #E5E7EB;
+  --line-2: #D1D5DB;
   --ink: #000000;
-  --ink-2: #0f172a;
-  --muted: #334155;
-  --muted-bg: #f1f5f9;
+  --ink-2: #0F172A;
+  --muted: #64748B;
+  --muted-bg: #F1F5F9;
   --muted-foreground: #475569;
-  --secondary: #f8fafc;
-  --secondary-foreground: #0f172a;
+  --secondary: #F8FAFC;
+  --secondary-foreground: #0F172A;
   --accent: #22d3ee;
-  --accent-foreground: #0f172a;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
+  --accent-foreground: #0F172A;
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
   --primary: #9025F2;
   --primary-2: #7a17d6;
   --primary-soft: #f3e8ff;
@@ -33,37 +33,7 @@
   --grad: linear-gradient(90deg, #9025F2 0%, #b260ff 60%, #ec4899 100%);
   --grad-soft: linear-gradient(135deg, rgba(144,37,242,.08) 0%, rgba(236,72,153,.08) 100%);
   
-  --background: var(--bg);
-  --foreground: var(--ink);
-  --card: var(--panel);
-  --card-foreground: var(--ink);
-  --popover: var(--panel);
-  --popover-foreground: var(--ink);
-  --border: var(--line);
-  --input: var(--line);
-  --ring: var(--primary);
-  --radius: 1rem;
-}
-
-.dark {
-  --bg: #0e0c1a;
-  --bg-2: #141226;
-  --panel: #1c1a35;
-  --panel-2: #1c1a35;
-  --line: #252340;
-  --line-2: #2d2b54;
-  --ink: #ffffff;
-  --ink-2: #e2e8f0;
-  --muted: #94a3b8;
-  --muted-bg: #1e1b38;
-  --muted-foreground: #a0aec0;
-  --secondary: #121026;
-  --secondary-foreground: #ffffff;
-  --accent: #06b6d4;
-  --accent-foreground: #ffffff;
-  --primary-soft: #24143a;
-  --primary-tint: #1b0e2d;
-
+  /* Keep for shadcn compatibility */
   --background: var(--bg);
   --foreground: var(--ink);
   --card: var(--panel);

@@ -43,10 +43,7 @@ export default function LoginPage() {
           if (typeof window !== "undefined") {
             window.localStorage.setItem("solospider_role_view", "user");
           }
-          const params = new URLSearchParams(window.location.search);
-          const plan = params.get("plan");
-          const redirectUrl = plan ? `/app/en/settings/billing?plan=${plan}` : redirectedFrom;
-          router.replace(redirectUrl);
+          router.replace(redirectedFrom);
           router.refresh();
         }
       }
@@ -61,16 +58,10 @@ export default function LoginPage() {
     setGoogleLoading(true);
     try {
       const supabase = getSupabaseBrowserClient();
-      const params = new URLSearchParams(window.location.search);
-      const plan = params.get("plan");
-      const redirectUrl = plan 
-        ? `${window.location.origin}/app/en/settings/billing?plan=${plan}` 
-        : `${window.location.origin}/app/en/dashboard`;
-
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: redirectUrl,
+          redirectTo: `${window.location.origin}/app/en/dashboard`,
         },
       });
       if (error) throw error;
