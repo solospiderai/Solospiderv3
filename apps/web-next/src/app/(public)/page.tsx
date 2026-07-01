@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { Loader2 } from "lucide-react";
+import { Loader2, Globe, Check } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { useAuth } from "@/hooks/useAuth";
@@ -145,23 +145,23 @@ export default function HomePage() {
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
             {/* Website Analysis Search Bar */}
-            <div className="max-w-[640px] mx-auto mb-10 hero-fade hero-d3 relative z-20">
-              <form onSubmit={handleStartAnalysis} className="p-2 rounded-2xl bg-white/70 backdrop-blur-md border border-primary/20 shadow-[0_20px_50px_rgba(144,37,242,0.1)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.18)] focus-within:shadow-[0_20px_50px_rgba(144,37,242,0.18)] transition-all duration-300 flex flex-col sm:flex-row gap-2.5">
-                <div className="flex-1 flex items-center pl-4 bg-white/40 sm:bg-transparent rounded-xl sm:rounded-none">
-                  <span className="text-lg shrink-0">🌐</span>
+            <div className="max-w-[640px] mx-auto mb-8 hero-fade hero-d3 relative z-20">
+              <form onSubmit={handleStartAnalysis} className="p-1.5 rounded-full bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex items-center gap-2">
+                <div className="flex-1 flex items-center pl-4">
+                  <Globe className="w-5 h-5 text-[var(--muted)] shrink-0" />
                   <input
                     type="text"
                     required
                     placeholder="Enter your website URL (e.g., example.com)"
                     value={analysisUrl}
                     onChange={(e) => setAnalysisUrl(e.target.value)}
-                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-sm py-3 px-3 placeholder-muted"
+                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-[15px] py-3.5 px-3 placeholder-[var(--muted)]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={analyzing}
-                  className="btn btn-grad px-7 py-3.5 h-auto text-[13px] font-black tracking-wide rounded-xl shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  className="btn btn-grad px-7 py-3 h-[46px] text-[13.5px] font-black tracking-wide rounded-full shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {analyzing ? (
                     <>
@@ -178,6 +178,38 @@ export default function HomePage() {
               <p className="text-[12px] text-[var(--ink-2)] opacity-60 mt-3.5 font-bold flex items-center justify-center gap-1.5">
                 <span>⚡ SEO & AEO scans start instantly in the background</span>
               </p>
+            </div>
+
+            {/* Action buttons below search bar */}
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-8 hero-fade hero-d4">
+              <button
+                onClick={() => router.push("/signup")}
+                className="btn btn-grad px-8 py-3.5 rounded-full text-[14.5px] font-bold cursor-pointer"
+              >
+                Start free trial →
+              </button>
+              <a
+                href="#problem"
+                className="px-8 py-3.5 rounded-full text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-primary-soft/50 hover:text-primary transition-all cursor-pointer flex items-center justify-center"
+              >
+                See How It Works
+              </a>
+            </div>
+
+            {/* Checkmark promos inline */}
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3.5 text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-14 hero-fade hero-d5">
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 stroke-[3px]" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 stroke-[3px]" />
+                <span>Free plan available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-500 shrink-0 stroke-[3px]" />
+                <span>Set up in 5 minutes</span>
+              </div>
             </div>
 
             {/* Removed hero search bar sub-texts */}
