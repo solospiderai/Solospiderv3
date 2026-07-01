@@ -10,9 +10,9 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET!,
 });
 
-const PLAN_AMOUNTS: Record<string, { inr: number; credits: number }> = {
-  growth: { inr: 16500, credits: 1000 },
-  scale: { inr: 58000, credits: 5000 },
+const PLAN_AMOUNTS: Record<string, { amount: number; currency: string; credits: number }> = {
+  growth: { amount: 199, currency: "USD", credits: 1000 },
+  scale: { amount: 699, currency: "USD", credits: 5000 },
 };
 
 export async function POST(req: NextRequest) {
@@ -33,10 +33,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid plan selected" }, { status: 400 });
     }
 
-    // 2. Create Razorpay order (amount in paise)
+    // 2. Create Razorpay order (amount in cents/paise)
     const options = {
-      amount: plan.inr * 100,
-      currency: "INR",
+      amount: plan.amount * 100,
+      currency: plan.currency,
       receipt: `receipt_order_${user.id.slice(0, 8)}_${Date.now()}`,
       notes: {
         userId: user.id,
