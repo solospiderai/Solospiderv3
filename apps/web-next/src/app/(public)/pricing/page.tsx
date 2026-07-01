@@ -24,7 +24,13 @@ export default function PricingPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("solospider_theme");
-      setIsDark(saved === "dark");
+      const nextDark = saved === "dark";
+      setIsDark(nextDark);
+      if (nextDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     }
   }, []);
 
@@ -32,6 +38,11 @@ export default function PricingPage() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   const triggerWizard = () => {

@@ -6,15 +6,15 @@
 @source "../app/**/*.{ts,tsx,js,jsx}";
 
 :root {
-  --bg: #FFFFFF;
-  --bg-2: #F8F6FF;
-  --panel: #FFFFFF;
-  --panel-2: #F9F9FB;
-  --line: #E5E7EB;
-  --line-2: #D1D5DB;
+  --bg: #fbfaf7;
+  --bg-2: #f3f2eb;
+  --panel: #ffffff;
+  --line: #e2e1da;
   --ink: #000000;
-  --ink-2: #0F172A;
-  --muted: #64748B;
+  --ink-2: #0f172a;
+  --muted: #334155;
+  --panel-2: #F9F9FB;
+  --line-2: #D1D5DB;
   --muted-bg: #F1F5F9;
   --muted-foreground: #475569;
   --secondary: #F8FAFC;
@@ -44,6 +44,16 @@
   --input: var(--line);
   --ring: var(--primary);
   --radius: 1rem;
+}
+
+.dark {
+  --bg: #0e0c1a;
+  --bg-2: #141226;
+  --panel: #1c1a35;
+  --line: #252340;
+  --ink: #ffffff;
+  --ink-2: #e2e8f0;
+  --muted: #94a3b8;
 }
 
 @theme {

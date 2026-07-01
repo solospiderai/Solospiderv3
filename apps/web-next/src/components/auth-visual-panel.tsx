@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { CheckCircle2, Fingerprint, Search, Megaphone, Sparkles } from "lucide-react";
 
 export function AuthVisualPanel() {
@@ -22,7 +23,9 @@ export function AuthVisualPanel() {
 
       {/* Header Logo */}
       <div className="flex items-center gap-2 relative z-10">
-        <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[32px] w-auto brightness-0 invert" />
+        <Link href="/" className="cursor-pointer">
+          <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[32px] w-auto brightness-0 invert" />
+        </Link>
       </div>
 
       {/* Center Rotating Device Frame Preview */}
@@ -124,7 +127,7 @@ export function AuthVisualPanel() {
       {/* Footer Checklist Promos */}
       <div className="relative z-10 border-t border-slate-800/80 pt-6 space-y-4">
         <div>
-          <h4 className="text-xs font-black uppercase text-indigo-400 tracking-wider">Free Starter Plan Includes:</h4>
+          <div className="text-xs font-black uppercase text-indigo-400 tracking-wider">Free Starter Plan Includes:</div>
         </div>
         
         <div className="grid grid-cols-2 gap-x-4 gap-y-3.5 text-xs font-semibold text-slate-400">

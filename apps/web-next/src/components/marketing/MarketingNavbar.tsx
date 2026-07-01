@@ -68,7 +68,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
     <nav
       className={`sticky top-0 w-full z-50 transition-all duration-300 ${
         isScrolled || activeDropdown
-          ? "bg-white/90 backdrop-blur-md border-b border-line shadow-sm"
+          ? "bg-[var(--panel)]/90 backdrop-blur-md border-b border-line shadow-sm"
           : "bg-transparent border-b border-transparent"
       }`}
       onMouseLeave={handleMouseLeave}
@@ -80,7 +80,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-2 text-[14px] text-ink font-semibold h-full">
+          <div className="hidden lg:flex items-center gap-2 text-[14px] text-[var(--ink)] font-semibold h-full">
             <a 
               href="/#features" 
               onClick={(e) => handleScrollTo(e, "features")} 
@@ -124,12 +124,12 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
           <div className="hidden md:flex items-center gap-[14px]">
             <button 
               onClick={onToggleTheme} 
-              className="p-2 rounded-xl border border-line text-ink hover:bg-primary-soft/50 hover:text-primary transition-all cursor-pointer bg-transparent flex items-center justify-center"
+              className="p-2 rounded-xl border border-line text-[var(--ink)] hover:bg-primary-soft/50 hover:text-primary transition-all cursor-pointer bg-transparent flex items-center justify-center"
               title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             >
               {isDark ? <Sun className="w-4 h-4 text-amber-500 animate-pulse" /> : <Moon className="w-4 h-4 text-indigo-650" />}
             </button>
-            <Link href="/login" className="text-[14px] text-ink font-extrabold hover:text-primary transition-colors">
+            <Link href="/login" className="text-[14px] text-[var(--ink)] font-extrabold hover:text-primary transition-colors">
               Log in
             </Link>
             <button onClick={onOpenWizard} className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">

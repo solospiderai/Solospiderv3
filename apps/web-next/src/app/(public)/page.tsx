@@ -28,7 +28,13 @@ export default function HomePage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("solospider_theme");
-      setIsDark(saved === "dark");
+      const nextDark = saved === "dark";
+      setIsDark(nextDark);
+      if (nextDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     }
   }, []);
 
@@ -36,6 +42,11 @@ export default function HomePage() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   const handleStartAnalysis = (e: React.FormEvent) => {
@@ -126,11 +137,11 @@ export default function HomePage() {
               Now live — The AI marketing OS for agencies & creators
             </span>
             <h1 className="text-5xl md:text-[80px] leading-[1.05] my-7 hero-fade hero-d1">
-              <span className="text-ink">Replace Your Entire</span><br />
+              <span className="text-[var(--ink)]">Replace Your Entire</span><br />
               <span className="grad-text">Marketing Workflow</span><br />
-              <span className="text-ink">With One Tool</span>
+              <span className="text-[var(--ink)]">With One Tool</span>
             </h1>
-            <p className="text-[20px] text-ink max-w-[760px] mx-auto mb-9 leading-relaxed hero-fade hero-d2">
+            <p className="text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-9 leading-relaxed hero-fade hero-d2">
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
             {/* Website Analysis Search Bar */}
@@ -144,7 +155,7 @@ export default function HomePage() {
                     placeholder="Enter your website URL (e.g., example.com)"
                     value={analysisUrl}
                     onChange={(e) => setAnalysisUrl(e.target.value)}
-                    className="w-full bg-transparent border-0 outline-none text-ink font-semibold text-sm py-3 px-3 placeholder-muted"
+                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-sm py-3 px-3 placeholder-muted"
                   />
                 </div>
                 <button
@@ -164,7 +175,7 @@ export default function HomePage() {
                   )}
                 </button>
               </form>
-              <p className="text-[12px] text-ink-2/60 mt-3.5 font-bold flex items-center justify-center gap-1.5">
+              <p className="text-[12px] text-[var(--ink-2)] opacity-60 mt-3.5 font-bold flex items-center justify-center gap-1.5">
                 <span>⚡ SEO & AEO scans start instantly in the background</span>
               </p>
             </div>

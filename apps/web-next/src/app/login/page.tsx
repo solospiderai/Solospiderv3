@@ -90,7 +90,9 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8 bg-white relative">
         <div className="w-full max-w-sm">
           <div className="flex items-center mb-6 lg:hidden">
-            <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[34px] w-auto" />
+            <Link href="/" className="cursor-pointer">
+              <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[34px] w-auto" />
+            </Link>
           </div>
           <h2 className="font-display text-[26px] font-bold tracking-tight text-ink mb-1">
             Welcome back
