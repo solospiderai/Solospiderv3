@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Copy, Check, X, Tag, Sparkles } from "lucide-react";
+import { Copy, Check, X, Tag, Sparkles, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 interface CouponModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (couponCode: string) => void;
+  onConfirm: (couponCode: string, email?: string) => void;
   planId: "growth" | "scale";
+  isLoggedIn: boolean;
 }
 
-export function CouponModal({ isOpen, onClose, onConfirm, planId }: CouponModalProps) {
+export function CouponModal({ isOpen, onClose, onConfirm, planId, isLoggedIn }: CouponModalProps) {
   const [code, setCode] = useState("");
+  const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -26,7 +28,11 @@ export function CouponModal({ isOpen, onClose, onConfirm, planId }: CouponModalP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onConfirm(code);
+    if (!isLoggedIn && !email) {
+      toast.error("Please enter a valid email address to checkout.");
+      return;
+    }
+    onConfirm(code, isLoggedIn ? undefined : email);
   };
 
   return (
@@ -46,8 +52,12 @@ export function CouponModal({ isOpen, onClose, onConfirm, planId }: CouponModalP
           <div className="w-12 h-12 rounded-2xl bg-primary-soft text-primary flex items-center justify-center mb-4">
             <Tag className="w-6 h-6" />
           </div>
-          <h3 className="text-2xl font-black font-display tracking-tight">Apply Promo Offer</h3>
-          <p className="text-sm text-muted mt-1.5 font-medium">Get access to premium Solo Spider features for less.</p>
+          <h3 className="text-2xl font-black font-display tracking-tight">
+            {isLoggedIn ? "Apply Promo Offer" : "Guest Checkout"}
+          </h3>
+          <p className="text-sm text-muted mt-1.5 font-medium">
+            {isLoggedIn ? "Get access to premium Solo Spider features for less." : "Enter your email to proceed to secure checkout."}
+          </p>
         </div>
 
         {/* Promo Code Info Box (Only for Growth plan) */}
@@ -60,6 +70,7 @@ export function CouponModal({ isOpen, onClose, onConfirm, planId }: CouponModalP
                 Use code <strong className="text-primary">SOLO99</strong> to get flat <strong className="text-primary">99% off</strong> instantly!
               </p>
               <button 
+                type="button"
                 onClick={handleCopy}
                 className="mt-2.5 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-[11px] font-black uppercase tracking-wider transition-transform active:scale-95 cursor-pointer shadow-sm shadow-primary/20"
               >
@@ -72,8 +83,26 @@ export function CouponModal({ isOpen, onClose, onConfirm, planId }: CouponModalP
 
         {/* Input Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          
+          {/* Email Input Field (only shown if not logged in) */}
+          {!isLoggedIn && (
+            <div className="space-y-2 text-left">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
+                <Mail className="w-3.5 h-3.5" /> Email Address
+              </label>
+              <input 
+                type="email" 
+                placeholder="your.email@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-[var(--bg)] border border-line rounded-xl px-4 py-3 text-ink focus:outline-none focus:ring-2 focus:ring-primary/40 font-semibold placeholder:text-muted/65"
+              />
+            </div>
+          )}
+
           <div className="space-y-2 text-left">
-            <label className="text-xs font-bold uppercase tracking-wider text-muted">Promo Code</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-muted">Promo Code (Optional)</label>
             <input 
               type="text" 
               placeholder="e.g. SOLO99"
@@ -88,12 +117,12 @@ export function CouponModal({ isOpen, onClose, onConfirm, planId }: CouponModalP
               type="submit" 
               className="btn btn-grad w-full justify-center py-3 text-xs cursor-pointer"
             >
-              Apply &amp; Checkout →
+              Proceed to Payment →
             </button>
             
             <button 
               type="button"
-              onClick={() => onConfirm("")}
+              onClick={() => onConfirm("", isLoggedIn ? undefined : email)}
               className="btn btn-ghost w-full justify-center py-3 text-xs cursor-pointer border-transparent hover:border-transparent"
             >
               Checkout at Regular Price

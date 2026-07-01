@@ -43,7 +43,7 @@ export async function triggerRazorpayCheckout({ planId, userEmail, couponCode, o
     const res = await fetch("/api/checkout/razorpay", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planId, couponCode }),
+      body: JSON.stringify({ planId, couponCode, email: userEmail }),
     });
 
     if (!res.ok) {
@@ -79,6 +79,7 @@ export async function triggerRazorpayCheckout({ planId, userEmail, couponCode, o
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
               planId,
+              email: userEmail,
             }),
           });
 

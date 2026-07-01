@@ -37,20 +37,59 @@ export async function POST(req: NextRequest) {
       const payment = payload.payload?.payment?.entity;
       const notes = payment?.notes || {};
       const userId = notes.userId;
+      const email = notes.email || payment?.email;
       const plan = notes.planId?.toLowerCase();
 
-      if (!userId || !plan) {
-        console.warn("Webhook ignored: Missing userId or planId in metadata notes");
+      if (!plan) {
+        console.warn("Webhook ignored: Missing planId in metadata notes");
         return NextResponse.json({ received: true });
       }
 
-      console.log(`Webhook: Upgrading user ${userId} to plan: ${plan}`);
       const admin = getSupabaseAdminClient();
+      let targetUserId = (userId === "guest" || !userId) ? null : userId;
+
+      // Resolve user by email if guest
+      if (!targetUserId && email) {
+        const { data: { users } } = await admin.auth.admin.listUsers({ perPage: 10000 });
+        const existingUser = users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+        
+        if (existingUser) {
+          targetUserId = existingUser.id;
+        } else {
+          // Auto-create guest user
+          const { data: newProfile, error: createErr } = await admin.auth.admin.createUser({
+            email: email.toLowerCase(),
+            email_confirm: true,
+            user_metadata: { role_view: "user" },
+          });
+
+          if (!createErr && newProfile.user) {
+            targetUserId = newProfile.user.id;
+
+            // Generate activation/password reset link
+            await admin.auth.admin.generateLink({
+              type: "recovery",
+              email: email.toLowerCase(),
+            }).catch((err) => {
+              console.warn("Webhook warning: Could not generate setup link", err);
+            });
+          } else {
+            console.error("Webhook error: Guest user auto-creation failed during webhook processing", createErr);
+          }
+        }
+      }
+
+      if (!targetUserId) {
+        console.warn("Webhook ignored: Could not resolve target user ID or email address");
+        return NextResponse.json({ received: true });
+      }
+
+      console.log(`Webhook: Upgrading user ${targetUserId} to plan: ${plan}`);
 
       // 1. Update subscription plan
       const { error: subErr } = await admin
         .from("user_subscriptions")
-        .upsert({ user_id: userId, plan }, { onConflict: "user_id" });
+        .upsert({ user_id: targetUserId, plan }, { onConflict: "user_id" });
 
       if (subErr) throw subErr;
 
@@ -60,7 +99,7 @@ export async function POST(req: NextRequest) {
         .from("workspace_credits")
         .upsert(
           {
-            user_id: userId,
+            user_id: targetUserId,
             total_credits: creditsAmount,
             used_credits: 0,
             locked_credits: 0,
@@ -72,7 +111,7 @@ export async function POST(req: NextRequest) {
 
       // 3. Add transaction record
       await admin.from("credit_transactions").insert({
-        user_id: userId,
+        user_id: targetUserId,
         type: "reset",
         amount: creditsAmount,
         status: "completed",

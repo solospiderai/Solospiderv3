@@ -17,17 +17,20 @@ const PLAN_AMOUNTS: Record<string, { inr: number; credits: number }> = {
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Authenticate user
+    // 1. Authenticate user (optional for guest checkouts)
     const supabase = await getSupabaseServerClient();
-    const { data: { user }, error: authErr } = await supabase.auth.getUser();
-
-    if (authErr || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { data: { user } } = await supabase.auth.getUser();
 
     const body = await req.json().catch(() => ({}));
     const planId = body.planId;
     const couponCode = body.couponCode?.trim().toUpperCase();
+    const email = body.email?.trim().toLowerCase();
+
+    // Verify email is present for guest checkouts
+    if (!user && !email) {
+      return NextResponse.json({ error: "Email address is required to proceed with guest checkout." }, { status: 400 });
+    }
+
     const plan = PLAN_AMOUNTS[planId?.toLowerCase()];
 
     if (!plan) {
@@ -48,9 +51,10 @@ export async function POST(req: NextRequest) {
     const options = {
       amount: finalAmountINR * 100,
       currency: "INR",
-      receipt: `receipt_order_${user.id.slice(0, 8)}_${Date.now()}`,
+      receipt: `receipt_order_${user ? user.id.slice(0, 8) : "guest"}_${Date.now()}`,
       notes: {
-        userId: user.id,
+        userId: user ? user.id : "guest",
+        email: user ? (user.email ?? "") : email,
         planId: planId.toLowerCase(),
         couponApplied: isCouponApplied ? "SOLO99" : "none",
       },

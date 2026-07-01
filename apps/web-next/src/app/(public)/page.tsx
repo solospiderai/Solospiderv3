@@ -46,19 +46,15 @@ export default function HomePage() {
   };
 
   const handlePlanClick = (planId: "growth" | "scale") => {
-    if (!user) {
-      router.push(`/login?redirect=/pricing`);
-      return;
-    }
     setSelectedPlanId(planId);
     setCouponModalOpen(true);
   };
 
-  const handleConfirmCoupon = (couponCode: string) => {
+  const handleConfirmCoupon = (couponCode: string, email?: string) => {
     setCouponModalOpen(false);
     triggerRazorpayCheckout({
       planId: selectedPlanId,
-      userEmail: user?.email,
+      userEmail: email || user?.email,
       couponCode: couponCode || undefined,
       onSuccess: () => {
         router.push("/dashboard");
@@ -823,6 +819,7 @@ export default function HomePage() {
         onClose={() => setCouponModalOpen(false)} 
         onConfirm={handleConfirmCoupon} 
         planId={selectedPlanId}
+        isLoggedIn={!!user}
       />
     </div>
   );
