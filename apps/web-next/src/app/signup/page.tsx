@@ -23,7 +23,11 @@ export default function SignupPage() {
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) throw error;
       toast.success("Welcome! Account created successfully.");
-      router.replace("/app/en/dashboard");
+      
+      const params = new URLSearchParams(window.location.search);
+      const plan = params.get("plan");
+      const redirectUrl = plan ? `/app/en/settings/billing?plan=${plan}` : "/app/en/dashboard";
+      router.replace(redirectUrl);
       router.refresh();
     } catch (err: any) {
       toast.error(err?.message || "Signup failed");
@@ -36,10 +40,16 @@ export default function SignupPage() {
     setGoogleLoading(true);
     try {
       const supabase = getSupabaseBrowserClient();
+      const params = new URLSearchParams(window.location.search);
+      const plan = params.get("plan");
+      const redirectUrl = plan 
+        ? `${window.location.origin}/app/en/settings/billing?plan=${plan}` 
+        : `${window.location.origin}/app/en/dashboard`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/app/en/dashboard`,
+          redirectTo: redirectUrl,
         },
       });
       if (error) throw error;

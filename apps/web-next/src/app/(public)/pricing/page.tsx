@@ -101,7 +101,7 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</button>
+                <Link href="/signup" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</Link>
               </div>
 
               {/* Growth Plan */}
@@ -141,7 +141,7 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={triggerWizard} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</button>
+                <Link href="/signup?plan=growth" className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</Link>
               </div>
 
               {/* Scale Plan */}
@@ -177,7 +177,7 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</button>
+                <Link href="/signup?plan=scale" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</Link>
               </div>
 
               {/* Custom Plan */}
@@ -212,7 +212,8 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</button>
+                <Link href="/contact" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</Link>
+
               </div>
 
             </div>

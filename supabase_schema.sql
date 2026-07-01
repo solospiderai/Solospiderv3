@@ -23,6 +23,28 @@ create table if not exists public.projects (
 create table if not exists public.user_subscriptions (
   user_id uuid primary key references auth.users(id) on delete cascade,
   plan text not null default 'free',
+  razorpay_subscription_id text,
+  razorpay_customer_id text,
+  status text not null default 'active',
+  current_period_start timestamptz,
+  current_period_end timestamptz,
+  cancelled_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz default now()
+);
+
+-- 2b. Payment History Table
+create table if not exists public.payment_history (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  razorpay_payment_id text not null,
+  razorpay_order_id text,
+  razorpay_subscription_id text,
+  amount integer not null,
+  currency text not null default 'USD',
+  status text not null default 'captured',
+  plan text not null,
+  invoice_url text,
   created_at timestamptz not null default now()
 );
 
@@ -309,6 +331,7 @@ alter table public.social_accounts enable row level security;
 alter table public.social_posts enable row level security;
 alter table public.query_fanouts enable row level security;
 alter table public.aeo_content_gaps enable row level security;
+alter table public.payment_history enable row level security;
 
 -- =========================================================================
 -- Access Security Policies
@@ -320,6 +343,10 @@ create policy "users_own_projects" on public.projects
 
 -- User Subscriptions Policy
 create policy "users_own_subscriptions" on public.user_subscriptions
+  for all using (user_id = auth.uid()) with check (user_id = auth.uid());
+
+-- Payment History Policy
+create policy "users_own_payments" on public.payment_history
   for all using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Workspace Credits Policy
