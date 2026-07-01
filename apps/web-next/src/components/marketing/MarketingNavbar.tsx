@@ -15,14 +15,18 @@ import {
   User, 
   BookOpen, 
   Search,
-  BookMarked
+  BookMarked,
+  Moon,
+  Sun
 } from "lucide-react";
 
 interface MarketingNavbarProps {
   onOpenWizard?: () => void;
+  isDark?: boolean;
+  onToggleTheme?: () => void;
 }
 
-export const MarketingNavbar = ({ onOpenWizard }: MarketingNavbarProps) => {
+export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: MarketingNavbarProps) => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -118,6 +122,13 @@ export const MarketingNavbar = ({ onOpenWizard }: MarketingNavbarProps) => {
           </div>
           
           <div className="hidden md:flex items-center gap-[14px]">
+            <button 
+              onClick={onToggleTheme} 
+              className="p-2 rounded-xl border border-line text-ink hover:bg-primary-soft/50 hover:text-primary transition-all cursor-pointer bg-transparent flex items-center justify-center"
+              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {isDark ? <Sun className="w-4 h-4 text-amber-500 animate-pulse" /> : <Moon className="w-4 h-4 text-indigo-650" />}
+            </button>
             <Link href="/login" className="text-[14px] text-ink font-extrabold hover:text-primary transition-colors">
               Log in
             </Link>
@@ -155,6 +166,23 @@ export const MarketingNavbar = ({ onOpenWizard }: MarketingNavbarProps) => {
             SEO Audit
           </button>
           <div className="flex flex-col gap-3 mt-4">
+            <div className="flex items-center justify-between py-2 px-1 border-b border-dashed border-line">
+              <span className="text-xs text-slate-500 font-bold">Theme</span>
+              <button 
+                onClick={onToggleTheme} 
+                className="p-2 rounded-xl border border-line text-ink hover:bg-slate-50 transition-all cursor-pointer bg-transparent flex items-center gap-1.5 text-xs font-semibold"
+              >
+                {isDark ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-500" /> Light Mode
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-indigo-650" /> Dark Mode
+                  </>
+                )}
+              </button>
+            </div>
             <Link href="/login" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
               <button className="w-full py-3 rounded-xl border border-line text-ink-2 font-medium hover:bg-bg-2 cursor-pointer">
                 Log in

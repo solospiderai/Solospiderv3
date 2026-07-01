@@ -15,6 +15,21 @@ export default function HomePage() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardDomain, setWizardDomain] = useState("");
 
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("solospider_theme");
+      setIsDark(saved === "dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+  };
+
   const handleStartAnalysis = (e: React.FormEvent) => {
     e.preventDefault();
     if (!analysisUrl) return;
@@ -55,64 +70,29 @@ export default function HomePage() {
 
   return (
     <div
-      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans"
+      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans transition-colors duration-300"
       style={
         {
-          "--bg": "#fbfaf7",
-          "--bg-2": "#f3f2eb",
-          "--panel": "#ffffff",
-          "--line": "#e2e1da",
-          "--ink": "#000000",
-          "--ink-2": "#0f172a",
-          "--muted": "#334155",
+          "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
+          "--bg-2": isDark ? "#141226" : "#f3f2eb",
+          "--panel": isDark ? "#1c1a35" : "#ffffff",
+          "--line": isDark ? "#252340" : "#e2e1da",
+          "--ink": isDark ? "#ffffff" : "#000000",
+          "--ink-2": isDark ? "#e2e8f0" : "#0f172a",
+          "--muted": isDark ? "#94a3b8" : "#334155",
         } as React.CSSProperties
       }
     >
-      <MarketingNavbar onOpenWizard={() => { setWizardDomain(""); setIsWizardOpen(true); }} />
+      <MarketingNavbar 
+        isDark={isDark} 
+        onToggleTheme={toggleTheme} 
+        onOpenWizard={() => { setWizardDomain(""); setIsWizardOpen(true); }} 
+      />
 
       <main>
         {/* HERO */}
-        <section className="relative pt-[90px] pb-[100px] bg-gradient-to-b from-white to-primary-tint">
+        <section className="relative pt-[120px] pb-[90px] bg-[var(--bg)]">
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute left-[-10%] top-[10%] w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle,rgba(144,37,242,0.18)_0,transparent_65%)] blur-[20px]"></div>
-            <div className="absolute right-[-10%] top-[30%] w-[620px] h-[620px] rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.14)_0,transparent_65%)] blur-[20px]"></div>
-            <div className="absolute left-[30%] bottom-[-20%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.12)_0,transparent_65%)] blur-[20px]"></div>
-            <svg className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1700px] h-[1700px] opacity-5" viewBox="-400 -400 800 800" fill="none" stroke="#9025F2" strokeWidth="0.6">
-              <g id="spokes">
-                {/* 24 radial spokes */}
-                <line x1="0" y1="0" x2="0" y2="-380" />
-                <line x1="0" y1="0" x2="98" y2="-367" />
-                <line x1="0" y1="0" x2="190" y2="-329" />
-                <line x1="0" y1="0" x2="269" y2="-269" />
-                <line x1="0" y1="0" x2="329" y2="-190" />
-                <line x1="0" y1="0" x2="367" y2="-98" />
-                <line x1="0" y1="0" x2="380" y2="0" />
-                <line x1="0" y1="0" x2="367" y2="98" />
-                <line x1="0" y1="0" x2="329" y2="190" />
-                <line x1="0" y1="0" x2="269" y2="269" />
-                <line x1="0" y1="0" x2="190" y2="329" />
-                <line x1="0" y1="0" x2="98" y2="367" />
-                <line x1="0" y1="0" x2="0" y2="380" />
-                <line x1="0" y1="0" x2="-98" y2="367" />
-                <line x1="0" y1="0" x2="-190" y2="329" />
-                <line x1="0" y1="0" x2="-269" y2="269" />
-                <line x1="0" y1="0" x2="-329" y2="190" />
-                <line x1="0" y1="0" x2="-367" y2="98" />
-                <line x1="0" y1="0" x2="-380" y2="0" />
-                <line x1="0" y1="0" x2="-367" y2="-98" />
-                <line x1="0" y1="0" x2="-329" y2="-190" />
-                <line x1="0" y1="0" x2="-269" y2="-269" />
-                <line x1="0" y1="0" x2="-190" y2="-329" />
-                <line x1="0" y1="0" x2="-98" y2="-367" />
-              </g>
-              {/* concentric rings */}
-              <circle cx="0" cy="0" r="60" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="110" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="170" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="240" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="310" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="380" strokeWidth="0.5" />
-            </svg>
           </div>
 
           {/* Roaming Spiders Background Animators */}

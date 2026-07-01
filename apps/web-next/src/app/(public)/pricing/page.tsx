@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
@@ -10,6 +10,21 @@ export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardDomain, setWizardDomain] = useState("");
+
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("solospider_theme");
+      setIsDark(saved === "dark");
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+  };
 
   const triggerWizard = () => {
     setWizardDomain("");
@@ -21,17 +36,21 @@ export default function PricingPage() {
       className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans"
       style={
         {
-          "--bg": "#fbfaf7",
-          "--bg-2": "#f3f2eb",
-          "--panel": "#ffffff",
-          "--line": "#e2e1da",
-          "--ink": "#000000",
-          "--ink-2": "#0f172a",
-          "--muted": "#334155",
+          "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
+          "--bg-2": isDark ? "#141226" : "#f3f2eb",
+          "--panel": isDark ? "#1c1a35" : "#ffffff",
+          "--line": isDark ? "#252340" : "#e2e1da",
+          "--ink": isDark ? "#ffffff" : "#000000",
+          "--ink-2": isDark ? "#e2e8f0" : "#0f172a",
+          "--muted": isDark ? "#94a3b8" : "#334155",
         } as React.CSSProperties
       }
     >
-      <MarketingNavbar onOpenWizard={triggerWizard} />
+      <MarketingNavbar 
+        isDark={isDark} 
+        onToggleTheme={toggleTheme} 
+        onOpenWizard={triggerWizard} 
+      />
 
       <main>
         {/* HERO & PRICING PLANS SECTION */}
