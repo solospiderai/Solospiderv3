@@ -2,30 +2,30 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { Loader2 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
+import { useAuth } from "@/hooks/useAuth";
+import { triggerRazorpayCheckout } from "@/lib/razorpay";
 
 export default function HomePage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisUrl, setAnalysisUrl] = useState("");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardDomain, setWizardDomain] = useState("");
+
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("solospider_theme");
-      const shouldBeDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
-      setIsDark(shouldBeDark);
-      if (shouldBeDark) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
+      setIsDark(saved === "dark");
     }
   }, []);
 
@@ -33,11 +33,6 @@ export default function HomePage() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
-    if (nextDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
   };
 
   const handleStartAnalysis = (e: React.FormEvent) => {
@@ -45,6 +40,20 @@ export default function HomePage() {
     if (!analysisUrl) return;
     setWizardDomain(analysisUrl);
     setIsWizardOpen(true);
+  };
+
+  const handlePlanClick = (planId: "growth" | "scale") => {
+    if (!user) {
+      router.push(`/login?redirect=/pricing`);
+      return;
+    }
+    triggerRazorpayCheckout({
+      planId,
+      userEmail: user.email,
+      onSuccess: () => {
+        router.push("/dashboard");
+      },
+    });
   };
 
   // Smooth scroll
@@ -79,7 +88,20 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans transition-colors duration-300">
+    <div
+      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans transition-colors duration-300"
+      style={
+        {
+          "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
+          "--bg-2": isDark ? "#141226" : "#f3f2eb",
+          "--panel": isDark ? "#1c1a35" : "#ffffff",
+          "--line": isDark ? "#252340" : "#e2e1da",
+          "--ink": isDark ? "#ffffff" : "#000000",
+          "--ink-2": isDark ? "#e2e8f0" : "#0f172a",
+          "--muted": isDark ? "#94a3b8" : "#334155",
+        } as React.CSSProperties
+      }
+    >
       <MarketingNavbar 
         isDark={isDark} 
         onToggleTheme={toggleTheme} 
@@ -620,7 +642,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/signup" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</Link>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</button>
               </div>
 
               {/* Growth Plan */}
@@ -650,7 +672,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/signup?plan=growth" className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</Link>
+                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</button>
               </div>
 
               {/* Scale Plan */}
@@ -674,7 +696,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/signup?plan=scale" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</Link>
+                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</button>
               </div>
 
               {/* Custom Plan */}
@@ -697,8 +719,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <Link href="/contact" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</Link>
-
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</button>
               </div>
 
             </div>
