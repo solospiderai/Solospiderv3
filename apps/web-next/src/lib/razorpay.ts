@@ -23,10 +23,11 @@ export const loadRazorpayScript = (): Promise<boolean> => {
 interface RazorpayCheckoutParams {
   planId: "growth" | "scale";
   userEmail?: string;
+  couponCode?: string;
   onSuccess?: () => void;
 }
 
-export async function triggerRazorpayCheckout({ planId, userEmail, onSuccess }: RazorpayCheckoutParams) {
+export async function triggerRazorpayCheckout({ planId, userEmail, couponCode, onSuccess }: RazorpayCheckoutParams) {
   const toastId = toast.loading("Initializing secure checkout session...");
 
   try {
@@ -42,7 +43,7 @@ export async function triggerRazorpayCheckout({ planId, userEmail, onSuccess }: 
     const res = await fetch("/api/checkout/razorpay", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planId }),
+      body: JSON.stringify({ planId, couponCode }),
     });
 
     if (!res.ok) {

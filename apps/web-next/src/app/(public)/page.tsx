@@ -47,9 +47,19 @@ export default function HomePage() {
       router.push(`/login?redirect=/pricing`);
       return;
     }
+
+    let couponCode = undefined;
+    if (planId === "growth") {
+      const codeInput = window.prompt("Do you have a coupon code? (Enter SOLO99 for 99% off the Growth Plan)");
+      if (codeInput !== null) {
+        couponCode = codeInput;
+      }
+    }
+
     triggerRazorpayCheckout({
       planId,
       userEmail: user.email,
+      couponCode,
       onSuccess: () => {
         router.push("/dashboard");
       },
