@@ -10,6 +10,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { useAuth } from "@/hooks/useAuth";
 import { triggerRazorpayCheckout } from "@/lib/razorpay";
+import { CouponModal } from "@/components/dashboard/coupon-modal";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -19,6 +20,8 @@ export default function HomePage() {
   const [analysisUrl, setAnalysisUrl] = useState("");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardDomain, setWizardDomain] = useState("");
+  const [couponModalOpen, setCouponModalOpen] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<"growth" | "scale">("growth");
 
   const [isDark, setIsDark] = useState(false);
 
@@ -47,19 +50,16 @@ export default function HomePage() {
       router.push(`/login?redirect=/pricing`);
       return;
     }
+    setSelectedPlanId(planId);
+    setCouponModalOpen(true);
+  };
 
-    let couponCode = undefined;
-    if (planId === "growth") {
-      const codeInput = window.prompt("Do you have a coupon code? (Enter SOLO99 for 99% off the Growth Plan)");
-      if (codeInput !== null) {
-        couponCode = codeInput;
-      }
-    }
-
+  const handleConfirmCoupon = (couponCode: string) => {
+    setCouponModalOpen(false);
     triggerRazorpayCheckout({
-      planId,
-      userEmail: user.email,
-      couponCode,
+      planId: selectedPlanId,
+      userEmail: user?.email,
+      couponCode: couponCode || undefined,
       onSuccess: () => {
         router.push("/dashboard");
       },
@@ -816,6 +816,13 @@ export default function HomePage() {
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
         initialDomain={wizardDomain}
+      />
+
+      <CouponModal 
+        isOpen={couponModalOpen} 
+        onClose={() => setCouponModalOpen(false)} 
+        onConfirm={handleConfirmCoupon} 
+        planId={selectedPlanId}
       />
     </div>
   );
