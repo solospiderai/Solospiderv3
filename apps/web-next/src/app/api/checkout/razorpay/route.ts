@@ -12,7 +12,7 @@ function getRazorpayInstance() {
 }
 
 const PLAN_AMOUNTS: Record<string, { inr: number; credits: number }> = {
-  growth: { inr: 16500, credits: 1000 },
+  growth: { inr: 1600, credits: 1000 },
   scale: { inr: 58000, credits: 5000 },
 };
 
