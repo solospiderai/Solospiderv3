@@ -13,7 +13,7 @@ interface CouponModalProps {
 }
 
 export function CouponModal({ isOpen, onClose, onConfirm, planId, isLoggedIn }: CouponModalProps) {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(planId === "growth" ? "SOLO99" : "");
   const [email, setEmail] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -22,7 +22,8 @@ export function CouponModal({ isOpen, onClose, onConfirm, planId, isLoggedIn }: 
   const handleCopy = () => {
     navigator.clipboard.writeText("SOLO99");
     setCopied(true);
-    toast.success("Coupon code SOLO99 copied!");
+    setCode("SOLO99");
+    toast.success("Coupon code SOLO99 copied and applied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
