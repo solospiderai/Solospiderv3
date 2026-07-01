@@ -485,3 +485,116 @@ create policy "users_own_backlink_submissions" on public.backlink_submissions
     )
   );
 
+-- =========================================================================
+-- Admin Panel Tables
+-- =========================================================================
+
+-- Admin Users Table
+create table if not exists public.admin_users (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  role text not null default 'admin', -- admin, super_admin
+  created_at timestamptz not null default now()
+);
+
+-- Admin Audit Log Table
+create table if not exists public.admin_audit_log (
+  id uuid primary key default gen_random_uuid(),
+  admin_user_id uuid not null references auth.users(id),
+  action text not null,
+  target_type text, -- user, project, credit, plan, ticket, etc.
+  target_id text,
+  details jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+-- System Config Table
+create table if not exists public.system_config (
+  key text primary key,
+  value jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  updated_by uuid references auth.users(id)
+);
+
+-- Support Tickets Table
+create table if not exists public.support_tickets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  subject text not null,
+  category text not null default 'other', -- billing, technical, feature_request, bug, account, other
+  priority text not null default 'medium', -- low, medium, high, urgent
+  status text not null default 'open', -- open, in_progress, waiting_on_user, resolved, closed
+  assigned_to uuid references auth.users(id),
+  resolution_summary text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  resolved_at timestamptz,
+  closed_at timestamptz
+);
+
+-- Ticket Messages Table
+create table if not exists public.ticket_messages (
+  id uuid primary key default gen_random_uuid(),
+  ticket_id uuid not null references public.support_tickets(id) on delete cascade,
+  sender_id uuid not null references auth.users(id),
+  message text not null,
+  is_internal_note boolean not null default false,
+  attachments jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+-- Email Log Table
+create table if not exists public.email_log (
+  id uuid primary key default gen_random_uuid(),
+  recipient_user_id uuid references auth.users(id),
+  recipient_email text not null,
+  subject text not null,
+  body text not null,
+  template text,
+  status text not null default 'sent', -- sent, failed, bounced
+  related_ticket_id uuid references public.support_tickets(id),
+  sent_by uuid references auth.users(id),
+  created_at timestamptz not null default now()
+);
+
+-- Enable RLS on admin tables
+alter table public.admin_users enable row level security;
+alter table public.admin_audit_log enable row level security;
+alter table public.system_config enable row level security;
+alter table public.support_tickets enable row level security;
+alter table public.ticket_messages enable row level security;
+alter table public.email_log enable row level security;
+
+-- Admin Users Policy (only admins can read this table via service role)
+create policy "admin_users_self_read" on public.admin_users
+  for select using (user_id = auth.uid());
+
+-- Support Tickets - users can see their own tickets
+create policy "users_own_tickets" on public.support_tickets
+  for select using (user_id = auth.uid());
+
+create policy "users_insert_tickets" on public.support_tickets
+  for insert with check (user_id = auth.uid());
+
+create policy "users_update_own_tickets" on public.support_tickets
+  for update using (user_id = auth.uid());
+
+-- Ticket Messages - users can see messages on their own tickets (excluding internal notes)
+create policy "users_own_ticket_messages" on public.ticket_messages
+  for select using (
+    is_internal_note = false and
+    exists (
+      select 1 from public.support_tickets t
+      where t.id = ticket_messages.ticket_id and t.user_id = auth.uid()
+    )
+  );
+
+create policy "users_insert_ticket_messages" on public.ticket_messages
+  for insert with check (
+    sender_id = auth.uid() and
+    is_internal_note = false and
+    exists (
+      select 1 from public.support_tickets t
+      where t.id = ticket_messages.ticket_id and t.user_id = auth.uid()
+    )
+  );
+

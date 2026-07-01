@@ -55,13 +55,13 @@ export default function HomePage() {
 
   return (
     <div
-      className="min-h-screen bg-white text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans"
+      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans"
       style={
         {
-          "--bg": "#ffffff",
-          "--bg-2": "#f8f6ff",
+          "--bg": "#fbfaf7",
+          "--bg-2": "#f3f2eb",
           "--panel": "#ffffff",
-          "--line": "#e5e7eb",
+          "--line": "#e2e1da",
           "--ink": "#000000",
           "--ink-2": "#0f172a",
           "--muted": "#334155",
@@ -115,6 +115,20 @@ export default function HomePage() {
             </svg>
           </div>
 
+          {/* Roaming Spiders Background Animators */}
+          <div className="absolute top-[20%] left-[12%] w-6 h-6 opacity-30 text-[#9025F2] pointer-events-none z-10 roaming-spider-slow-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+              <circle cx="12" cy="12" r="4" fill="currentColor"/>
+            </svg>
+          </div>
+          <div className="absolute bottom-[25%] right-[12%] w-5 h-5 opacity-25 text-fuchsia-500 pointer-events-none z-10 roaming-spider-slow-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
+              <circle cx="12" cy="12" r="4" fill="currentColor"/>
+            </svg>
+          </div>
+
           <div className="relative text-center max-w-[980px] mx-auto px-7">
             <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 hero-fade hero-d0">
               <span className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_12px_rgba(144,37,242,0.65)] animate-pulse-gentle"></span>
@@ -164,11 +178,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="flex justify-center gap-5.5 flex-wrap text-[13px] text-ink-2 hero-fade hero-d4">
-              <span className="flex items-center gap-2">No setup wizard required</span>
-              <span className="flex items-center gap-2 before:content-['·'] before:text-muted">Free plan available</span>
-              <span className="flex items-center gap-2 before:content-['·'] before:text-muted">Crawls 50 pages automatically</span>
-            </div>
+            {/* Removed hero search bar sub-texts */}
           </div>
 
           {/* LOGOS */}
@@ -745,7 +755,7 @@ export default function HomePage() {
               <h2 className="mb-[18px]">Everything You Want to Know<br /><span className="grad-text">Before You Sign Up.</span></h2>
             </div>
             
-            <div className="max-w-[880px] mx-auto flex flex-col gap-3.5">
+            <div className="max-w-[880px] mx-auto flex flex-col gap-3.5 reveal">
               {[
                 { q: "Do I need any technical skills to use Solo Spider?", a: "Not at all. Solo Spider is designed to be used without any coding or technical knowledge. If you can use Gmail, you can use Solo Spider. Setup takes under 5 minutes." },
                 { q: "Will the content actually sound like me?", a: "Yes. Solo Spider learns your brand voice from your existing content, website, and the preferences you set during onboarding. You can always edit and refine drafts before publishing — but most users find they barely need to." },
@@ -755,7 +765,7 @@ export default function HomePage() {
                 { q: "Can I manage multiple clients or brands?", a: "Yes. The Agency plan supports 25+ separate client workspaces, each with their own brand settings, content calendars, and reports. You can manage everything without ever logging out." },
                 { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 7-day free trial. Credit card required. You can also use the Starter plan for free, forever." },
               ].map((faq, i) => (
-                <div key={i} className={`bg-white border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] reveal ${openFaq === i ? 'border-primary/20' : ''}`}>
+                <div key={i} className={`bg-white border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left font-display font-semibold text-[18px] text-ink"

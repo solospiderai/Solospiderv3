@@ -18,13 +18,13 @@ export default function PricingPage() {
 
   return (
     <div
-      className="min-h-screen bg-white text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans"
+      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans"
       style={
         {
-          "--bg": "#ffffff",
-          "--bg-2": "#f8f6ff",
+          "--bg": "#fbfaf7",
+          "--bg-2": "#f3f2eb",
           "--panel": "#ffffff",
-          "--line": "#e5e7eb",
+          "--line": "#e2e1da",
           "--ink": "#000000",
           "--ink-2": "#0f172a",
           "--muted": "#334155",

@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
+import { TourGuide } from "@/components/tour-guide";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { 
@@ -26,12 +27,13 @@ import {
   ChevronsUpDown,
   Check,
   Globe,
-  Loader2,
-  Menu,
-  X,
-  MessageSquare,
-  Sparkles,
-  PlayCircle
+  Loader2, 
+  Menu, 
+  X, 
+  MessageSquare, 
+  Sparkles, 
+  PlayCircle,
+  Shield
 } from "lucide-react";
 
 interface SidebarMenuItem {
@@ -126,6 +128,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [roleView, setRoleView] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRoleView(window.localStorage.getItem("solospider_role_view"));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      if (user.email === "info@solospider.ai") {
+        setIsAdmin(true);
+      } else {
+        fetch("/api/admin/auth")
+          .then((res) => {
+            if (res.ok) setIsAdmin(true);
+          })
+          .catch(() => {});
+      }
+    }
+  }, [user]);
 
   const menuItems: SidebarMenuItem[] = [
     {
@@ -195,6 +219,18 @@ export function AppShell({ children }: { children: ReactNode }) {
       icon: Plug2,
       isActive: (path) => path.startsWith("/app/en/settings/integrations") || path.startsWith("/integrations")
     },
+    {
+      label: "Support Center",
+      to: "/app/en/support",
+      icon: MessageSquare,
+      isActive: (path) => path.startsWith("/app/en/support")
+    },
+    ...(isAdmin && roleView !== "user" ? [{
+      label: "Admin Panel",
+      to: "/app/en/admin",
+      icon: Shield,
+      isActive: (path: string) => path.startsWith("/app/en/admin")
+    }] : []),
     {
       label: "Settings",
       to: "/app/en/settings/project",
@@ -401,6 +437,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     </aside>
   );
 
+  if (pathname?.startsWith("/app/en/admin")) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col md:flex-row">
       {/* Mobile Topbar */}
@@ -459,6 +499,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
         </div>
       </main>
+
+      {/* Tour Guide Walks */}
+      <TourGuide />
 
       {/* Create Project Custom Modal Dialog */}
       <AeoWizardModal isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />

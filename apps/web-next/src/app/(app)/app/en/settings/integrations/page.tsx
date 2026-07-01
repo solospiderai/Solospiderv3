@@ -86,14 +86,21 @@ const MagentoIcon = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+const GitHubIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <rect width="24" height="24" rx="5" fill="#24292e" />
+    <path d="M12 5c-3.87 0-7 3.13-7 7 0 3.09 2 5.71 4.77 6.64.35.06.48-.15.48-.34v-1.2c-1.95.42-2.36-.94-2.36-.94-.32-.81-.78-1.03-.78-1.03-.64-.44.05-.43.05-.43.7.05 1.07.73 1.07.73.63 1.08 1.65.77 2.05.59.06-.46.25-.77.45-.95-1.55-.18-3.18-.78-3.18-3.47 0-.76.27-1.39.72-1.88-.07-.18-.31-.89.07-1.86 0 0 .59-.19 1.93.72a6.7 6.7 0 0 1 3.5 0c1.34-.91 1.93-.72 1.93-.72.38.97.14 1.68.07 1.86.45.49.72 1.12.72 1.88 0 2.7-1.63 3.29-3.19 3.46.25.22.48.65.48 1.32v1.96c0 .19.13.41.49.34C17 17.71 19 15.09 19 12c0-3.87-3.13-7-7-7z" fill="white" />
+  </svg>
+);
+
 export default function IntegrationsSettingsPage() {
   const { activeProject, isLoading: isProjectLoading } = useProjects();
   const { user, loading: isAuthLoading } = useAuth();
   const queryClient = useQueryClient();
   const supabase = getSupabaseBrowserClient();
 
-  // Active form view: "wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | "google_search_console" | null
-  const [activeForm, setActiveForm] = useState<"wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | "google_search_console" | null>(null);
+  // Active form view: "wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | "google_search_console" | "github" | null
+  const [activeForm, setActiveForm] = useState<"wordpress" | "shopify" | "magento" | "meta_ads" | "google_ads" | "google_search_console" | "github" | null>(null);
   const [pendingFix, setPendingFix] = useState<{ issueId: string; pageUrl: string; suggestedValue: string } | null>(null);
 
   useEffect(() => {
@@ -106,6 +113,12 @@ export default function IntegrationsSettingsPage() {
       }
     }
   }, []);
+
+  // GitHub form states
+  const [githubToken, setGithubToken] = useState("");
+  const [githubOwner, setGithubOwner] = useState("");
+  const [githubRepo, setGithubRepo] = useState("");
+  const [githubBranch, setGithubBranch] = useState("main");
 
   // WordPress form states
   const [wpUrl, setWpUrl] = useState("");
@@ -301,6 +314,28 @@ export default function IntegrationsSettingsPage() {
       toast.error("Failed to disconnect account", { description: err.message });
     }
   });
+
+  const handleAddGitHub = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!githubToken || !githubOwner || !githubRepo) {
+      toast.error("Please fill in all GitHub connection fields.");
+      return;
+    }
+    const creds = {
+      token: githubToken.trim(),
+      owner: githubOwner.trim(),
+      repo: githubRepo.trim(),
+      branch: githubBranch.trim() || "main"
+    };
+
+    const result = await verifyCredentials("github", creds);
+    if (!result.ok) {
+      toast.error("GitHub verification failed", { description: result.error });
+      return;
+    }
+
+    addIntegrationMutation.mutate({ platform: "github", credentials: creds });
+  };
 
   const handleAddWordPress = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -532,7 +567,7 @@ export default function IntegrationsSettingsPage() {
               <AlertCircle className="w-4 h-4 text-indigo-605 animate-pulse" /> Pending SEO Fix Action
             </div>
             <p className="text-sm font-bold text-slate-800 mt-1">
-              Connect WordPress or Shopify to automatically sync the SEO fix to: <span className="font-mono text-indigo-700 bg-indigo-100/50 px-1.5 py-0.5 rounded text-xs select-all">{pendingFix.pageUrl}</span>
+              Connect WordPress, Shopify, or GitHub to automatically sync the SEO fix to: <span className="font-mono text-indigo-700 bg-indigo-100/50 px-1.5 py-0.5 rounded text-xs select-all">{pendingFix.pageUrl}</span>
             </p>
           </div>
           <button 
@@ -564,7 +599,7 @@ export default function IntegrationsSettingsPage() {
             </div>
 
             {/* Platform Selection Buttons */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <button
                 onClick={() => setActiveForm(activeForm === "wordpress" ? null : "wordpress")}
                 className={`flex flex-col items-center gap-2 p-2.5 border rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
@@ -591,6 +626,15 @@ export default function IntegrationsSettingsPage() {
               >
                 <MagentoIcon className="w-5 h-5" />
                 Magento
+              </button>
+              <button
+                onClick={() => setActiveForm(activeForm === "github" ? null : "github")}
+                className={`flex flex-col items-center gap-2 p-2.5 border rounded-xl font-bold transition-all text-[11px] cursor-pointer ${
+                  activeForm === "github" ? "border-slate-800 bg-slate-900/5 text-slate-850" : "border-slate-200 hover:border-slate-300 text-slate-600 bg-white"
+                }`}
+              >
+                <GitHubIcon className="w-5 h-5" />
+                GitHub
               </button>
             </div>
 
@@ -729,23 +773,92 @@ export default function IntegrationsSettingsPage() {
               </form>
             )}
 
+            {/* GitHub Form */}
+            {activeForm === "github" && (
+              <form onSubmit={handleAddGitHub} className="bg-slate-50/50 rounded-2xl p-4 border border-slate-300 space-y-4 animate-in slide-in-from-top-3 duration-200">
+                <h4 className="text-[11px] font-black uppercase text-slate-700">GitHub Repository Sync</h4>
+                
+                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2 text-[11px]">
+                  <p className="font-extrabold text-slate-700 uppercase tracking-wide text-[9px]">How to connect:</p>
+                  <p className="text-slate-500 font-medium leading-relaxed">
+                    Create a <strong className="text-slate-700">Personal Access Token (classic)</strong> with <code className="bg-slate-100 px-1 rounded">repo</code> scope on GitHub, and input your repository details below.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <input
+                    type="password"
+                    placeholder="GitHub Personal Access Token (ghp_...)"
+                    value={githubToken}
+                    onChange={(e) => setGithubToken(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Repository Owner (e.g. MyGithubOrg)"
+                    value={githubOwner}
+                    onChange={(e) => setGithubOwner(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Repository Name (e.g. my-website-repo)"
+                    value={githubRepo}
+                    onChange={(e) => setGithubRepo(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Branch (default: main)"
+                    value={githubBranch}
+                    onChange={(e) => setGithubBranch(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={addIntegrationMutation.isPending || isVerifying}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  {(addIntegrationMutation.isPending || isVerifying) ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isVerifying ? "Verifying..." : "Verify & Save GitHub"}
+                </button>
+              </form>
+            )}
+
             {/* List Connected CMS / Store Integrations */}
             {connectedIntegrations && connectedIntegrations.length > 0 ? (
               <div className="space-y-2.5 pt-2 border-t border-slate-100">
                 {connectedIntegrations.map((int: any) => {
                   const isWp = int.platform === "wordpress";
                   const isShopify = int.platform === "shopify";
+                  const isGithub = int.platform === "github";
 
                   return (
                     <div key={int.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50/30 gap-4">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-8 h-8 shrink-0 flex items-center justify-center">
-                          {isWp ? <WordPressIcon className="w-8 h-8 rounded-lg shadow-sm" /> : isShopify ? <ShopifyIcon className="w-8 h-8 rounded-lg shadow-sm" /> : <MagentoIcon className="w-8 h-8 rounded-lg shadow-sm" />}
+                          {isWp ? (
+                            <WordPressIcon className="w-8 h-8 rounded-lg shadow-sm" />
+                          ) : isShopify ? (
+                            <ShopifyIcon className="w-8 h-8 rounded-lg shadow-sm" />
+                          ) : isGithub ? (
+                            <GitHubIcon className="w-8 h-8 rounded-lg shadow-sm" />
+                          ) : (
+                            <MagentoIcon className="w-8 h-8 rounded-lg shadow-sm" />
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="text-[11px] font-black text-slate-800 capitalize leading-none">{int.platform}</p>
                           <p className="text-[9px] text-slate-450 font-semibold truncate mt-1">
-                            {isWp ? int.credentials?.siteUrl : `${int.credentials?.shopName}.myshopify.com`}
+                            {isWp
+                              ? int.credentials?.siteUrl
+                              : isShopify
+                              ? `${int.credentials?.shopName}.myshopify.com`
+                              : isGithub
+                              ? `${int.credentials?.owner}/${int.credentials?.repo} (${int.credentials?.branch || "main"})`
+                              : "Magento Store Connected"}
                           </p>
                         </div>
                       </div>

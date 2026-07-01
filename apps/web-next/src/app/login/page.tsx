@@ -5,7 +5,8 @@ import Link from "next/link";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield, LayoutDashboard } from "lucide-react";
+import { AuthVisualPanel } from "@/components/auth-visual-panel";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [adminUser, setAdminUser] = useState<any>(null);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -22,11 +24,29 @@ export default function LoginPage() {
 
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error, data: authData } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Welcome back!");
-      router.replace(redirectedFrom);
-      router.refresh();
+      
+      if (email === "info@solospider.ai") {
+        setAdminUser(authData.user);
+      } else {
+        const { data: adminCheck } = await supabase
+          .from("admin_users")
+          .select("role")
+          .eq("user_id", authData.user?.id)
+          .maybeSingle();
+
+        if (adminCheck) {
+          setAdminUser(authData.user);
+        } else {
+          if (typeof window !== "undefined") {
+            window.localStorage.setItem("solospider_role_view", "user");
+          }
+          router.replace(redirectedFrom);
+          router.refresh();
+        }
+      }
     } catch (err: any) {
       toast.error(err?.message || "Login failed");
     } finally {
@@ -64,19 +84,7 @@ export default function LoginPage() {
       } as React.CSSProperties
     }>
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-bg-2 border-r border-line items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[150px] rounded-full pointer-events-none translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-pink/5 blur-[150px] rounded-full pointer-events-none -translate-x-1/2 translate-y-1/2" />
-        
-        <div className="max-w-md text-center relative z-10">
-          <div className="flex items-center justify-center mb-8">
-            <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[42px] w-auto" />
-          </div>
-          <p className="text-lg text-ink-2 font-medium">
-            AI That Works Alongside Your Team. The intelligent execution layer that helps businesses move faster.
-          </p>
-        </div>
-      </div>
+      <AuthVisualPanel />
 
       {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white relative">
@@ -168,6 +176,53 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {/* Admin View Selection Overlay */}
+      {adminUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0822]/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl space-y-6 text-slate-900 animate-in zoom-in-95 duration-200 text-center">
+            <div className="flex justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-xl shadow-indigo-600/20">
+                <Shield className="w-8 h-8" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-black tracking-tight text-slate-900 leading-none">Administrator Access</h3>
+              <p className="text-xs text-slate-500 font-semibold leading-relaxed mt-2">
+                Welcome back! Select which view you would like to open for this session.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem("solospider_role_view", "admin");
+                  }
+                  router.replace("/app/en/admin");
+                  router.refresh();
+                }}
+                className="flex flex-col items-center justify-center gap-2 p-4 border border-violet-100 hover:border-violet-200 bg-violet-50/50 hover:bg-violet-50 text-violet-750 font-black text-xs rounded-2xl transition-all cursor-pointer"
+              >
+                <Shield className="w-6 h-6 text-violet-600" />
+                Go to Admin Panel
+              </button>
+              <button
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem("solospider_role_view", "user");
+                  }
+                  router.replace("/app/en/dashboard");
+                  router.refresh();
+                }}
+                className="flex flex-col items-center justify-center gap-2 p-4 border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 text-slate-800 font-black text-xs rounded-2xl transition-all cursor-pointer"
+              >
+                <LayoutDashboard className="w-6 h-6 text-slate-700" />
+                Go to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

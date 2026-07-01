@@ -7,6 +7,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { generateSocialPostDraft, generateHighQualityImage } from "@/lib/services/social";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { mapServiceError } from "@/lib/services/errors";
+import { X } from "lucide-react";
 
 interface GeneratedAsset {
   id: string;
@@ -143,6 +144,7 @@ export function MediaStudioWorkspace() {
   const [editingAssetId, setEditingAssetId] = useState<string | null>(null);
   const [editingCaption, setEditingCaption] = useState("");
   const [schedulingAsset, setSchedulingAsset] = useState<GeneratedAsset | null>(null);
+  const [previewAsset, setPreviewAsset] = useState<GeneratedAsset | null>(null);
   const [scheduleDate, setScheduleDate] = useState("");
   const [schedulePlatform, setSchedulePlatform] = useState("instagram");
   const [lastGenerationRequest, setLastGenerationRequest] = useState<{
@@ -1266,7 +1268,10 @@ export function MediaStudioWorkspace() {
             {savedAssets.map((asset) => (
               <div key={asset.id} className="group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
                 {/* Image & Ratio badges */}
-                <div className="relative aspect-square overflow-hidden bg-slate-100">
+                <div 
+                  onClick={() => setPreviewAsset(asset)}
+                  className="relative aspect-square overflow-hidden bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity"
+                >
                   {asset.url.endsWith(".mp4") || asset.url.includes("/video/") ? (
                     <video
                       src={asset.url}
@@ -1466,6 +1471,52 @@ export function MediaStudioWorkspace() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Lightbox Preview Modal */}
+      {previewAsset && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center bg-black/80 p-4 animate-fade-in">
+          <div className="relative w-full max-w-3xl rounded-3xl bg-white p-6 shadow-2xl space-y-4">
+            <button 
+              onClick={() => setPreviewAsset(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer z-10 bg-white/80"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="text-center">
+              <h3 className="text-base font-black text-slate-900 truncate pr-10">{previewAsset.prompt}</h3>
+            </div>
+            <div className="relative aspect-video max-h-[60vh] overflow-hidden rounded-2xl bg-slate-100 flex items-center justify-center">
+              {previewAsset.url.endsWith(".mp4") || previewAsset.url.includes("/video/") ? (
+                <video
+                  src={previewAsset.url}
+                  controls
+                  autoPlay
+                  loop
+                  className="max-h-full max-w-full rounded-xl"
+                />
+              ) : (
+                <img
+                  src={previewAsset.url}
+                  alt={previewAsset.prompt}
+                  className="max-h-full max-w-full rounded-xl object-contain"
+                />
+              )}
+            </div>
+            <div className="space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Caption & Hashtags</span>
+              <p className="text-xs font-semibold leading-relaxed text-slate-700 bg-slate-50 p-3 rounded-xl border">
+                {previewAsset.caption}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {previewAsset.hashtags.map((tag, idx) => (
+                  <span key={idx} className="rounded-full bg-indigo-50 px-2 py-0.5 text-[9px] font-bold text-indigo-650">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

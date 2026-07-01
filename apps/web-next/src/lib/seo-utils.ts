@@ -281,15 +281,15 @@ export function getTrafficChartData(
   const paidRatio = 0.05 + ((hash % 20) / 100);
   const trendDir = (hash % 2 === 0) ? 1 : -1;
 
-  // Daily base traffic is monthly traffic divided by 30
-  const dailyBaseTraffic = traffic / 30;
+  // Projected traffic is anchored to the estimated monthly/projected organic traffic
+  const dailyBaseTraffic = traffic;
 
   if (timeRange === "today") {
     const hours = [8, 10, 12, 14, 16, 18, 20];
     for (let i = 0; i < hours.length; i++) {
       const h = hours[i];
-      // Hourly traffic ranges around daily / 6
-      const hourlyTraffic = Math.round((dailyBaseTraffic / 6) * (0.8 + Math.sin(i * 1.2) * 0.25));
+      // Hourly traffic ranges around daily / 6 (divided by 30 for monthly to daily)
+      const hourlyTraffic = Math.round((dailyBaseTraffic / 180) * (0.8 + Math.sin(i * 1.2) * 0.25));
       const hourlyPaid = Math.round(hourlyTraffic * paidRatio);
       dataPoints.push({
         name: `${h}:00`,

@@ -77,214 +77,44 @@ export const MarketingNavbar = ({ onOpenWizard }: MarketingNavbarProps) => {
 
           {/* Desktop Nav */}
           <div className="hidden lg:flex items-center gap-2 text-[14px] text-ink font-semibold h-full">
+            <a 
+              href="/#features" 
+              onClick={(e) => handleScrollTo(e, "features")} 
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary"
+            >
+              Features
+            </a>
             
-            {/* Features Dropdown Trigger */}
-            <div 
-              className="relative h-full flex items-center"
-              onMouseEnter={() => handleMouseEnter("features")}
+            <a 
+              href="/#audience" 
+              onClick={(e) => handleScrollTo(e, "audience")} 
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary"
             >
-              <button 
-                className={`flex items-center gap-1 px-3.5 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
-                  activeDropdown === "features" ? "bg-primary-soft text-primary" : "hover:bg-primary-soft/50 hover:text-primary"
-                }`}
-              >
-                Features
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-250 ${activeDropdown === "features" ? "rotate-180" : ""}`} />
-              </button>
+              Who It's For
+            </a>
 
-              {/* Features Dropdown Menu */}
-              <div 
-                className={`absolute top-[72px] left-1/2 -translate-x-1/2 w-[580px] bg-white/95 backdrop-blur-md border border-line rounded-2xl p-5 shadow-[0_20px_50px_rgba(144,37,242,0.12)] grid grid-cols-2 gap-3 transition-all duration-250 origin-top z-50 ${
-                  activeDropdown === "features" 
-                    ? "scale-100 opacity-100 pointer-events-auto" 
-                    : "scale-95 opacity-0 pointer-events-none"
-                }`}
-              >
-                <Link 
-                  href="/features/aeo-monitoring" 
-                  onClick={() => setActiveDropdown(null)}
-                  className="hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3 transition-all duration-200"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">AEO Monitoring</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal">Track your brand's presence in AI search engines and overviews.</div>
-                  </div>
-                </Link>
-
-                <Link 
-                  href="/features/content-ops" 
-                  onClick={() => setActiveDropdown(null)}
-                  className="hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3 transition-all duration-200"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <Layers className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">Content Ops Generator</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal">Generate high-quality blog posts and automated social content threads.</div>
-                  </div>
-                </Link>
-
-                <Link 
-                  href="/features/seo-audits" 
-                  onClick={() => setActiveDropdown(null)}
-                  className="hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3 transition-all duration-200"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <Search className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">SEO Audits</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal">Identify keyword gaps and structural optimization opportunities.</div>
-                  </div>
-                </Link>
-
-                <Link 
-                  href="/features/gro-dashboard" 
-                  onClick={() => setActiveDropdown(null)}
-                  className="hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3 transition-all duration-200"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <LineChart className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">GRO Dashboard</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal">Analyze search performance and answer generation growth metrics.</div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            {/* Who It's For Dropdown Trigger */}
-            <div 
-              className="relative h-full flex items-center"
-              onMouseEnter={() => handleMouseEnter("audience")}
-            >
-              <button 
-                className={`flex items-center gap-1 px-3.5 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
-                  activeDropdown === "audience" ? "bg-primary-soft text-primary" : "hover:bg-primary-soft/50 hover:text-primary"
-                }`}
-              >
-                Who It's For
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-250 ${activeDropdown === "audience" ? "rotate-180" : ""}`} />
-              </button>
-
-              {/* Who It's For Dropdown Menu */}
-              <div 
-                className={`absolute top-[72px] left-1/2 -translate-x-1/2 w-[420px] bg-white/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-[0_20px_50px_rgba(144,37,242,0.12)] flex flex-col gap-2 transition-all duration-250 origin-top z-50 ${
-                  activeDropdown === "audience" 
-                    ? "scale-100 opacity-100 pointer-events-auto" 
-                    : "scale-95 opacity-0 pointer-events-none"
-                }`}
-              >
-                <Link 
-                  href="/use-cases/solo" 
-                  onClick={() => setActiveDropdown(null)}
-                  className="hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3.5 transition-all duration-200"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">For Founders & Creators</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal font-sans">Scale your social presence and SEO footprints with zero friction.</div>
-                  </div>
-                </Link>
-
-                <Link 
-                  href="/use-cases/marketing-teams" 
-                  onClick={() => setActiveDropdown(null)}
-                  className="hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3.5 transition-all duration-200"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">For Marketing Teams</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal font-sans">Automate and streamline campaign operations and visual calendars.</div>
-                  </div>
-                </Link>
-
-                <Link 
-                  href="/use-cases/agencies" 
-                  onClick={() => setActiveDropdown(null)}
-                  className="hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3.5 transition-all duration-200"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <Briefcase className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">For Agencies</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal font-sans">Manage multi-client settings with white-label growth reporting.</div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-
-            {/* Pricing Direct Link */}
             <Link 
               href="/pricing"
               className={`px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary ${
                 pathname === "/pricing" ? "bg-primary-soft text-primary" : ""
               }`}
-              onMouseEnter={() => handleMouseEnter("pricing")}
             >
               Pricing
             </Link>
 
-            {/* Resources Dropdown Trigger */}
-            <div 
-              className="relative h-full flex items-center"
-              onMouseEnter={() => handleMouseEnter("resources")}
+            <button 
+              onClick={onOpenWizard} 
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent"
             >
-              <button 
-                className={`flex items-center gap-1 px-3.5 py-2 rounded-xl transition-all duration-200 cursor-pointer ${
-                  activeDropdown === "resources" ? "bg-primary-soft text-primary" : "hover:bg-primary-soft/50 hover:text-primary"
-                }`}
-              >
-                Resources
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-250 ${activeDropdown === "resources" ? "rotate-180" : ""}`} />
-              </button>
+              Blog
+            </button>
 
-              {/* Resources Dropdown Menu */}
-              <div 
-                className={`absolute top-[72px] left-1/2 -translate-x-1/2 w-[400px] bg-white/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-[0_20px_50px_rgba(144,37,242,0.12)] flex flex-col gap-2 transition-all duration-250 origin-top z-50 ${
-                  activeDropdown === "resources" 
-                    ? "scale-100 opacity-100 pointer-events-auto" 
-                    : "scale-95 opacity-0 pointer-events-none"
-                }`}
-              >
-                <button 
-                  onClick={() => { setActiveDropdown(null); onOpenWizard?.(); }}
-                  className="w-full text-left hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3.5 transition-all duration-200 cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <BookOpen className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">Blog</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal font-sans">Read our latest tactical essays on AI visibility and content systems.</div>
-                  </div>
-                </button>
-
-                <button 
-                  onClick={() => { setActiveDropdown(null); onOpenWizard?.(); }}
-                  className="w-full text-left hover:bg-primary-tint/50 border border-transparent hover:border-primary/10 rounded-xl p-3 flex gap-3.5 transition-all duration-200 cursor-pointer"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center shrink-0">
-                    <BookMarked className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-[13.5px] font-bold text-ink mb-0.5">SEO Audit Tool</div>
-                    <div className="text-[11.5px] text-muted font-normal leading-normal font-sans">Verify search gaps and AEO index presence for your domain.</div>
-                  </div>
-                </button>
-              </div>
-            </div>
-
+            <button 
+              onClick={onOpenWizard} 
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent"
+            >
+              SEO Audit
+            </button>
           </div>
           
           <div className="hidden md:flex items-center gap-[14px]">

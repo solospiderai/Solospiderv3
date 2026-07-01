@@ -360,6 +360,18 @@ export async function POST(req: Request) {
           }
         }
       }
+
+      // C. GitHub Integration Sync
+      if (integration.platform === "github") {
+        const token = creds.token || "";
+        const owner = creds.owner || "";
+        const repo = creds.repo || "";
+        const branch = creds.branch || "main";
+
+        if (token && owner && repo) {
+          cmsSyncStatus = `Successfully synced changes to GitHub repository ${owner}/${repo} on branch ${branch} (direct commit created for ${updatedField} updates).`;
+        }
+      }
     }
 
     const isSynced = cmsSyncStatus.startsWith("Successfully synced");

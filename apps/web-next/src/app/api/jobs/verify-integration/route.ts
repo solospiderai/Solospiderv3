@@ -5,7 +5,7 @@ import { readJson } from "@/server/api";
 export const runtime = "nodejs";
 
 const VerifySchema = z.object({
-  platform: z.enum(["wordpress", "shopify", "magento", "google_search_console"]),
+  platform: z.enum(["wordpress", "shopify", "magento", "google_search_console", "github"]),
   credentials: z.any(),
 });
 
@@ -266,6 +266,42 @@ async function verifyGoogleSearchConsole(credentials: any) {
   }
 }
 
+async function verifyGitHub(credentials: any) {
+  const token = (credentials.token || "").trim();
+  const owner = (credentials.owner || "").trim();
+  const repo = (credentials.repo || "").trim();
+
+  if (!token || !owner || !repo) {
+    return { ok: false, error: "Missing GitHub PAT, repository owner, or repository name." };
+  }
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "SoloSpider-App",
+      },
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return { ok: true, message: `GitHub connected! Repository ${data.full_name} is active.` };
+    } else {
+      if (res.status === 401) {
+        return { ok: false, error: "Invalid GitHub Personal Access Token." };
+      }
+      if (res.status === 404) {
+        return { ok: false, error: `Repository not found. Verify owner/repo name and that token has 'repo' scopes.` };
+      }
+      return { ok: false, error: `GitHub API error: Status ${res.status}` };
+    }
+  } catch (e: any) {
+    return { ok: false, error: `Could not reach GitHub API: ${e.message}` };
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const parsed = VerifySchema.safeParse(await readJson(request));
@@ -282,6 +318,8 @@ export async function POST(request: NextRequest) {
       result = await verifyShopify(credentials);
     } else if (platform === "google_search_console") {
       result = await verifyGoogleSearchConsole(credentials);
+    } else if (platform === "github") {
+      result = await verifyGitHub(credentials);
     } else {
       // Magento - basic connectivity check
       result = { ok: true, message: "Magento credentials saved (no verification available yet)." };

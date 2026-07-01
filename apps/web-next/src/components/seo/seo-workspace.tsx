@@ -619,21 +619,12 @@ export function SeoWorkspace() {
 
       if (data.noIntegration) {
         if (typeof window !== "undefined") {
-          toast.info(`Simulated: updated ${fieldLabel} locally in SoloSpider!`, {
-            description: `To sync this change live on your website, connect your CMS.`,
-            action: {
-              label: "Connect CMS",
-              onClick: () => {
-                window.localStorage.setItem("solospider.pending_fix", JSON.stringify({
-                  issueId,
-                  pageUrl,
-                  suggestedValue
-                }));
-                window.location.href = "/app/en/settings/integrations";
-              }
-            },
-            duration: 8000
-          });
+          window.localStorage.setItem("solospider.pending_fix", JSON.stringify({
+            issueId,
+            pageUrl,
+            suggestedValue
+          }));
+          window.location.href = "/app/en/settings/integrations";
         }
       } else {
         toast.success(`Successfully fixed ${fieldLabel} live!`, {

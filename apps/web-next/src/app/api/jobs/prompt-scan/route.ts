@@ -32,6 +32,59 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
   const supabase = getSupabaseAdmin();
+
+  // Ensure there is at least one active prompt before scanning
+  const { data: existingPrompts, error: queryErr } = await supabase
+    .from("aeo_prompts")
+    .select("id")
+    .eq("project_id", parsed.data.project_id)
+    .eq("is_active", true);
+
+  if (queryErr) {
+    console.error("Failed to query existing prompts:", queryErr);
+  }
+
+  if (!existingPrompts || existingPrompts.length === 0) {
+    console.log(`[PromptScanApi] Seeding default active prompts for project ${parsed.data.project_id}`);
+    const defaultPrompts = [
+      {
+        project_id: parsed.data.project_id,
+        topic: "Brand Discovery",
+        prompt: `What are the best alternatives to standard tools for ${parsed.data.brand_name}?`,
+        is_active: true,
+      },
+      {
+        project_id: parsed.data.project_id,
+        topic: "Features & Benefits",
+        prompt: `How does ${parsed.data.brand_name} compare in pricing, features, and speed?`,
+        is_active: true,
+      },
+      {
+        project_id: parsed.data.project_id,
+        topic: "Use Cases",
+        prompt: `What is the best way to optimize website SEO and AEO using ${parsed.data.brand_name}?`,
+        is_active: true,
+      },
+      {
+        project_id: parsed.data.project_id,
+        topic: "Competitor Comparison",
+        prompt: `Who is the industry leader between ${parsed.data.brand_name} and its competitors?`,
+        is_active: true,
+      },
+      {
+        project_id: parsed.data.project_id,
+        topic: "Integration & Setup",
+        prompt: `Is it easy to integrate WordPress and Shopify with ${parsed.data.brand_name}?`,
+        is_active: true,
+      },
+    ];
+
+    const { error: seedErr } = await supabase.from("aeo_prompts").insert(defaultPrompts);
+    if (seedErr) {
+      console.error("Failed to seed default prompts:", seedErr);
+    }
+  }
+
   const { data: run, error: runErr } = await supabase
     .from("prompt_scan_runs")
     .insert({

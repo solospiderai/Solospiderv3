@@ -115,9 +115,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
   });
 
   // Media array
-  const [mediaUrls, setMediaUrls] = useState<string[]>([
-    "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&auto=format&fit=crop&q=80"
-  ]);
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
 
   // CTA options
   const [isCtaEnabled, setIsCtaEnabled] = useState(true);

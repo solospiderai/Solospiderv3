@@ -1,5 +1,5 @@
-import { MigratedWorkspacePage } from "@/components/layout/migrated-workspace-page";
+import { redirect } from "next/navigation";
 
 export default function AdminPage() {
-  return <MigratedWorkspacePage moduleKey="admin" />;
+  redirect("/app/en/admin");
 }
