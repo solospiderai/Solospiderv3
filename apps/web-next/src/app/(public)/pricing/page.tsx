@@ -16,7 +16,13 @@ export default function PricingPage() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("solospider_theme");
-      setIsDark(saved === "dark");
+      const shouldBeDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      setIsDark(shouldBeDark);
+      if (shouldBeDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     }
   }, []);
 
@@ -24,6 +30,11 @@ export default function PricingPage() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   const triggerWizard = () => {
@@ -32,20 +43,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div
-      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans"
-      style={
-        {
-          "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
-          "--bg-2": isDark ? "#141226" : "#f3f2eb",
-          "--panel": isDark ? "#1c1a35" : "#ffffff",
-          "--line": isDark ? "#252340" : "#e2e1da",
-          "--ink": isDark ? "#ffffff" : "#000000",
-          "--ink-2": isDark ? "#e2e8f0" : "#0f172a",
-          "--muted": isDark ? "#94a3b8" : "#334155",
-        } as React.CSSProperties
-      }
-    >
+    <div className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans transition-colors duration-300">
       <MarketingNavbar 
         isDark={isDark} 
         onToggleTheme={toggleTheme} 

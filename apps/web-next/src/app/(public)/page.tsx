@@ -14,13 +14,18 @@ export default function HomePage() {
   const [analysisUrl, setAnalysisUrl] = useState("");
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardDomain, setWizardDomain] = useState("");
-
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = window.localStorage.getItem("solospider_theme");
-      setIsDark(saved === "dark");
+      const shouldBeDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      setIsDark(shouldBeDark);
+      if (shouldBeDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
     }
   }, []);
 
@@ -28,6 +33,11 @@ export default function HomePage() {
     const nextDark = !isDark;
     setIsDark(nextDark);
     window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   };
 
   const handleStartAnalysis = (e: React.FormEvent) => {
@@ -69,20 +79,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div
-      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans transition-colors duration-300"
-      style={
-        {
-          "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
-          "--bg-2": isDark ? "#141226" : "#f3f2eb",
-          "--panel": isDark ? "#1c1a35" : "#ffffff",
-          "--line": isDark ? "#252340" : "#e2e1da",
-          "--ink": isDark ? "#ffffff" : "#000000",
-          "--ink-2": isDark ? "#e2e8f0" : "#0f172a",
-          "--muted": isDark ? "#94a3b8" : "#334155",
-        } as React.CSSProperties
-      }
-    >
+    <div className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans transition-colors duration-300">
       <MarketingNavbar 
         isDark={isDark} 
         onToggleTheme={toggleTheme} 
@@ -623,7 +620,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</button>
+                <Link href="/signup" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</Link>
               </div>
 
               {/* Growth Plan */}
@@ -653,7 +650,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</button>
+                <Link href="/signup?plan=growth" className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</Link>
               </div>
 
               {/* Scale Plan */}
@@ -677,7 +674,7 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</button>
+                <Link href="/signup?plan=scale" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</Link>
               </div>
 
               {/* Custom Plan */}
@@ -700,7 +697,8 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</button>
+                <Link href="/contact" className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</Link>
+
               </div>
 
             </div>
