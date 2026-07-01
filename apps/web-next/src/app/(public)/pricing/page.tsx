@@ -54,49 +54,7 @@ export default function PricingPage() {
 
       <main>
         {/* HERO & PRICING PLANS SECTION */}
-        <section className="relative pt-[140px] pb-24 bg-gradient-to-b from-white via-primary-tint/20 to-white text-center overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute left-[-10%] top-[10%] w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle,rgba(144,37,242,0.18)_0,transparent_65%)] blur-[20px]"></div>
-            <div className="absolute right-[-10%] top-[20%] w-[620px] h-[620px] rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.14)_0,transparent_65%)] blur-[20px]"></div>
-            <div className="absolute left-[30%] bottom-[-20%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.12)_0,transparent_65%)] blur-[20px]"></div>
-            <svg className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1800px] h-[1800px] opacity-[0.065]" viewBox="-400 -400 800 800" fill="none" stroke="#9025F2" strokeWidth="0.6">
-              <g id="spokes">
-                {/* 24 radial spokes */}
-                <line x1="0" y1="0" x2="0" y2="-380" />
-                <line x1="0" y1="0" x2="98" y2="-367" />
-                <line x1="0" y1="0" x2="190" y2="-329" />
-                <line x1="0" y1="0" x2="269" y2="-269" />
-                <line x1="0" y1="0" x2="329" y2="-190" />
-                <line x1="0" y1="0" x2="367" y2="-98" />
-                <line x1="0" y1="0" x2="380" y2="0" />
-                <line x1="0" y1="0" x2="367" y2="98" />
-                <line x1="0" y1="0" x2="329" y2="190" />
-                <line x1="0" y1="0" x2="269" y2="269" />
-                <line x1="0" y1="0" x2="190" y2="329" />
-                <line x1="0" y1="0" x2="98" y2="367" />
-                <line x1="0" y1="0" x2="0" y2="380" />
-                <line x1="0" y1="0" x2="-98" y2="367" />
-                <line x1="0" y1="0" x2="-190" y2="329" />
-                <line x1="0" y1="0" x2="-269" y2="269" />
-                <line x1="0" y1="0" x2="-329" y2="190" />
-                <line x1="0" y1="0" x2="-367" y2="98" />
-                <line x1="0" y1="0" x2="-380" y2="0" />
-                <line x1="0" y1="0" x2="-367" y2="-98" />
-                <line x1="0" y1="0" x2="-329" y2="-190" />
-                <line x1="0" y1="0" x2="-269" y2="-269" />
-                <line x1="0" y1="0" x2="-190" y2="-329" />
-                <line x1="0" y1="0" x2="-98" y2="-367" />
-              </g>
-              {/* concentric rings */}
-              <circle cx="0" cy="0" r="60" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="110" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="170" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="240" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="310" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="380" strokeWidth="0.5" />
-            </svg>
-          </div>
-
+        <section className="relative pt-[140px] pb-24 bg-[var(--bg)] text-center overflow-hidden">
           <div className="max-w-[820px] mx-auto px-7 relative z-10 mb-16">
             <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold px-3 py-1 bg-primary-soft rounded-full border border-primary/10">— Pricing plans</span>
             <h1 className="text-4xl md:text-[64px] leading-[1.05] mt-6 mb-6 font-display font-black tracking-tight">
@@ -114,7 +72,7 @@ export default function PricingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               
               {/* Starter Plan */}
-              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">STARTER</h3>
                 <div className="text-[12px] text-muted -mt-2">For creators just getting started</div>
@@ -147,7 +105,7 @@ export default function PricingPage() {
               </div>
 
               {/* Growth Plan */}
-              <div className="relative border-2 border-[#9025F2] bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
+              <div className="relative border-2 border-[#9025F2] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#9025F2] text-white font-display font-extrabold text-[11px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
@@ -187,7 +145,7 @@ export default function PricingPage() {
               </div>
 
               {/* Scale Plan */}
-              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">SCALE</h3>
                 <div className="text-[12px] text-muted -mt-2">For growing teams & agencies</div>
@@ -223,7 +181,7 @@ export default function PricingPage() {
               </div>
 
               {/* Custom Plan */}
-              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">CUSTOM</h3>
                 <div className="text-[12px] text-muted -mt-2">For large teams & custom volume</div>
@@ -266,9 +224,7 @@ export default function PricingPage() {
         </section>
 
         {/* TESTIMONIALS SECTION */}
-        <section className="relative py-20 md:py-[130px] bg-bg-2 overflow-hidden border-t border-line">
-          <div className="absolute left-[-200px] top-[-200px] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(144,37,242,0.05)_0,transparent_65%)] pointer-events-none"></div>
-          <div className="absolute right-[-200px] bottom-[-200px] w-[600px] h-[600px] rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.05)_0,transparent_65%)] pointer-events-none"></div>
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden border-t border-line">
 
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
@@ -350,7 +306,7 @@ export default function PricingPage() {
               ].map((test, i) => (
                 <div 
                   key={i} 
-                  className="bg-white/90 border border-line rounded-[24px] p-8 flex flex-col gap-6 transition-all duration-300 hover:border-primary/30 hover:shadow-[0_20px_50px_-15px_rgba(144,37,242,0.08)] hover:-translate-y-1 relative group overflow-hidden shadow-sm"
+                  className="bg-[var(--panel)] border border-line rounded-[24px] p-8 flex flex-col gap-6 transition-all duration-300 hover:border-primary/30 hover:shadow-[0_20px_50px_-15px_rgba(144,37,242,0.08)] hover:-translate-y-1 relative group overflow-hidden shadow-sm"
                 >
                   <div className="absolute -right-4 -top-8 text-[120px] font-serif text-primary/5 select-none pointer-events-none group-hover:text-primary/10 transition-colors duration-300">
                     “
@@ -387,7 +343,7 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ SECTION */}
-        <section className="relative py-20 md:py-[130px] bg-bg-2">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
               <div className="mono text-primary mb-[18px]">— Common questions</div>
@@ -404,7 +360,7 @@ export default function PricingPage() {
                 { q: "Can I manage multiple clients or brands?", a: "Yes. The Agency plan supports 25+ separate client workspaces, each with their own brand settings, content calendars, and reports. You can manage everything without ever logging out." },
                 { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 14-day free trial. No credit card required. You can also use the Starter plan for free, forever." },
               ].map((faq, i) => (
-                <div key={i} className={`bg-white border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] ${openFaq === i ? 'border-primary/20' : ''}`}>
+                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left font-display font-semibold text-[18px] text-ink cursor-pointer"
@@ -424,10 +380,9 @@ export default function PricingPage() {
         </section>
 
         {/* FINAL CTA SECTION */}
-        <section className="relative bg-white overflow-hidden py-20 md:py-[130px]">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1300px] h-[800px] bg-[radial-gradient(ellipse,rgba(144,37,242,0.08)_0,transparent_60%)] pointer-events-none"></div>
+        <section className="relative bg-[var(--bg)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-white to-primary-tint rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)]">
+            <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)]">
               <div className="absolute inset-0 rounded-[32px] p-[1.5px] bg-grad [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
               
               <div className="mono text-[#22d3ee] mb-3.5">— Ready to switch?</div>

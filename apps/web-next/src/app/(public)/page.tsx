@@ -95,20 +95,6 @@ export default function HomePage() {
           <div className="absolute inset-0 pointer-events-none overflow-hidden">
           </div>
 
-          {/* Roaming Spiders Background Animators */}
-          <div className="absolute top-[20%] left-[12%] w-6 h-6 opacity-30 text-[#9025F2] pointer-events-none z-10 roaming-spider-slow-1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-              <circle cx="12" cy="12" r="4" fill="currentColor"/>
-            </svg>
-          </div>
-          <div className="absolute bottom-[25%] right-[12%] w-5 h-5 opacity-25 text-fuchsia-500 pointer-events-none z-10 roaming-spider-slow-2">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-full h-full">
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>
-              <circle cx="12" cy="12" r="4" fill="currentColor"/>
-            </svg>
-          </div>
-
           <div className="relative text-center max-w-[980px] mx-auto px-7">
             <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 hero-fade hero-d0">
               <span className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_12px_rgba(144,37,242,0.65)] animate-pulse-gentle"></span>
@@ -181,7 +167,7 @@ export default function HomePage() {
         </section>
 
         {/* PROBLEM */}
-        <section className="relative py-20 md:py-[130px] bg-bg-2" id="problem">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="problem">
           <div className="max-w-[1240px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-15 items-center">
             <div className="reveal">
               <div className="mono text-pink mb-4">— The problem</div>
@@ -195,10 +181,10 @@ export default function HomePage() {
                 <p>Solo Spider was built to collapse the entire stack into a single, automated workflow — so you spend less time on the tools and more time on the work that actually grows your business.</p>
               </div>
             </div>
-            <div className="relative flex flex-col items-center gap-5.5 p-10 bg-white border border-line rounded-3xl shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)] reveal d1">
+            <div className="relative flex flex-col items-center gap-5.5 p-10 bg-[var(--panel)] border border-line rounded-3xl shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)] reveal d1">
               <div className="grid grid-cols-3 gap-3 w-full">
                 {["Surfer SEO", "Buffer", "Canva", "Ahrefs", "Blog CMS", "ChatGPT"].map(tool => (
-                  <div key={tool} className="relative p-3.5 border border-line rounded-xl bg-panel-2 text-center text-[13px] font-semibold text-ink-2 overflow-hidden after:content-[''] after:absolute after:left-2 after:right-2 after:top-1/2 after:h-[1.5px] after:bg-pink after:-rotate-12 after:shadow-[0_0_8px_rgba(236,72,153,0.45)]">
+                  <div key={tool} className="relative p-3.5 border border-line rounded-xl bg-[var(--bg-2)] text-center text-[13px] font-semibold text-ink-2 overflow-hidden after:content-[''] after:absolute after:left-2 after:right-2 after:top-1/2 after:h-[1.5px] after:bg-pink after:-rotate-12 after:shadow-[0_0_8px_rgba(236,72,153,0.45)]">
                     {tool}
                   </div>
                 ))}
@@ -212,7 +198,7 @@ export default function HomePage() {
         </section>
 
         {/* WHO IT'S FOR */}
-        <section className="relative py-20 md:py-[130px] bg-white" id="audience">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="audience">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— Who it's for</div>
@@ -221,7 +207,7 @@ export default function HomePage() {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="relative bg-white border border-primary/25 rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] bg-gradient-to-b from-white to-primary-tint group reveal">
+              <div className="relative bg-[var(--panel)] border border-primary/25 rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] group reveal">
                 <div className="absolute inset-0 bg-grad-soft opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 {/* Simulated featured border gradient */}
                 <div className="absolute inset-0 rounded-3xl p-[1.5px] bg-grad [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
@@ -252,7 +238,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="relative bg-white border border-line rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group reveal d1">
+              <div className="relative bg-[var(--panel)] border border-line rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group reveal d1">
                 <div className="absolute inset-0 bg-grad-soft opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
                 <div className="relative z-10">
@@ -284,7 +270,7 @@ export default function HomePage() {
         </section>
 
         {/* FEATURES */}
-        <section className="relative py-20 md:py-[130px] bg-bg-2" id="features">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="features">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— Everything included</div>
@@ -294,7 +280,7 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
-              <div className="bg-white border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal">
                 <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary opacity-10 leading-none">01</div>
                 <div className="w-[54px] h-[54px] rounded-xl bg-primary-soft border border-primary/15 text-primary flex items-center justify-center text-2xl mb-2">✎</div>
                 <div className="flex flex-col gap-1.5 relative z-10">
@@ -321,7 +307,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="bg-white border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal d1">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal d1">
                 <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary opacity-10 leading-none">02</div>
                 <div className="w-[54px] h-[54px] rounded-xl bg-[#fce7f3] border border-pink/20 text-pink flex items-center justify-center text-2xl mb-2">◐</div>
                 <div className="flex flex-col gap-1.5 relative z-10">
@@ -349,7 +335,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="bg-white border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal">
                 <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary opacity-10 leading-none">03</div>
                 <div className="w-[54px] h-[54px] rounded-xl bg-[#fef3c7] border border-[#f5b500]/30 text-[#b45309] flex items-center justify-center text-2xl mb-2">◇</div>
                 <div className="flex flex-col gap-1.5 relative z-10">
@@ -377,27 +363,27 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="bg-primary border border-transparent rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:-translate-y-1 hover:shadow-[0_40px_70px_-22px_rgba(144,37,242,0.5)] shadow-[0_30px_60px_-22px_rgba(144,37,242,0.4)] reveal d1">
-                <div className="absolute top-6 right-7 font-display text-6xl font-black text-white/20 leading-none">04</div>
-                <div className="w-[54px] h-[54px] rounded-xl bg-white/15 text-white flex items-center justify-center text-2xl mb-2">✦</div>
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:-translate-y-1 hover:shadow-[0_40px_70px_-22px_rgba(144,37,242,0.5)] shadow-[0_30px_60px_-22px_rgba(144,37,242,0.4)] reveal d1">
+                <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary/10 leading-none">04</div>
+                <div className="w-[54px] h-[54px] rounded-xl bg-primary-soft text-primary flex items-center justify-center text-2xl mb-2">✦</div>
                 <div className="flex flex-col gap-1.5 relative z-10">
-                  <span className="mono text-white/85">AEO & GRO — Be Found in AI Search</span>
-                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-white">Google Is Changing. Your Visibility Strategy Should Too.</h3>
+                  <span className="mono text-primary">AEO & GRO — Be Found in AI Search</span>
+                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-ink">Google Is Changing. Your Visibility Strategy Should Too.</h3>
+                  <p className="text-[14.5px] text-ink-2 leading-relaxed">AI-powered search is here. ChatGPT, Gemini, and Google's AI Overviews are now answering questions directly — and most brands are invisible in those answers. Solo Spider helps you show up.</p>
                 </div>
-                <p className="text-[14.5px] text-white/85 leading-relaxed">AI-powered search is here. ChatGPT, Gemini, and Google's AI Overviews are now answering questions directly — and most brands are invisible in those answers. Solo Spider helps you show up.</p>
                 
-                <div className="grid grid-cols-2 gap-3.5 bg-white/10 p-4.5 rounded-2xl border border-white/15 mt-2">
+                <div className="grid grid-cols-2 gap-3.5 bg-white p-4.5 rounded-2xl border border-line mt-2">
                   <div>
-                    <div className="font-display font-bold text-[14px] text-white">AEO</div>
-                    <div className="text-[12.5px] text-white/80 leading-relaxed mt-1">Answer Engine Optimisation — optimising your content to appear in AI answers.</div>
+                    <div className="font-display font-bold text-[14px] text-ink">AEO</div>
+                    <div className="text-[12.5px] text-ink-2 leading-relaxed mt-1">Answer Engine Optimisation — optimising your content to appear in AI answers.</div>
                   </div>
                   <div>
                     <div className="font-display font-bold text-[14px] text-pink">GRO</div>
-                    <div className="text-[12.5px] text-white/80 leading-relaxed mt-1">Generative Result Optimisation — tracking visibility in AI search engines.</div>
+                    <div className="text-[12.5px] text-ink-2 leading-relaxed mt-1">Generative Result Optimisation — tracking visibility in AI search engines.</div>
                   </div>
                 </div>
-
-                <div className="flex flex-col gap-2.5 mt-2 border-t border-white/15 pt-4.5">
+ 
+                <div className="flex flex-col gap-2.5 mt-2 border-t border-line pt-4.5">
                   {[
                     "Identify Content Drivers: Pinpoint which content assets drive your specific topics.",
                     "Create On-Brand AI Content: Tailor articles researched from grounding.",
@@ -407,17 +393,17 @@ export default function HomePage() {
                     "Earn Third-Party Media: Outlets AI models read.",
                     "Multi-Engine Analytics Tracking: Monitor brand visibility over time across ChatGPT, Gemini & Claude.",
                   ].map((item, i) => (
-                    <div key={i} className="flex gap-2.5 items-start text-[13.5px] text-white/95">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-white/15 text-white flex items-center justify-center text-[10px] font-bold mt-0.5">
+                    <div key={i} className="flex gap-2.5 items-start text-[13.5px] text-ink-2">
+                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[10px] font-bold mt-0.5">
                         →
                       </div>
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-ink">
                         {item}
                       </span>
                     </div>
                   ))}
                 </div>
-                <div className="mt-auto pt-4.5 font-mono text-[12px] text-white/70 border-t border-dashed border-white/15 tracking-wide">
+                <div className="mt-auto pt-4.5 font-mono text-[12px] text-muted border-t border-dashed border-line tracking-wide">
                   📈 Early adopters are 5× more visible in AI search. Don't be last.
                 </div>
               </div>
@@ -427,7 +413,7 @@ export default function HomePage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section className="relative py-20 md:py-[130px] bg-white" id="how">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="how">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— How it works</div>
@@ -442,7 +428,7 @@ export default function HomePage() {
                 { num: "03", icon: "✓", title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call.", delay: "d2" },
                 { num: "04", icon: "↗", title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't.", delay: "d3" }
               ].map((step, i) => (
-                <div key={i} className={`bg-white border border-line rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal ${step.delay || ''}`}>
+                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal ${step.delay || ''}`}>
                   <span className="font-mono text-[13px] text-muted tracking-wider">{step.num}</span>
                   <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center text-[22px] mb-1">{step.icon}</div>
                   <h4 className="font-display text-[20px] font-bold tracking-tight text-ink">{step.title}</h4>
@@ -454,8 +440,7 @@ export default function HomePage() {
         </section>
 
         {/* NUMBERS */}
-        <section className="relative py-20 md:py-[130px] bg-bg-2 overflow-hidden">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] bg-[radial-gradient(circle,rgba(144,37,242,0.06)_0,transparent_60%)] pointer-events-none"></div>
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— By the numbers</div>
@@ -471,7 +456,7 @@ export default function HomePage() {
                 { v: "₹40k+", l: "Avg. monthly tool cost replaced by one Solo Spider plan.", d: "d1" },
                 { v: "2,000+", l: "Agencies and creators already using Solo Spider.", d: "d2" }
               ].map((num, i) => (
-                <div key={i} className={`bg-white p-8 lg:p-12 flex flex-col gap-2.5 reveal ${num.d || ''}`}>
+                <div key={i} className={`bg-[var(--panel)] p-8 lg:p-12 flex flex-col gap-2.5 reveal ${num.d || ''}`}>
                   <div className="font-display font-black text-5xl lg:text-[64px] leading-none tracking-tight text-primary">{num.v}</div>
                   <div className="text-[14.5px] text-ink-2 leading-relaxed">{num.l}</div>
                 </div>
@@ -481,7 +466,7 @@ export default function HomePage() {
         </section>
 
         {/* COMPARISON */}
-        <section className="relative py-20 md:py-[130px] bg-white">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— vs. the old way</div>
@@ -489,8 +474,8 @@ export default function HomePage() {
               <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">Here's what Solo Spider replaces — and what none of those tools can do together.</p>
             </div>
 
-            <div className="hidden lg:block bg-white border border-line rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.08)] reveal">
-              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-gradient-to-b from-primary-tint to-white border-b border-line">
+            <div className="hidden lg:block bg-[var(--panel)] border border-line rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.08)] reveal">
+              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-gradient-to-b from-[var(--bg-2)] to-[var(--bg)] border-b border-line">
                 <div className="py-4.5 px-6 font-display font-bold text-[13px] text-ink text-left border-r border-line">Capability</div>
                 <div className="py-4.5 px-4 font-display font-extrabold text-[14px] text-white bg-primary text-center border-r border-line">Solo Spider</div>
                 <div className="py-4.5 px-4 font-display font-bold text-[13px] text-ink-2 text-center border-r border-line">Surfer SEO</div>
@@ -511,9 +496,9 @@ export default function HomePage() {
                 { name: "GRO / AI search visibility", vals: ["✓", "—", "—", "—", "—", "—"] },
                 { name: "All-in-one dashboard", vals: ["✓", "—", "—", "—", "—", "—"] },
               ].map((row, i) => (
-                <div key={i} className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center border-b border-line last:border-b-0 even:bg-bg-2" role="row">
+                <div key={i} className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center border-b border-line last:border-b-0 even:bg-[var(--bg-2)]" role="row">
                   <div className="py-4.5 px-6 font-semibold text-[13.5px] text-ink border-r border-line">{row.name}</div>
-                  <div className="py-4.5 px-4 text-center border-r border-line bg-primary-tint font-bold text-primary text-[18px]">
+                  <div className="py-4.5 px-4 text-center border-r border-line bg-primary/5 font-bold text-primary text-[18px]">
                     {row.vals[0] === "✓" ? "✓" : <span className="text-[11.5px] font-semibold bg-[#fef3c7] text-[#b45309] px-2 py-1 rounded-md">{row.vals[0]}</span>}
                   </div>
                   {row.vals.slice(1).map((val, j) => (
@@ -524,9 +509,9 @@ export default function HomePage() {
                 </div>
               ))}
               
-              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-bg-2 font-semibold">
+              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-[var(--bg-2)] font-semibold">
                 <div className="py-4.5 px-6 text-[13.5px] text-ink border-r border-line">Typical monthly cost</div>
-                <div className="py-4.5 px-4 text-center border-r border-line bg-primary-tint text-primary text-[13.5px]">₹X,XXX</div>
+                <div className="py-4.5 px-4 text-center border-r border-line bg-primary/5 text-primary text-[13.5px]">₹X,XXX</div>
                 <div className="py-4.5 px-4 text-center border-r border-line text-ink-2 text-[13.5px]">₹8,000+</div>
                 <div className="py-4.5 px-4 text-center border-r border-line text-ink-2 text-[13.5px]">₹3,500+</div>
                 <div className="py-4.5 px-4 text-center border-r border-line text-ink-2 text-[13.5px]">₹2,000+</div>
@@ -537,7 +522,7 @@ export default function HomePage() {
 
             {/* Mobile Fallback */}
             <div className="grid lg:hidden gap-4 reveal">
-              <div className="bg-white border border-line rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
+              <div className="bg-[var(--panel)] border border-line rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
                 <h4 className="font-display font-bold text-[16px] mb-3 grad-text">Solo Spider replaces all five</h4>
                 {[
                   "Blog writing & publishing", "Blog scheduling", "Social image generation",
@@ -550,7 +535,7 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-              <div className="bg-white border border-line rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
+              <div className="bg-[var(--panel)] border border-line rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
                 <h4 className="font-display font-bold text-[16px] mb-3 text-ink">What you'd pay for the stack</h4>
                 {[
                   { n: "Surfer SEO", p: "₹8,000+" },
@@ -572,8 +557,7 @@ export default function HomePage() {
         </section>
 
         {/* TESTIMONIALS */}
-        <section className="relative py-20 md:py-[130px] bg-bg-2 overflow-hidden">
-          <div className="absolute right-[-200px] top-0 w-[700px] h-[700px] rounded-full bg-[radial-gradient(circle,rgba(144,37,242,0.07)_0,transparent_65%)] pointer-events-none"></div>
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— What people are saying</div>
@@ -587,7 +571,7 @@ export default function HomePage() {
                 { q: `"I use Solo Spider for 6 clients. The content quality is good enough that two clients thought I'd hired a writer. I hadn't — I just had the right tool."`, a: "SK", n: "Sneha K.", r: "Freelance digital marketer · Bengaluru" },
                 { q: `"The AEO and GRO features alone are worth the subscription. No other tool even tracks AI search visibility. We're way ahead of our competitors because of it."`, a: "AT", n: "Arjun T.", r: "Head of Growth, SaaS startup · Pune", d: "d1" }
               ].map((test, i) => (
-                <div key={i} className={`bg-white border border-line rounded-2xl p-8 lg:p-9 flex flex-col gap-5 transition-colors duration-250 hover:border-primary/30 shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal ${test.d || ''}`}>
+                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl p-8 lg:p-9 flex flex-col gap-5 transition-colors duration-250 hover:border-primary/30 shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal ${test.d || ''}`}>
                   <div className="flex gap-0.5 text-yellow text-[15px]">★★★★★</div>
                   <p className="text-[17px] text-ink font-medium leading-relaxed">
                     {test.q}
@@ -608,7 +592,7 @@ export default function HomePage() {
         </section>
 
         {/* PRICING */}
-        <section className="relative py-20 md:py-[130px] bg-white" id="pricing">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="pricing">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[48px] reveal">
               <div className="mono text-primary mb-[18px]">— Pricing</div>
@@ -619,7 +603,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               
               {/* Starter Plan */}
-              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">STARTER</h3>
                 <div className="text-[12px] text-muted -mt-2">For creators just getting started</div>
@@ -643,7 +627,7 @@ export default function HomePage() {
               </div>
 
               {/* Growth Plan */}
-              <div className="relative border border-primary/20 bg-gradient-to-b from-white to-primary-tint/20 shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45 reveal d1 overflow-visible">
+              <div className="relative border border-primary/20 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45 reveal d1 overflow-visible">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
@@ -673,7 +657,7 @@ export default function HomePage() {
               </div>
 
               {/* Scale Plan */}
-              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal d2 relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal d2 relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">SCALE</h3>
                 <div className="text-[12px] text-muted -mt-2">For growing teams & agencies</div>
@@ -697,7 +681,7 @@ export default function HomePage() {
               </div>
 
               {/* Custom Plan */}
-              <div className="bg-white border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal d3 relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal d3 relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise & custom needs</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">CUSTOM</h3>
                 <div className="text-[12px] text-muted -mt-2">For large teams & custom volume</div>
@@ -728,7 +712,7 @@ export default function HomePage() {
         </section>
 
         {/* FAQ */}
-        <section className="relative py-20 md:py-[130px] bg-bg-2">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
               <div className="mono text-primary mb-[18px]">— Common questions</div>
@@ -745,7 +729,7 @@ export default function HomePage() {
                 { q: "Can I manage multiple clients or brands?", a: "Yes. The Agency plan supports 25+ separate client workspaces, each with their own brand settings, content calendars, and reports. You can manage everything without ever logging out." },
                 { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 7-day free trial. Credit card required. You can also use the Starter plan for free, forever." },
               ].map((faq, i) => (
-                <div key={i} className={`bg-white border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] ${openFaq === i ? 'border-primary/20' : ''}`}>
+                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left font-display font-semibold text-[18px] text-ink"
@@ -765,10 +749,9 @@ export default function HomePage() {
         </section>
 
         {/* FINAL CTA */}
-        <section className="relative bg-white overflow-hidden py-20 md:py-[130px]">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1300px] h-[800px] bg-[radial-gradient(ellipse,rgba(144,37,242,0.08)_0,transparent_60%)] pointer-events-none"></div>
+        <section className="relative bg-[var(--bg)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-white to-primary-tint rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)] reveal">
+            <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)] reveal">
               <div className="absolute inset-0 rounded-[32px] p-[1.5px] bg-grad [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
               
               <div className="mono text-[#22d3ee] mb-3.5">— Ready to switch?</div>
