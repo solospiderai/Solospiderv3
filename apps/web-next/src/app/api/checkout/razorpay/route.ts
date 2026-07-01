@@ -4,11 +4,12 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-// Initialize Razorpay with key_id and key_secret
-const razorpay = new Razorpay({
-  key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+// Initialize Razorpay lazily to prevent Vercel build-time failures when keys are not defined
+function getRazorpayInstance() {
+  const key_id = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_temp_key_id";
+  const key_secret = process.env.RAZORPAY_KEY_SECRET || "rzp_temp_key_secret";
+  return new Razorpay({ key_id, key_secret });
+}
 
 const PLAN_AMOUNTS: Record<string, { inr: number; credits: number }> = {
   growth: { inr: 16500, credits: 1000 },
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
       },
     };
 
+    const razorpay = getRazorpayInstance();
     const order = await razorpay.orders.create(options);
 
     return NextResponse.json({
