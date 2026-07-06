@@ -12,7 +12,7 @@ export const MarketingFooter = () => {
               <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[34px] w-auto block filter brightness-0 invert" />
             </Link>
             <p className="text-[14px] text-white/65 max-w-[320px] leading-[1.6]">
-              Solo Spider — Replace Your Entire Digital Marketing Team With One Tool.
+              Replace your entire digital marketing team with one tool.
             </p>
           </div>
 
@@ -45,7 +45,7 @@ export const MarketingFooter = () => {
               <Link href="/help" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Help Center</Link>
               <Link href="/docs" className="text-white/65 hover:text-[#c5a3ff] transition-colors">API Docs</Link>
               <Link href="/case-studies" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Case Studies</Link>
-              <Link href="/glossary" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Glossary (AEO, GRO, SEO)</Link>
+              <Link href="/glossary" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Glossary</Link>
             </div>
           </div>
 

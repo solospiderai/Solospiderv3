@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { Loader2, Globe } from "lucide-react";
+import { Loader2, Globe, Link as LinkIcon, Target, CheckSquare, Rocket } from "lucide-react";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { useAuth } from "@/hooks/useAuth";
 import { triggerRazorpayCheckout } from "@/lib/razorpay";
@@ -103,8 +103,24 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* SECTION 1: HERO                                               */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative pt-[120px] pb-[90px]">
-          <div className="relative text-center max-w-[980px] mx-auto px-7">
+        <section className="relative pt-[120px] pb-[90px] overflow-hidden">
+          {/* Radial Grid Background */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.06] dark:opacity-[0.03] z-0 flex items-center justify-center">
+            <svg className="w-[1200px] h-[1200px] shrink-0" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="600" cy="600" r="100" stroke="var(--ink)" strokeWidth="1" strokeDasharray="4 4" />
+              <circle cx="600" cy="600" r="200" stroke="var(--ink)" strokeWidth="1" />
+              <circle cx="600" cy="600" r="300" stroke="var(--ink)" strokeWidth="1" strokeDasharray="4 4" />
+              <circle cx="600" cy="600" r="400" stroke="var(--ink)" strokeWidth="1" />
+              <circle cx="600" cy="600" r="500" stroke="var(--ink)" strokeWidth="1" strokeDasharray="4 4" />
+              <circle cx="600" cy="600" r="600" stroke="var(--ink)" strokeWidth="1" />
+              {/* Radial lines */}
+              <line x1="0" y1="600" x2="1200" y2="600" stroke="var(--ink)" strokeWidth="1" />
+              <line x1="600" y1="0" x2="600" y2="1200" stroke="var(--ink)" strokeWidth="1" />
+              <line x1="175.7" y1="175.7" x2="1024.3" y2="1024.3" stroke="var(--ink)" strokeWidth="1" strokeDasharray="2 2" />
+              <line x1="1024.3" y1="175.7" x2="175.7" y2="1024.3" stroke="var(--ink)" strokeWidth="1" strokeDasharray="2 2" />
+            </svg>
+          </div>
+          <div className="relative text-center max-w-[980px] mx-auto px-7 z-10">
             <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 mb-7">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse-gentle"></span>
               Now live — The AI marketing OS for agencies &amp; creators
@@ -182,13 +198,12 @@ export default function HomePage() {
                 Trusted by 2,000+ agencies, freelancers, and solo founders
               </div>
               <div className="flex justify-center items-center gap-12 flex-wrap text-[var(--ink-2)] font-display font-semibold text-lg opacity-60">
-                <span className="italic">Loomstack</span>
-                <span>NORTHWIND</span>
-                <span className="font-extrabold">PEAK CO</span>
-                <span>◇ Lattice</span>
-                <span className="tracking-[0.18em]">CIVIC</span>
-                <span>● Pulse</span>
-                <span className="italic">Modern</span>
+                <span>Intercom</span>
+                <span>Buffer</span>
+                <span className="font-extrabold">HubSpot</span>
+                <span>Zendesk</span>
+                <span className="italic">Mailchimp</span>
+                <span className="font-bold">salesforce</span>
               </div>
             </div>
           </div>
@@ -499,71 +514,195 @@ export default function HomePage() {
               {[
                 {
                   num: "01",
+                  category: "CONTENT & BLOG AUTOMATION",
                   title: "Write less. Publish more.",
                   desc: "Solo Spider generates long-form, SEO-optimised blog posts in your brand voice — then schedules and publishes them automatically. You approve. It does everything else.",
                   mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
-                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">Blog Generator</div>
-                      <div className="grid grid-cols-2 gap-2 text-[10px]">
-                        <select className="bg-[var(--panel)] border border-[var(--line)] p-1.5 rounded text-[var(--ink)]"><option>Select Language</option></select>
-                        <select className="bg-[var(--panel)] border border-[var(--line)] p-1.5 rounded text-[var(--ink)]"><option>Select Tone</option></select>
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-3.5 text-[11px] text-[var(--ink)]">
+                      <div className="flex gap-2 items-center">
+                        <input type="text" readOnly placeholder="Enter Main Keywords" className="flex-1 bg-[var(--panel)] border border-[var(--line)] px-2.5 py-1.5 rounded text-[10px] placeholder-[var(--muted)]" />
+                        <input type="text" readOnly placeholder="Enter Title" className="flex-1 bg-[var(--panel)] border border-[var(--line)] px-2.5 py-1.5 rounded text-[10px] placeholder-[var(--muted)]" />
+                        <select disabled className="bg-[var(--panel)] border border-[var(--line)] p-1.5 rounded text-[10px]"><option>Eng (US)</option></select>
+                        <button type="button" className="bg-primary text-white px-3 py-1.5 rounded font-bold text-[10px]">Generate</button>
                       </div>
-                      <button type="button" className="btn btn-grad w-full justify-center py-2 text-[10px] font-bold mt-1">Generate Blog Post</button>
+                      <div className="flex flex-col gap-1.5">
+                        <div className="text-[9px] uppercase font-mono font-bold text-[var(--muted)]">Core Settings</div>
+                        <div className="grid grid-cols-4 gap-1.5 text-[9px] text-[var(--ink-2)]">
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Language</div>
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Type</div>
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Size</div>
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Level</div>
+                        </div>
+                        <div className="grid grid-cols-4 gap-1.5 text-[9px] text-[var(--ink-2)]">
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Tone</div>
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Point of View</div>
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Readability</div>
+                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Target country</div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center pt-2.5 border-t border-[var(--line)]">
+                        <div className="flex items-center gap-1.5 text-[9px] text-[var(--muted)] font-semibold">
+                          <span>📁</span> Upload Image
+                        </div>
+                        <button type="button" className="btn btn-grad py-1.5 px-4 text-[9.5px] font-bold rounded-lg shadow-sm">Generate Blog Post</button>
+                      </div>
                     </div>
                   ),
                 },
                 {
                   num: "02",
+                  category: "SOCIAL MEDIA — END TO END",
                   title: "Plan It. Generate It. Post It. Automatically.",
                   desc: "From on-brand images and short-form videos to captions and hashtags — Solo Spider handles your entire social media presence without you logging into a single platform.",
                   mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
-                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">Social Queue</div>
-                      <div className="border border-[var(--line)] rounded-lg p-2.5 bg-[var(--panel)] flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-[var(--ink)]">LinkedIn Update</span>
-                        <span className="text-[8px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-mono font-bold">Approved</span>
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-2.5 text-[10px] text-[var(--ink-2)] overflow-hidden">
+                      <div className="grid grid-cols-7 border-b border-[var(--line)] pb-2 text-[8px] font-mono uppercase font-bold text-[var(--muted)] text-center">
+                        <div>Time</div>
+                        <div>Sun 28</div>
+                        <div>Mon 29</div>
+                        <div>Tue 30</div>
+                        <div>Wed 01</div>
+                        <div>Thu 02</div>
+                        <div>Fri 03</div>
                       </div>
-                      <button type="button" className="btn btn-grad w-full justify-center py-2 text-[10px] font-bold">Generate Social Creatives</button>
+                      <div className="relative flex flex-col gap-3.5 h-[130px] overflow-hidden">
+                        {[ "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM" ].map((time, idx) => (
+                          <div key={idx} className="flex items-center border-b border-[var(--line)] pb-1.5 last:border-0 last:pb-0">
+                            <span className="w-10 text-[8px] text-[var(--muted)] font-mono">{time}</span>
+                            <div className="flex-1 grid grid-cols-6 gap-1"></div>
+                          </div>
+                        ))}
+                        <div className="absolute top-[5px] left-[55px] z-10 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
+                          <div className="flex items-center gap-1">🔷 Facebook</div>
+                          <div>12K Reach</div>
+                          <div className="opacity-80">5% Eng.</div>
+                        </div>
+                        <div className="absolute top-[40px] left-[140px] z-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
+                          <div className="flex items-center gap-1">💼 LinkedIn</div>
+                          <div>8.5K Reach</div>
+                          <div className="opacity-80">3% Eng.</div>
+                        </div>
+                        <div className="absolute top-[8px] right-[65px] z-10 bg-pink-500/10 border border-pink-500/20 text-pink-500 rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
+                          <div className="flex items-center gap-1">📷 Instagram</div>
+                          <div>15K Reach</div>
+                          <div className="opacity-80">4% Eng.</div>
+                        </div>
+                        <div className="absolute top-[45px] right-[2px] z-10 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/20 text-[var(--ink)] rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
+                          <div className="flex items-center gap-1">🐦 X</div>
+                          <div>6K Reach</div>
+                          <div className="opacity-80">4% Eng.</div>
+                        </div>
+                      </div>
                     </div>
                   ),
                 },
                 {
                   num: "03",
+                  category: "SEO — AUDIT & FIX",
                   title: "Identify SEO Issues. Fix Them with Ease.",
                   desc: "Solo Spider scans your entire website for SEO issues — broken tags, slow pages, missing meta descriptions, weak internal linking — then helps you fix them without touching code.",
                   mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
-                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">SEO Actions</div>
-                      <div className="flex justify-between items-center p-2 rounded-lg border border-[var(--line)] bg-[var(--panel)]">
-                        <div>
-                          <div className="text-[10px] font-bold text-amber-500">Missing Meta tags</div>
-                          <div className="text-[8px] text-[var(--muted)]">Found on 4 pages</div>
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-3.5 text-[10px] text-[var(--ink)]">
+                      <div className="grid grid-cols-4 gap-2 text-center font-mono">
+                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">On-Page Score</div>
+                          <div className="text-xs font-black text-rose-500 mt-0.5">46 ↓</div>
                         </div>
-                        <button type="button" className="text-[9px] font-bold bg-primary text-white px-2.5 py-1 rounded-md">Auto-Fix</button>
+                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Organic Traffic</div>
+                          <div className="text-xs font-black text-emerald-500 mt-0.5">164 ↑ 20%</div>
+                        </div>
+                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Keywords</div>
+                          <div className="text-xs font-black text-emerald-500 mt-0.5">251 ↑ 25%</div>
+                        </div>
+                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Backlinks</div>
+                          <div className="text-xs font-black text-emerald-500 mt-0.5">90 ↑ 15%</div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1.5 text-[9px] border-t border-[var(--line)] pt-3">
+                        <div className="text-[8px] uppercase font-mono font-bold text-[var(--muted)]">Target Market &amp; Competitors</div>
+                        <div className="flex justify-between items-center gap-2">
+                          <div className="flex items-center gap-1 font-bold">🌐 Market: <span className="text-primary font-bold">United States</span></div>
+                          <div className="flex gap-1">
+                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[8px]">abcompany.com</span>
+                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[8px]">xyz.com</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-1.5 border-t border-[var(--line)] pt-3 text-[9px]">
+                        <div className="flex gap-3 text-[8px] uppercase font-mono font-bold text-[var(--muted)]">
+                          <span className="text-primary border-b border-primary pb-0.5">SEO Issues (8)</span>
+                          <span>Audited Pages (27)</span>
+                        </div>
+                        <div className="flex flex-col gap-1 text-[8.5px]">
+                          <div className="flex items-center gap-1.5 text-rose-500 font-semibold">⚠️ 16 pages are missing title tags</div>
+                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 2 pages have duplicate title tags</div>
+                          <div className="flex items-center gap-1.5 text-gray-500">ℹ️ 1 sitemap.xml bot issue</div>
+                        </div>
                       </div>
                     </div>
                   ),
                 },
                 {
                   num: "04",
+                  category: "AEO & GEO — BE FOUND IN AI SEARCH",
                   title: "Google Is Changing. Your Visibility Strategy Should Too.",
                   desc: "AI-powered search is here. ChatGPT, Gemini, and Google's AI Overviews are now answering questions directly — and most brands are invisible in those answers. Solo Spider helps you show up.",
                   mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
-                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">AEO Scan</div>
-                      <div className="bg-[var(--panel)] border border-[var(--line)] p-2.5 rounded-lg text-[10px] text-[var(--ink-2)]">
-                        <strong>Citation Share:</strong> Solo Spider found across 14,000 keyword queries.
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-3 text-[10px] text-[var(--ink)]">
+                      <div className="flex justify-between items-center border-b border-[var(--line)] pb-2">
+                        <span className="font-mono text-[9px] uppercase font-bold text-emerald-500 flex items-center gap-1">🟢 Scan Complete</span>
+                        <button type="button" className="px-2 py-0.5 border border-primary/20 text-primary text-[8px] rounded font-bold hover:bg-primary-soft">Re-scan</button>
                       </div>
-                      <div className="flex justify-between text-[9px] pt-1">
-                        <span className="text-[var(--muted)]">Multi-Engine Score:</span>
-                        <span className="text-emerald-500 font-bold">Excellent</span>
+                      <div className="grid grid-cols-4 gap-2 text-center font-mono">
+                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Active Prompts</div>
+                          <div className="text-sm font-black text-primary mt-0.5">30</div>
+                        </div>
+                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Citations</div>
+                          <div className="text-sm font-black text-primary mt-0.5">00</div>
+                        </div>
+                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Query Fanouts</div>
+                          <div className="text-sm font-black text-primary mt-0.5">00</div>
+                        </div>
+                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
+                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">AI Referrals</div>
+                          <div className="text-sm font-black text-primary mt-0.5">00</div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2 pt-1">
+                        <div className="flex items-center justify-between text-[9px]">
+                          <span className="font-bold">🤖 Gemini</span>
+                          <div className="w-[180px] bg-[var(--line)] h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-purple-500 h-full rounded-full" style={{ width: '40%' }}></div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[9px]">
+                          <span className="font-bold">🟠 Claude</span>
+                          <div className="w-[180px] bg-[var(--line)] h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-orange-500 h-full rounded-full" style={{ width: '20%' }}></div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-[9px]">
+                          <span className="font-bold">🟢 ChatGPT</span>
+                          <div className="w-[180px] bg-[var(--line)] h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '65%' }}></div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ),
                 },
               ].map((card) => (
                 <div key={card.num} className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col text-left transition-all duration-200 hover:border-primary/30 hover:-translate-y-1 shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)]">
-                  <span className="font-mono text-[12px] text-[var(--muted)] tracking-wider font-bold mb-3">{card.num}</span>
+                  <div className="flex justify-between items-center mb-3.5 border-b border-[var(--line)] pb-2.5">
+                    <span className="font-mono text-[12px] text-[var(--muted)] font-bold">{card.num}</span>
+                    <span className="text-[9px] font-bold text-primary font-mono tracking-wider uppercase">{card.category}</span>
+                  </div>
                   <h4 className="font-display text-[20px] font-bold tracking-tight text-[var(--ink)] mb-2">{card.title}</h4>
                   <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">{card.desc}</p>
                   {card.mockup}
@@ -591,14 +730,16 @@ export default function HomePage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
               {[
-                { num: "01", icon: "⊞", title: "Connect your channels", desc: "Link your website, social accounts, and any existing CMS. Solo Spider pulls in your brand voice, existing content, and target audience automatically." },
-                { num: "02", icon: "◎", title: "Set your goals", desc: "Tell Solo Spider what you want to achieve — more blog traffic, stronger social presence, better rankings, or AI search visibility. It builds your content strategy around your goals." },
-                { num: "03", icon: "✓", title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call." },
-                { num: "04", icon: "↗", title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't." }
+                { num: "01", icon: LinkIcon, title: "Connect your channels", desc: "Link your website, social accounts, and any existing CMS. Solo Spider pulls in your brand voice, existing content, and target audience automatically." },
+                { num: "02", icon: Target, title: "Set your goals", desc: "Tell Solo Spider what you want to achieve — more blog traffic, stronger social presence, better rankings, or AI search visibility. It builds your content strategy around your goals." },
+                { num: "03", icon: CheckSquare, title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call." },
+                { num: "04", icon: Rocket, title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't." }
               ].map((step, i) => (
                 <div key={i} className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] text-left">
                   <span className="font-mono text-[13px] text-[var(--muted)] tracking-wider font-bold">{step.num}</span>
-                  <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center text-[22px] mb-1 font-bold">{step.icon}</div>
+                  <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-1">
+                    <step.icon className="w-6 h-6" />
+                  </div>
                   <h4 className="font-display text-[20px] font-bold tracking-tight text-[var(--ink)]">{step.title}</h4>
                   <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">{step.desc}</p>
                 </div>
@@ -879,7 +1020,13 @@ export default function HomePage() {
             }`}>
               {isDark && <div className="absolute inset-0 rounded-[32px] p-[1.5px] bg-gradient-to-b from-primary to-transparent [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>}
               
-              <div className={`mono mb-3.5 font-bold uppercase tracking-wider ${isDark ? "text-cyan-400" : "text-white/80"}`}>— Ready to switch?</div>
+              <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] font-mono font-bold uppercase tracking-wider mb-6 ${
+                isDark 
+                  ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" 
+                  : "bg-white/10 text-white border-white/20"
+              }`}>
+                ● READY TO SWITCH?
+              </span>
               <h2 className="text-4xl md:text-[64px] leading-[1.05] mb-6 font-black tracking-tight text-white">
                 Simplify your marketing.<br />
                 <span className={isDark ? "grad-text" : "text-purple-200"}>Amplify your results.</span>

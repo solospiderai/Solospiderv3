@@ -138,17 +138,17 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
             >
               {isDark ? <Sun className="w-4 h-4 text-amber-500 animate-pulse" /> : <Moon className="w-4 h-4 text-indigo-650" />}
             </button>
-            {user ? (
+             {user ? (
               <Link href="/app/en/dashboard" className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">
                 Go to Dashboard
               </Link>
             ) : (
               <>
-                <Link href="/login" className="text-[14px] text-[var(--ink)] font-extrabold hover:text-primary transition-colors">
-                  Log in
+                <Link href="/login" className="px-5 py-2.5 rounded-xl border border-[var(--line)] text-[14px] text-[var(--ink)] font-semibold hover:bg-primary-soft/50 hover:text-primary transition-all flex items-center justify-center">
+                  Login
                 </Link>
                 <Link href="/signup" className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">
-                  Start Free →
+                  Start Free
                 </Link>
               </>
             )}
@@ -200,7 +200,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
                 )}
               </button>
             </div>
-            {user ? (
+             {user ? (
               <Link href="/app/en/dashboard" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
                 <button className="w-full py-3 rounded-xl btn btn-grad justify-center cursor-pointer">
                   Go to Dashboard
@@ -210,12 +210,12 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
               <>
                 <Link href="/login" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
                   <button className="w-full py-3 rounded-xl border border-line text-ink-2 font-medium hover:bg-bg-2 cursor-pointer">
-                    Log in
+                    Login
                   </button>
                 </Link>
                 <Link href="/signup" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
                   <button className="w-full py-3 rounded-xl btn btn-grad justify-center cursor-pointer">
-                    Start Free →
+                    Start Free
                   </button>
                 </Link>
               </>
