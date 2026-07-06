@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { Loader2, Globe, Check } from "lucide-react";
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { Loader2, Globe } from "lucide-react";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { useAuth } from "@/hooks/useAuth";
 import { triggerRazorpayCheckout } from "@/lib/razorpay";
@@ -22,7 +21,6 @@ export default function HomePage() {
   const [wizardDomain, setWizardDomain] = useState("");
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<"growth" | "scale">("growth");
-
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -73,7 +71,6 @@ export default function HomePage() {
     });
   };
 
-  // Smooth scroll
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
     return () => {
@@ -81,32 +78,9 @@ export default function HomePage() {
     };
   }, []);
 
-  // Reveal animation on scroll
-  useEffect(() => {
-    const els = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in");
-            io.unobserve(e.target);
-          }
-        });
-      },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.06 }
-    );
-    els.forEach((el) => {
-      if (!el.classList.contains("in")) io.observe(el);
-    });
-
-    return () => {
-      io.disconnect();
-    };
-  }, []);
-
   return (
     <div
-      className="min-h-screen bg-[var(--bg)] text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans transition-colors duration-300"
+      className="min-h-screen bg-[var(--bg)] text-[var(--ink)] selection:bg-primary/20 selection:text-[var(--ink)] overflow-x-hidden font-sans transition-colors duration-300"
       style={
         {
           "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
@@ -126,27 +100,27 @@ export default function HomePage() {
       />
 
       <main>
-        {/* HERO */}
-        <section className="relative pt-[120px] pb-[90px] bg-[var(--bg)]">
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          </div>
-
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 1: HERO                                               */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative pt-[120px] pb-[90px]">
           <div className="relative text-center max-w-[980px] mx-auto px-7">
-            <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 hero-fade hero-d0">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_12px_rgba(144,37,242,0.65)] animate-pulse-gentle"></span>
-              Now live — The AI marketing OS for agencies & creators
+            <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 mb-7">
+              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse-gentle"></span>
+              Now live — The AI marketing OS for agencies &amp; creators
             </span>
-            <h1 className="text-5xl md:text-[80px] leading-[1.05] my-7 hero-fade hero-d1">
-              <span className="text-[var(--ink)]">Replace Your Entire</span><br />
+            <h1 className="text-5xl md:text-[80px] leading-[1.05] my-7 font-black tracking-tight text-[var(--ink)]">
+              Replace Your Entire<br />
               <span className="grad-text">Marketing Workflow</span><br />
-              <span className="text-[var(--ink)]">With One Tool</span>
+              With One Tool
             </h1>
-            <p className="text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-9 leading-relaxed hero-fade hero-d2">
+            <p className="text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-9 leading-relaxed">
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
-            {/* Website Analysis Search Bar */}
-            <div className="max-w-[640px] mx-auto mb-8 hero-fade hero-d3 relative z-20">
-              <form onSubmit={handleStartAnalysis} className="p-1.5 rounded-full bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex items-center gap-2">
+
+            {/* URL Scan Form */}
+            <div className="max-w-[640px] mx-auto mb-8 relative z-20">
+              <form onSubmit={handleStartAnalysis} className="p-1.5 rounded-full bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex items-center gap-2">
                 <div className="flex-1 flex items-center pl-4">
                   <Globe className="w-5 h-5 text-[var(--muted)] shrink-0" />
                   <input
@@ -176,52 +150,38 @@ export default function HomePage() {
                 </button>
               </form>
               <p className="text-[12px] text-[var(--ink-2)] opacity-60 mt-3.5 font-bold flex items-center justify-center gap-1.5">
-                <span>⚡ SEO & AEO scans start instantly in the background</span>
+                <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
               </p>
             </div>
 
-            {/* Action buttons below search bar */}
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-8 hero-fade hero-d4">
-              <button
-                onClick={() => router.push("/signup")}
-                className="btn btn-grad px-8 py-3.5 rounded-full text-[14.5px] font-bold cursor-pointer"
-              >
+            {/* Sub CTAs */}
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
+              <button onClick={() => router.push("/signup")} className="btn btn-grad px-8 py-3.5 rounded-full text-[14.5px] font-bold cursor-pointer">
                 Start free trial →
               </button>
-              <a
-                href="#problem"
-                className="px-8 py-3.5 rounded-full text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-primary-soft/50 hover:text-primary transition-all cursor-pointer flex items-center justify-center"
-              >
+              <a href="#problem" className="px-8 py-3.5 rounded-full text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-primary-soft/50 hover:text-primary transition-all cursor-pointer flex items-center justify-center">
                 See How It Works
               </a>
             </div>
 
-            {/* Checkmark promos inline */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3.5 text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-14 hero-fade hero-d5">
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500 shrink-0 stroke-[3px]" />
-                <span>No credit card required</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500 shrink-0 stroke-[3px]" />
-                <span>Free plan available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-500 shrink-0 stroke-[3px]" />
-                <span>Set up in 5 minutes</span>
-              </div>
+            {/* Promos */}
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3.5 text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-14">
+              {["No credit card required", "Free plan available", "Set up in 5 minutes"].map((p, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-[10px] font-black">✓</span>
+                  <span>{p}</span>
+                </div>
+              ))}
             </div>
-
-            {/* Removed hero search bar sub-texts */}
           </div>
 
-          {/* LOGOS */}
-          <div className="pt-12 pb-7 border-t border-line mt-20">
+          {/* Trusted Brand Logos */}
+          <div className="pt-12 pb-7 border-t border-[var(--line)] mt-20">
             <div className="max-w-[1240px] mx-auto px-7">
-              <div className="text-center text-[13px] text-muted mb-6 tracking-wide">
+              <div className="text-center text-[13px] text-[var(--muted)] mb-6 tracking-wide uppercase font-semibold">
                 Trusted by 2,000+ agencies, freelancers, and solo founders
               </div>
-              <div className="flex justify-center items-center gap-12 flex-wrap text-ink-2 font-display font-semibold text-lg opacity-80">
+              <div className="flex justify-center items-center gap-12 flex-wrap text-[var(--ink-2)] font-display font-semibold text-lg opacity-60">
                 <span className="italic">Loomstack</span>
                 <span>NORTHWIND</span>
                 <span className="font-extrabold">PEAK CO</span>
@@ -234,58 +194,288 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* PROBLEM */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 2: PROBLEM – "You're paying for 6 tools…"             */}
+        {/* Layout: Text left, Diagram right                              */}
+        {/* Diagram: 6 dark rounded-square cards → center purple squircle → 5 dark capsules */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="problem">
-          <div className="max-w-[1240px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-15 items-center">
-            <div className="reveal">
-              <div className="mono text-pink mb-4">— The problem</div>
-              <h2 className="text-4xl md:text-[60px] mb-6">
-                You're paying for <span className="text-pink">6 tools</span><br />
+          <div className="max-w-[1240px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-14 items-center">
+            {/* Left: Text */}
+            <div className="text-left">
+              <div className="mono text-pink-500 mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+                The problem
+              </div>
+              <h2 className="text-4xl md:text-[56px] leading-[1.1] mb-6 font-black tracking-tight">
+                You&apos;re paying for <span className="text-pink-500">6 tools</span><br />
                 that should be <span className="grad-text">one.</span>
               </h2>
-              <div className="text-[17px] text-ink-2 space-y-4">
+              <div className="text-[17px] text-[var(--ink-2)] space-y-5 leading-relaxed">
                 <p>The average digital marketer juggles Surfer SEO, Buffer, Canva, Ahrefs, a blog CMS, and a separate AI writing tool — spending ₹30,000–₹80,000 a month on subscriptions that barely talk to each other.</p>
-                <p>That's before counting the hours lost copy-pasting between tools, briefing freelancers, chasing approvals, and manually posting content.</p>
+                <p>That&apos;s before counting the hours lost copy-pasting between tools, briefing freelancers, chasing approvals, and manually posting content.</p>
                 <p>Solo Spider was built to collapse the entire stack into a single, automated workflow — so you spend less time on the tools and more time on the work that actually grows your business.</p>
               </div>
             </div>
-            <div className="relative flex flex-col items-center gap-5.5 p-10 bg-[var(--panel)] border border-line rounded-3xl shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)] reveal d1">
-              <div className="grid grid-cols-3 gap-3 w-full">
-                {["Surfer SEO", "Buffer", "Canva", "Ahrefs", "Blog CMS", "ChatGPT"].map(tool => (
-                  <div key={tool} className="relative p-3.5 border border-line rounded-xl bg-[var(--bg-2)] text-center text-[13px] font-semibold text-ink-2 overflow-hidden after:content-[''] after:absolute after:left-2 after:right-2 after:top-1/2 after:h-[1.5px] after:bg-pink after:-rotate-12 after:shadow-[0_0_8px_rgba(236,72,153,0.45)]">
-                    {tool}
+
+            {/* Right: Diagram (matching screenshot exactly) */}
+            <div className="relative w-full max-w-[680px] mx-auto" style={{ minHeight: 420 }}>
+              {/* SVG connection lines */}
+              <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 680 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Left tools → left node */}
+                <path d="M 110,55 C 160,55 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 150,105 C 180,105 180,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 80,175 C 130,175 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 155,195 C 175,195 185,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 80,280 C 130,280 170,210 195,210" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 155,345 C 175,345 185,230 195,210" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                {/* Left node → center */}
+                <line x1="210" y1="205" x2="265" y2="205" stroke={isDark ? "#ffffff15" : "#00000010"} strokeWidth="1.5" strokeDasharray="4 4" />
+                {/* Center → right node */}
+                <line x1="415" y1="205" x2="470" y2="205" stroke={isDark ? "#ffffff15" : "#00000010"} strokeWidth="1.5" strokeDasharray="4 4" />
+                {/* Right node → right capsules */}
+                <path d="M 485,195 C 510,195 520,65 535,65" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 485,195 C 510,195 520,140 535,140" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 485,205 C 510,205 520,215 535,215" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 485,210 C 510,210 520,290 535,290" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                <path d="M 485,215 C 510,215 520,360 535,360" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
+                {/* Left connection node */}
+                <circle cx="200" cy="205" r="6" fill={isDark ? "#1c1a35" : "#ffffff"} stroke={isDark ? "#ffffff30" : "#00000020"} strokeWidth="1.5" />
+                <circle cx="200" cy="205" r="2.5" fill={isDark ? "#ffffff" : "#000000"} />
+                {/* Right connection node */}
+                <circle cx="480" cy="205" r="6" fill={isDark ? "#1c1a35" : "#ffffff"} stroke={isDark ? "#ffffff30" : "#00000020"} strokeWidth="1.5" />
+                <circle cx="480" cy="205" r="2.5" fill={isDark ? "#ffffff" : "#000000"} />
+              </svg>
+
+              {/* Left: 6 tool cards (rounded squares, scattered layout) */}
+              {[
+                { icon: "📊", name: "SFO", sub: "", top: 20, left: 0 },
+                { icon: "☰", name: "Buffer", sub: "Social", top: 70, left: 90 },
+                { icon: "✦", name: "Canva", sub: "Design", top: 140, left: -5 },
+                { icon: "⟐", name: "ahrefs", sub: "SEO", top: 160, left: 90 },
+                { icon: "✎", name: "CMS", sub: "", top: 245, left: 0 },
+                { icon: "◎", name: "AI Writing", sub: "", top: 305, left: 80 },
+              ].map((tool) => (
+                <div
+                  key={tool.name}
+                  className="absolute z-10 flex flex-col items-center"
+                  style={{ top: tool.top, left: tool.left }}
+                >
+                  <div className="w-[62px] h-[62px] rounded-2xl bg-[#141226] text-white flex flex-col items-center justify-center border border-white/10 shadow-lg">
+                    <span className="text-[18px] mb-0.5">{tool.icon}</span>
+                    <span className="text-[8px] font-extrabold tracking-wide uppercase leading-none">{tool.name}</span>
                   </div>
-                ))}
+                  {tool.sub && (
+                    <span className="text-[8px] font-bold text-[var(--muted)] mt-1 uppercase tracking-wider">{tool.sub}</span>
+                  )}
+                </div>
+              ))}
+
+              {/* Center: Purple gradient squircle */}
+              <div className="absolute z-10" style={{ top: 115, left: 265 }}>
+                <div className="w-[150px] h-[170px] rounded-[28px] flex flex-col items-center justify-center text-white shadow-[0_20px_50px_rgba(144,37,242,0.4)] border border-white/15" style={{ background: 'linear-gradient(180deg, #a855f7 0%, #9025F2 50%, #c084fc 100%)' }}>
+                  <span className="text-[42px] mb-1">🕷️</span>
+                  <span className="font-display font-black text-[15px] tracking-wide">solospider</span>
+                </div>
               </div>
-              <div className="text-3xl text-primary">↓</div>
-              <div className="px-7 py-4 bg-primary text-white rounded-xl font-extrabold font-display text-lg tracking-tight flex items-center gap-2.5 shadow-[0_14px_30px_-12px_rgba(144,37,242,0.5)]">
-                <span className="w-2.5 h-2.5 rounded-full bg-white"></span>Solo Spider
-              </div>
+
+              {/* Right: 5 target capsules */}
+              {[
+                { icon: "✓", title: "SEO", sub: "OPTIMIZED", top: 35 },
+                { icon: "★", title: "AEO", sub: "ANSWER ENGINE OPTIMIZED", top: 112 },
+                { icon: "📍", title: "GEO", sub: "GEOGRAPHICALLY OPTIMIZED", top: 189 },
+                { icon: "💬", title: "Social", sub: "SOCIAL MEDIA OPTIMIZED", top: 262 },
+                { icon: "✍", title: "AI Writing", sub: "AI POWERED CONTENT", top: 335 },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="absolute z-10"
+                  style={{ top: item.top, right: 0 }}
+                >
+                  <div className="w-[145px] h-[60px] rounded-xl bg-[#141226] text-white flex items-center gap-2.5 px-3 border border-white/8 shadow-md">
+                    <span className="text-[14px] shrink-0">{item.icon}</span>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-[12px] leading-tight">{item.title}</span>
+                      <span className="text-[6.5px] tracking-wider text-gray-400 font-bold leading-tight mt-0.5 uppercase">{item.sub}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* WHO IT'S FOR */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="audience">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 3: DASHBOARD PREVIEW                                  */}
+        {/* "Built for agencies. Priced for solo creators."               */}
+        {/* Shows two overlapping browser mockups                         */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
-              <div className="mono text-primary mb-[18px]">— Who it's for</div>
-              <h2 className="mb-[18px]">Built for Agencies.<br /><span className="grad-text">Priced for Solo Creators.</span></h2>
-              <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">Solo Spider works whether you're running campaigns for 20 clients or building a brand entirely on your own.</p>
+            <div className="text-center max-w-[820px] mx-auto mb-16">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● Dashboard
+              </span>
+              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black text-[var(--ink)]">
+                Built for agencies. Priced for solo creators.
+              </h2>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
             </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="relative bg-[var(--panel)] border border-primary/25 rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] group reveal">
-                <div className="absolute inset-0 bg-grad-soft opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                {/* Simulated featured border gradient */}
-                <div className="absolute inset-0 rounded-3xl p-[1.5px] bg-grad [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
-                
+
+            {/* Two overlapping browser windows (matching screenshot) */}
+            <div className="relative w-full max-w-[1100px] mx-auto" style={{ minHeight: 520 }}>
+              {/* Back browser window (slightly rotated / offset) */}
+              <div className="absolute top-0 left-0 w-[60%] z-10 bg-[var(--panel)] border border-[var(--line)] rounded-2xl overflow-hidden shadow-[0_32px_64px_-24px_rgba(14,12,26,0.18)]">
+                {/* Browser chrome */}
+                <div className="bg-[var(--bg-2)] border-b border-[var(--line)] px-4 py-2.5 flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></span>
+                  </div>
+                  <div className="mx-auto bg-[var(--panel)] border border-[var(--line)] rounded-md px-8 py-0.5 text-[10px] font-mono text-[var(--muted)] font-medium">
+                    solospider.ai/dashboard
+                  </div>
+                </div>
+                {/* Dashboard content */}
+                <div className="grid grid-cols-[140px_1fr] min-h-[380px]">
+                  {/* Sidebar */}
+                  <div className="bg-[var(--bg-2)] border-r border-[var(--line)] p-3 flex flex-col gap-3.5 text-[11px]">
+                    <div className="font-bold flex items-center gap-1.5 text-primary text-[12px]">
+                      <span>🕷️</span> Solo Spider
+                    </div>
+                    <div className="flex flex-col gap-0.5 text-left">
+                      {["Overview", "SEO Scan", "AEO Optimizer", "Content Writer", "Social", "Analytics"].map((item, idx) => (
+                        <div key={idx} className={`px-2 py-1.5 rounded-md font-semibold cursor-pointer text-[10px] ${idx === 0 ? "bg-primary/10 text-primary" : "text-[var(--ink-2)] opacity-70"}`}>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Main content */}
+                  <div className="p-4 flex flex-col gap-4 bg-[var(--panel)] text-[var(--ink)]">
+                    {/* Stat cards */}
+                    <div className="grid grid-cols-3 gap-2.5 text-left">
+                      <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
+                        <div className="text-[9px] uppercase font-mono text-[var(--muted)] font-bold">SEO Health</div>
+                        <div className="text-xl font-black text-emerald-500 mt-0.5">94%</div>
+                        <div className="text-[8px] text-[var(--muted)] mt-0.5">↑ 2.4% vs last scan</div>
+                      </div>
+                      <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
+                        <div className="text-[9px] uppercase font-mono text-[var(--muted)] font-bold">AI Citation</div>
+                        <div className="text-xl font-black text-primary mt-0.5">26.8%</div>
+                        <div className="text-[8px] text-[var(--muted)] mt-0.5">143 engine queries</div>
+                      </div>
+                      <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
+                        <div className="text-[9px] uppercase font-mono text-[var(--muted)] font-bold">AEO Authority</div>
+                        <div className="text-xl font-black text-indigo-500 mt-0.5">High</div>
+                        <div className="text-[8px] text-[var(--muted)] mt-0.5">Active content</div>
+                      </div>
+                    </div>
+                    {/* Chart area */}
+                    <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)] flex flex-col gap-2 text-left">
+                      <div className="flex justify-between items-center">
+                        <div className="font-bold text-[11px]">Weekly AI Search Visibility</div>
+                        <div className="flex gap-2 text-[9px] font-mono">
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary"></span>ChatGPT</span>
+                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span>Gemini</span>
+                        </div>
+                      </div>
+                      <div className="h-24 w-full flex items-end">
+                        <svg className="w-full h-full" viewBox="0 0 500 80" preserveAspectRatio="none">
+                          <path d="M0,65 Q80,40 160,50 T320,15 T500,8" fill="none" stroke="#9025F2" strokeWidth="2.5" />
+                          <path d="M0,72 Q80,60 160,40 T320,35 T500,20" fill="none" stroke="#10B981" strokeWidth="2" />
+                          <line x1="0" y1="80" x2="500" y2="80" stroke="var(--line)" strokeWidth="1" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Front browser window (overlapping, offset right & down) */}
+              <div className="absolute top-[60px] right-0 w-[55%] z-20 bg-[var(--panel)] border border-[var(--line)] rounded-2xl overflow-hidden shadow-[0_40px_80px_-24px_rgba(14,12,26,0.25)]">
+                {/* Browser chrome */}
+                <div className="bg-[var(--bg-2)] border-b border-[var(--line)] px-4 py-2.5 flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></span>
+                  </div>
+                  <div className="mx-auto bg-[var(--panel)] border border-[var(--line)] rounded-md px-8 py-0.5 text-[10px] font-mono text-[var(--muted)] font-medium">
+                    solospider.ai
+                  </div>
+                </div>
+                {/* Content - blog/content creation view */}
+                <div className="p-5 flex flex-col gap-4 bg-[var(--panel)] text-[var(--ink)] min-h-[360px]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[14px] font-bold">📝</div>
+                    <div>
+                      <div className="text-[13px] font-bold">Content Generation</div>
+                      <div className="text-[9px] text-[var(--muted)]">AI-powered blog & social content</div>
+                    </div>
+                  </div>
+                  {/* Blog post preview cards */}
+                  <div className="flex flex-col gap-2.5">
+                    {[
+                      { title: "10 SEO Trends for 2026", status: "Published", color: "text-emerald-500" },
+                      { title: "AEO: The Complete Guide", status: "Scheduled", color: "text-primary" },
+                      { title: "Social Media Automation Tips", status: "Draft", color: "text-amber-500" },
+                    ].map((post, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-6 h-6 rounded bg-primary/5 flex items-center justify-center text-[10px]">📄</div>
+                          <span className="text-[11px] font-semibold">{post.title}</span>
+                        </div>
+                        <span className={`text-[9px] font-bold ${post.color}`}>{post.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Social schedule mini */}
+                  <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)] flex flex-col gap-2">
+                    <div className="text-[10px] font-bold uppercase text-[var(--muted)] tracking-wider">Upcoming Social Posts</div>
+                    <div className="flex gap-2">
+                      {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, idx) => (
+                        <div key={idx} className={`flex-1 text-center py-1.5 rounded-md text-[9px] font-bold ${idx < 3 ? "bg-primary/10 text-primary" : "bg-[var(--panel)] text-[var(--muted)] border border-[var(--line)]"}`}>
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Spacer for layout */}
+              <div className="pt-[480px]"></div>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 4: WHO IT'S FOR – Two cards side by side              */}
+        {/* "Built for agencies. Priced for solo creators."               */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]">
+          <div className="max-w-[1240px] mx-auto px-7">
+            <div className="text-center max-w-[820px] mx-auto mb-16">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● Who it&apos;s for
+              </span>
+              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black text-[var(--ink)]">
+                Built for agencies. Priced for solo creators.
+              </h2>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
+              {/* Agency Card */}
+              <div className="relative bg-[var(--panel)] border border-primary/25 rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] group">
+                <div className="absolute inset-0 rounded-3xl p-[1.5px] bg-gradient-to-b from-primary via-[#b260ff] to-transparent [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
                 <div className="relative z-10">
                   <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary text-white text-[12px] font-semibold border border-primary tracking-wide self-start mb-4">
                     For Agencies
                   </span>
-                  <h3 className="text-3xl font-extrabold tracking-tight leading-tight text-ink mb-4">Scale Your Agency Without Increasing Operational Complexity</h3>
-                  <p className="text-[15px] text-ink-2 leading-relaxed mb-6">Growing an agency shouldn't mean juggling more tools or adding unnecessary overhead. Solo Spider helps you streamline content creation, social media management, SEO, and AI search visibility across every client account—all from one centralized platform.</p>
+                  <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-[var(--ink)] mb-4">Scale your agency without increasing operational complexity</h3>
+                  <p className="text-[15px] text-[var(--ink-2)] leading-relaxed mb-6">Growing an agency shouldn&apos;t mean juggling more tools or adding unnecessary overhead. Solo Spider helps you streamline content creation, social media management, SEO, and AI search visibility across every client account—all from one centralized platform.</p>
                   
                   <div className="flex flex-col gap-3 mb-8">
                     {[
@@ -296,9 +486,9 @@ export default function HomePage() {
                       "Show up in AI search results before your competitors do (AEO & GEO)",
                       "Share professional white-label reports with clients"
                     ].map((item, i) => (
-                      <div key={i} className="flex gap-3 items-start text-[14.5px] text-ink">
+                      <div key={i} className="flex gap-3 items-start text-[14.5px] text-[var(--ink)]">
                         <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
-                        {item}
+                        <span>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -306,15 +496,14 @@ export default function HomePage() {
                 </div>
               </div>
 
-              <div className="relative bg-[var(--panel)] border border-line rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group reveal d1">
-                <div className="absolute inset-0 bg-grad-soft opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
+              {/* Individual Card */}
+              <div className="relative bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group">
                 <div className="relative z-10">
                   <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary-soft text-primary-2 text-[12px] font-semibold border border-primary/20 tracking-wide self-start mb-4">
-                    For individuals
+                    For Individuals
                   </span>
-                  <h3 className="text-3xl font-extrabold tracking-tight leading-tight text-ink mb-4">Grow Your Marketing Without the Complexity</h3>
-                  <p className="text-[15px] text-ink-2 leading-relaxed mb-6">Running a business means wearing many hats. Solo Spider helps you simplify your marketing by automating content creation, social media, SEO, and AI search visibility—all from one easy-to-use platform.</p>
+                  <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-[var(--ink)] mb-4">Grow your marketing without the complexity</h3>
+                  <p className="text-[15px] text-[var(--ink-2)] leading-relaxed mb-6">Running a business means wearing many hats. Solo Spider helps you simplify your marketing by automating content creation, social media, SEO, and AI search visibility—all from one easy-to-use platform.</p>
                   
                   <div className="flex flex-col gap-3 mb-8">
                     {[
@@ -324,9 +513,9 @@ export default function HomePage() {
                       "Increase your visibility across ChatGPT, Gemini, AI Overviews, and other AI-powered search experiences",
                       "Plan, create, and schedule a month's worth of content in under an hour"
                     ].map((item, i) => (
-                      <div key={i} className="flex gap-3 items-start text-[14.5px] text-ink">
+                      <div key={i} className="flex gap-3 items-start text-[14.5px] text-[var(--ink)]">
                         <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
-                        {item}
+                        <span>{item}</span>
                       </div>
                     ))}
                   </div>
@@ -337,220 +526,259 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="features">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 5: AI SEARCH METRICS                                  */}
+        {/* "Discover how AI interprets your brand"                       */}
+        {/* Left: SEO/AEO/GEO text blocks. Right: Search results mockup   */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
-              <div className="mono text-primary mb-[18px]">— Everything included</div>
-              <h2 className="mb-[18px]">Six Superpowers.<br /><span className="grad-text">One Subscription.</span></h2>
-              <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">No integrations to configure. No freelancers to brief. No tool-switching. Everything works together because it lives in one place.</p>
+            <div className="text-center max-w-[820px] mx-auto mb-16">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● AI Search Metrics
+              </span>
+              <h2 className="mb-4 text-4xl md:text-[54px] tracking-tight font-black text-[var(--ink)] leading-[1.1]">
+                Discover how AI<br />interprets your brand
+              </h2>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">
+                Track the most important performance indicators across AI search engines.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal">
-                <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary opacity-10 leading-none">01</div>
-                <div className="w-[54px] h-[54px] rounded-xl bg-primary-soft border border-primary/15 text-primary flex items-center justify-center text-2xl mb-2">✎</div>
-                <div className="flex flex-col gap-1.5 relative z-10">
-                  <span className="mono">Content & Blog Automation</span>
-                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-ink">Write Less. Publish More.</h3>
-                </div>
-                <p className="text-[14.5px] text-ink-2 leading-relaxed">Solo Spider generates long-form, SEO-optimised blog posts in your brand voice — then schedules and publishes them automatically. You approve. It does everything else.</p>
-                <div className="flex flex-col gap-2.5 mt-2 border-t border-line pt-4.5">
-                  {[
-                    "AI blog writing in your tone and niche",
-                    "SEO keyword targeting built into every draft",
-                    "One-click publish to your website or CMS",
-                    "Blog scheduling — set dates, forget about it",
-                    "Content calendar to plan weeks ahead"
-                  ].map((item, i) => (
-                    <div key={i} className="flex gap-2.5 items-start text-[13.5px] text-ink-2">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[11px] font-bold mt-0.5">→</div>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-auto pt-4.5 font-mono text-[12px] text-muted border-t border-dashed border-line tracking-wide">
-                  ⏱ Avg. time to publish a 1,200-word blog: 8 minutes
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-15 items-center">
+              {/* Left text panel */}
+              <div className="flex flex-col gap-8 text-left">
+                {[
+                  { title: "SEO", desc: "Monitor traditional search query performance and ensure all classic technical indexing signals are optimized for maximum visibility." },
+                  { title: "AEO", desc: "Identify brand footprint citation indexes within large language model conversational answers (ChatGPT, Claude, Gemini)." },
+                  { title: "GEO", desc: "Optimize semantic data structure context maps so geographic and contextual results identify your brand details reliably." }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex flex-col gap-2">
+                    <h3 className="text-2xl font-extrabold text-primary">{item.title}</h3>
+                    <p className="text-[15px] text-[var(--ink-2)] opacity-85 leading-relaxed">{item.desc}</p>
+                  </div>
+                ))}
               </div>
 
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal d1">
-                <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary opacity-10 leading-none">02</div>
-                <div className="w-[54px] h-[54px] rounded-xl bg-[#fce7f3] border border-pink/20 text-pink flex items-center justify-center text-2xl mb-2">◐</div>
-                <div className="flex flex-col gap-1.5 relative z-10">
-                  <span className="mono text-pink">Social Media — End to End</span>
-                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-ink">Plan It. Generate It. Post It. Automatically.</h3>
-                </div>
-                <p className="text-[14.5px] text-ink-2 leading-relaxed">From on-brand images and short-form videos to captions and hashtags — Solo Spider handles your entire social media presence without you logging into a single platform.</p>
-                <div className="flex flex-col gap-2.5 mt-2 border-t border-line pt-4.5">
-                  {[
-                    "AI-generated social images (Instagram, LinkedIn, X, Facebook)",
-                    "Short-form video creation from your blog or topic",
-                    "Caption writing with platform-specific formatting",
-                    "Post planning with AI content suggestions",
-                    "Bulk scheduling across all platforms at once",
-                    "Auto-posting — publishes on the schedule you set"
-                  ].map((item, i) => (
-                    <div key={i} className="flex gap-2.5 items-start text-[13.5px] text-ink-2">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-[#fce7f3] text-pink flex items-center justify-center text-[11px] font-bold mt-0.5">→</div>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-auto pt-4.5 font-mono text-[12px] text-muted border-t border-dashed border-line tracking-wide">
-                  📅 Plan and schedule a full month of social content in under 60 minutes
-                </div>
-              </div>
-
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_24px_50px_-24px_rgba(144,37,242,0.18)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal">
-                <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary opacity-10 leading-none">03</div>
-                <div className="w-[54px] h-[54px] rounded-xl bg-[#fef3c7] border border-[#f5b500]/30 text-[#b45309] flex items-center justify-center text-2xl mb-2">◇</div>
-                <div className="flex flex-col gap-1.5 relative z-10">
-                  <span className="mono !text-[#b45309]">SEO — Audit & Fix</span>
-                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-ink">Identify SEO Issues. Fix Them with Ease.</h3>
-                </div>
-                <p className="text-[14.5px] text-ink-2 leading-relaxed">Solo Spider scans your entire website for SEO issues — broken tags, slow pages, missing meta descriptions, weak internal linking — then helps you fix them without touching code.</p>
-                <div className="flex flex-col gap-2.5 mt-2 border-t border-line pt-4.5">
-                  {[
-                    "Full site SEO audit in minutes",
-                    "Priority-ranked issue list (critical → low)",
-                    "One-click fixes for common on-page errors",
-                    "Meta title and description suggestions",
-                    "Page speed and Core Web Vitals analysis",
-                    "Ongoing monitoring — get alerts when new issues appear"
-                  ].map((item, i) => (
-                    <div key={i} className="flex gap-2.5 items-start text-[13.5px] text-ink-2">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-[#fef3c7] text-[#b45309] flex items-center justify-center text-[11px] font-bold mt-0.5">→</div>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-auto pt-4.5 font-mono text-[12px] text-muted border-t border-dashed border-line tracking-wide">
-                  ⚡ Most users fix their top 10 SEO issues in under 30 minutes
-                </div>
-              </div>
-
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-9 flex flex-col gap-4.5 relative overflow-hidden transition-all duration-250 hover:-translate-y-1 hover:shadow-[0_40px_70px_-22px_rgba(144,37,242,0.5)] shadow-[0_30px_60px_-22px_rgba(144,37,242,0.4)] reveal d1">
-                <div className="absolute top-6 right-7 font-display text-6xl font-black text-primary/10 leading-none">04</div>
-                <div className="w-[54px] h-[54px] rounded-xl bg-primary-soft text-primary flex items-center justify-center text-2xl mb-2">✦</div>
-                <div className="flex flex-col gap-1.5 relative z-10">
-                  <span className="mono text-primary">AEO & GRO — Be Found in AI Search</span>
-                  <h3 className="text-[28px] font-extrabold tracking-tight leading-tight text-ink">Google Is Changing. Your Visibility Strategy Should Too.</h3>
-                  <p className="text-[14.5px] text-ink-2 leading-relaxed">AI-powered search is here. ChatGPT, Gemini, and Google's AI Overviews are now answering questions directly — and most brands are invisible in those answers. Solo Spider helps you show up.</p>
+              {/* Right mockup panel */}
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-6 lg:p-8 shadow-[0_20px_50px_-20px_rgba(14,12,26,0.1)] flex flex-col gap-5 text-left">
+                <div className="flex items-center justify-between bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-3 text-[13.5px]">
+                  <span className="text-[var(--ink-2)] font-semibold">Digital Marketing Company...</span>
+                  <span className="text-primary font-black cursor-pointer">🔍</span>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3.5 bg-white p-4.5 rounded-2xl border border-line mt-2">
-                  <div>
-                    <div className="font-display font-bold text-[14px] text-ink">AEO</div>
-                    <div className="text-[12.5px] text-ink-2 leading-relaxed mt-1">Answer Engine Optimisation — optimising your content to appear in AI answers.</div>
-                  </div>
-                  <div>
-                    <div className="font-display font-bold text-[14px] text-pink">GRO</div>
-                    <div className="text-[12.5px] text-ink-2 leading-relaxed mt-1">Generative Result Optimisation — tracking visibility in AI search engines.</div>
-                  </div>
-                </div>
- 
-                <div className="flex flex-col gap-2.5 mt-2 border-t border-line pt-4.5">
+                <div className="flex flex-col gap-3">
                   {[
-                    "Identify Content Drivers: Pinpoint which content assets drive your specific topics.",
-                    "Create On-Brand AI Content: Tailor articles researched from grounding.",
-                    "Brand-Aware Context: Considers your existing pages and brand tone.",
-                    "Target Intelligence: Identify specific authors and publishers.",
-                    "Value-First Media Pitch: Auto-formulate high-leverage pitches.",
-                    "Earn Third-Party Media: Outlets AI models read.",
-                    "Multi-Engine Analytics Tracking: Monitor brand visibility over time across ChatGPT, Gemini & Claude.",
-                  ].map((item, i) => (
-                    <div key={i} className="flex gap-2.5 items-start text-[13.5px] text-ink-2">
-                      <div className="shrink-0 w-[18px] h-[18px] rounded-full bg-primary-soft text-primary flex items-center justify-center text-[10px] font-bold mt-0.5">
-                        →
+                    { num: "01", site: "www.solospider.ai" },
+                    { num: "02", site: "www.northwind.com" },
+                    { num: "03", site: "www.peakagency.in" },
+                    { num: "04", site: "www.loomstack.co" },
+                  ].map((entry) => (
+                    <div key={entry.num} className="flex items-center justify-between border-b border-dashed border-[var(--line)] pb-3 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-3.5">
+                        <span className="font-mono text-[12px] text-primary font-extrabold">{entry.num}.</span>
+                        <span className="text-[13.5px] font-bold text-[var(--ink)]">{entry.site}</span>
                       </div>
-                      <span className="font-semibold text-ink">
-                        {item}
-                      </span>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                     </div>
                   ))}
                 </div>
-                <div className="mt-auto pt-4.5 font-mono text-[12px] text-muted border-t border-dashed border-line tracking-wide">
-                  📈 Early adopters are 5× more visible in AI search. Don't be last.
-                </div>
               </div>
-
             </div>
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 6: SIX SUPERPOWERS – 2×2 feature card grid            */}
+        {/* "Six superpowers. One subscription."                           */}
+        {/* 2-col header: title left, description right                   */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="features">
+          <div className="max-w-[1240px] mx-auto px-7">
+            {/* 2-Column Header */}
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6 mb-16 text-left border-b border-[var(--line)] pb-10">
+              <div>
+                <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-4">
+                  ● Everything included
+                </span>
+                <h2 className="text-4xl md:text-[54px] tracking-tight font-black leading-tight text-[var(--ink)]">
+                  Six superpowers.<br />
+                  One subscription.
+                </h2>
+              </div>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[540px] leading-relaxed lg:text-right">
+                No integrations to configure. No freelancers to brief. No tool-switching. Everything works together because it lives in one place.
+              </p>
+            </div>
+
+            {/* 2×2 Feature Cards Grid (matching screenshot layout) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                {
+                  num: "01",
+                  title: "Write less. Publish more.",
+                  desc: "Solo Spider generates long-form, SEO-optimised blog posts in your brand voice — then schedules and publishes them automatically. You approve. It does everything else.",
+                  mockup: (
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
+                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">Blog Generator</div>
+                      <div className="grid grid-cols-2 gap-2 text-[10px]">
+                        <select className="bg-[var(--panel)] border border-[var(--line)] p-1.5 rounded text-[var(--ink)]"><option>Select Language</option></select>
+                        <select className="bg-[var(--panel)] border border-[var(--line)] p-1.5 rounded text-[var(--ink)]"><option>Select Tone</option></select>
+                      </div>
+                      <button type="button" className="btn btn-grad w-full justify-center py-2 text-[10px] font-bold mt-1">Generate Blog Post</button>
+                    </div>
+                  ),
+                },
+                {
+                  num: "02",
+                  title: "Plan It. Generate It. Post It. Automatically.",
+                  desc: "From on-brand images and short-form videos to captions and hashtags — Solo Spider handles your entire social media presence without you logging into a single platform.",
+                  mockup: (
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
+                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">Social Queue</div>
+                      <div className="border border-[var(--line)] rounded-lg p-2.5 bg-[var(--panel)] flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-[var(--ink)]">LinkedIn Update</span>
+                        <span className="text-[8px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-mono font-bold">Approved</span>
+                      </div>
+                      <button type="button" className="btn btn-grad w-full justify-center py-2 text-[10px] font-bold">Generate Social Creatives</button>
+                    </div>
+                  ),
+                },
+                {
+                  num: "03",
+                  title: "Identify SEO Issues. Fix Them with Ease.",
+                  desc: "Solo Spider scans your entire website for SEO issues — broken tags, slow pages, missing meta descriptions, weak internal linking — then helps you fix them without touching code.",
+                  mockup: (
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
+                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">SEO Actions</div>
+                      <div className="flex justify-between items-center p-2 rounded-lg border border-[var(--line)] bg-[var(--panel)]">
+                        <div>
+                          <div className="text-[10px] font-bold text-amber-500">Missing Meta tags</div>
+                          <div className="text-[8px] text-[var(--muted)]">Found on 4 pages</div>
+                        </div>
+                        <button type="button" className="text-[9px] font-bold bg-primary text-white px-2.5 py-1 rounded-md">Auto-Fix</button>
+                      </div>
+                    </div>
+                  ),
+                },
+                {
+                  num: "04",
+                  title: "Google Is Changing. Your Visibility Strategy Should Too.",
+                  desc: "AI-powered search is here. ChatGPT, Gemini, and Google's AI Overviews are now answering questions directly — and most brands are invisible in those answers. Solo Spider helps you show up.",
+                  mockup: (
+                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4 mt-4 flex flex-col gap-2.5">
+                      <div className="text-[10px] font-mono text-[var(--muted)] border-b border-[var(--line)] pb-2 uppercase tracking-wider font-bold">AEO Scan</div>
+                      <div className="bg-[var(--panel)] border border-[var(--line)] p-2.5 rounded-lg text-[10px] text-[var(--ink-2)]">
+                        <strong>Citation Share:</strong> Solo Spider found across 14,000 keyword queries.
+                      </div>
+                      <div className="flex justify-between text-[9px] pt-1">
+                        <span className="text-[var(--muted)]">Multi-Engine Score:</span>
+                        <span className="text-emerald-500 font-bold">Excellent</span>
+                      </div>
+                    </div>
+                  ),
+                },
+              ].map((card) => (
+                <div key={card.num} className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col text-left transition-all duration-200 hover:border-primary/30 hover:-translate-y-1 shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)]">
+                  <span className="font-mono text-[12px] text-[var(--muted)] tracking-wider font-bold mb-3">{card.num}</span>
+                  <h4 className="font-display text-[20px] font-bold tracking-tight text-[var(--ink)] mb-2">{card.title}</h4>
+                  <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">{card.desc}</p>
+                  {card.mockup}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 7: HOW IT WORKS – 4 step cards                        */}
+        {/* "From setup to running on autopilot in one day."              */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="how">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
-              <div className="mono text-primary mb-[18px]">— How it works</div>
-              <h2 className="mb-[18px]">From Setup to Running on<br /><span className="grad-text">Autopilot — in One Day.</span></h2>
-              <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">Getting started is simple. Connect your accounts, customize your preferences, and let Solo Spider automate your marketing workflows from one unified platform.</p>
+            <div className="text-center max-w-[820px] mx-auto mb-[72px]">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● How it works
+              </span>
+              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
+                From setup to running on<br />autopilot in one day.
+              </h2>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Connect your accounts, customize your preferences, and let Solo Spider automate your marketing workflows from one unified platform.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
               {[
                 { num: "01", icon: "⊞", title: "Connect your channels", desc: "Link your website, social accounts, and any existing CMS. Solo Spider pulls in your brand voice, existing content, and target audience automatically." },
-                { num: "02", icon: "◎", title: "Set your goals", desc: "Tell Solo Spider what you want to achieve — more blog traffic, stronger social presence, better rankings, or AI search visibility. It builds your content strategy around your goals.", delay: "d1" },
-                { num: "03", icon: "✓", title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call.", delay: "d2" },
-                { num: "04", icon: "↗", title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't.", delay: "d3" }
+                { num: "02", icon: "◎", title: "Set your goals", desc: "Tell Solo Spider what you want to achieve — more blog traffic, stronger social presence, better rankings, or AI search visibility. It builds your content strategy around your goals." },
+                { num: "03", icon: "✓", title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call." },
+                { num: "04", icon: "↗", title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't." }
               ].map((step, i) => (
-                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal ${step.delay || ''}`}>
-                  <span className="font-mono text-[13px] text-muted tracking-wider">{step.num}</span>
-                  <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center text-[22px] mb-1">{step.icon}</div>
-                  <h4 className="font-display text-[20px] font-bold tracking-tight text-ink">{step.title}</h4>
-                  <p className="text-[14px] text-ink-2">{step.desc}</p>
+                <div key={i} className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] text-left">
+                  <span className="font-mono text-[13px] text-[var(--muted)] tracking-wider font-bold">{step.num}</span>
+                  <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center text-[22px] mb-1 font-bold">{step.icon}</div>
+                  <h4 className="font-display text-[20px] font-bold tracking-tight text-[var(--ink)]">{step.title}</h4>
+                  <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">{step.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* NUMBERS */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 8: NUMBERS – "Real Results. Not Marketing Fluff."     */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
-              <div className="mono text-primary mb-[18px]">— By the numbers</div>
-              <h2 className="mb-[18px]">Real Results.<br /><span className="grad-text">Not Marketing Fluff.</span></h2>
+            <div className="text-center max-w-[820px] mx-auto mb-[72px]">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● By the numbers
+              </span>
+              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
+                Real Results.<br />Not Marketing Fluff.
+              </h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-line border border-line rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--line)] border border-[var(--line)] rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)]">
               {[
                 { v: "10×", l: "Faster content production vs. doing it manually." },
-                { v: "6 tools", l: "Replaced by a single Solo Spider subscription.", d: "d1" },
-                { v: "80%", l: "Reduction in time spent on repetitive marketing tasks.", d: "d2" },
+                { v: "6 tools", l: "Replaced by a single Solo Spider subscription." },
+                { v: "80%", l: "Reduction in time spent on repetitive marketing tasks." },
                 { v: "5 mins", l: "Average setup time to publish your first blog." },
-                { v: "₹40k+", l: "Avg. monthly tool cost replaced by one Solo Spider plan.", d: "d1" },
-                { v: "2,000+", l: "Agencies and creators already using Solo Spider.", d: "d2" }
+                { v: "₹40k+", l: "Avg. monthly tool cost replaced by one Solo Spider plan." },
+                { v: "2,000+", l: "Agencies and creators already using Solo Spider." }
               ].map((num, i) => (
-                <div key={i} className={`bg-[var(--panel)] p-8 lg:p-12 flex flex-col gap-2.5 reveal ${num.d || ''}`}>
+                <div key={i} className="bg-[var(--panel)] p-8 lg:p-12 flex flex-col gap-2.5 text-left">
                   <div className="font-display font-black text-5xl lg:text-[64px] leading-none tracking-tight text-primary">{num.v}</div>
-                  <div className="text-[14.5px] text-ink-2 leading-relaxed">{num.l}</div>
+                  <div className="text-[14.5px] text-[var(--ink-2)] leading-relaxed">{num.l}</div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* COMPARISON */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 9: COMPARISON TABLE                                   */}
+        {/* "Stop Paying for a Stack. Start Using a System."              */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
-              <div className="mono text-primary mb-[18px]">— vs. the old way</div>
-              <h2 className="mb-[18px]">Stop Paying for a Stack.<br /><span className="grad-text">Start Using a System.</span></h2>
-              <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">Here's what Solo Spider replaces — and what none of those tools can do together.</p>
+            <div className="text-center max-w-[820px] mx-auto mb-[72px]">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● vs. the old way
+              </span>
+              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
+                Stop Paying for a Stack.<br />Start Using a System.
+              </h2>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Here&apos;s what Solo Spider replaces — and what none of those tools can do together.</p>
             </div>
 
-            <div className="hidden lg:block bg-[var(--panel)] border border-line rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.08)] reveal">
-              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-gradient-to-b from-[var(--bg-2)] to-[var(--bg)] border-b border-line">
-                <div className="py-4.5 px-6 font-display font-bold text-[13px] text-ink text-left border-r border-line">Capability</div>
-                <div className="py-4.5 px-4 font-display font-extrabold text-[14px] text-white bg-primary text-center border-r border-line">Solo Spider</div>
-                <div className="py-4.5 px-4 font-display font-bold text-[13px] text-ink-2 text-center border-r border-line">Surfer SEO</div>
-                <div className="py-4.5 px-4 font-display font-bold text-[13px] text-ink-2 text-center border-r border-line">Buffer</div>
-                <div className="py-4.5 px-4 font-display font-bold text-[13px] text-ink-2 text-center border-r border-line">Canva Pro</div>
-                <div className="py-4.5 px-4 font-display font-bold text-[13px] text-ink-2 text-center border-r border-line">Ahrefs</div>
-                <div className="py-4.5 px-4 font-display font-bold text-[13px] text-ink-2 text-center">ChatGPT</div>
+            <div className="hidden lg:block bg-[var(--panel)] border border-[var(--line)] rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.08)]">
+              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-gradient-to-b from-[var(--bg-2)] to-[var(--bg)] border-b border-[var(--line)]">
+                <div className="py-4.5 px-6 font-display font-bold text-[13px] text-[var(--ink)] text-left border-r border-[var(--line)]">Capability</div>
+                <div className="py-4.5 px-4 font-display font-extrabold text-[14px] text-white bg-primary text-center border-r border-[var(--line)]">Solo Spider</div>
+                {["Surfer SEO", "Buffer", "Canva Pro", "Ahrefs", "ChatGPT"].map((tool) => (
+                  <div key={tool} className="py-4.5 px-4 font-display font-bold text-[13px] text-[var(--ink-2)] text-center border-r last:border-r-0 border-[var(--line)]" role="columnheader">{tool}</div>
+                ))}
               </div>
               
               {[
@@ -564,47 +792,47 @@ export default function HomePage() {
                 { name: "GRO / AI search visibility", vals: ["✓", "—", "—", "—", "—", "—"] },
                 { name: "All-in-one dashboard", vals: ["✓", "—", "—", "—", "—", "—"] },
               ].map((row, i) => (
-                <div key={i} className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center border-b border-line last:border-b-0 even:bg-[var(--bg-2)]" role="row">
-                  <div className="py-4.5 px-6 font-semibold text-[13.5px] text-ink border-r border-line">{row.name}</div>
-                  <div className="py-4.5 px-4 text-center border-r border-line bg-primary/5 font-bold text-primary text-[18px]">
+                <div key={i} className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center border-b border-[var(--line)] last:border-b-0 even:bg-[var(--bg-2)]" role="row">
+                  <div className="py-4.5 px-6 font-semibold text-[13.5px] text-[var(--ink)] border-r border-[var(--line)] text-left">{row.name}</div>
+                  <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 font-bold text-primary text-[18px]">
                     {row.vals[0] === "✓" ? "✓" : <span className="text-[11.5px] font-semibold bg-[#fef3c7] text-[#b45309] px-2 py-1 rounded-md">{row.vals[0]}</span>}
                   </div>
-                  {row.vals.slice(1).map((val, j) => (
-                    <div key={j} className="py-4.5 px-4 text-center border-r border-line last:border-r-0">
+                  {row.vals.slice(1, 6).map((val, j) => (
+                    <div key={j} className="py-4.5 px-4 text-center border-r last:border-r-0 border-[var(--line)]">
                       {val === "✓" ? <span className="text-primary font-extrabold text-[18px]">✓</span> : val === "—" ? <span className="text-[#c4c4d1] text-[18px]">—</span> : <span className="text-[11.5px] font-semibold bg-[#fef3c7] text-[#b45309] px-2 py-1 rounded-md">{val}</span>}
                     </div>
                   ))}
                 </div>
               ))}
               
-              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-[var(--bg-2)] font-semibold">
-                <div className="py-4.5 px-6 text-[13.5px] text-ink border-r border-line">Typical monthly cost</div>
-                <div className="py-4.5 px-4 text-center border-r border-line bg-primary/5 text-primary text-[13.5px]">₹X,XXX</div>
-                <div className="py-4.5 px-4 text-center border-r border-line text-ink-2 text-[13.5px]">₹8,000+</div>
-                <div className="py-4.5 px-4 text-center border-r border-line text-ink-2 text-[13.5px]">₹3,500+</div>
-                <div className="py-4.5 px-4 text-center border-r border-line text-ink-2 text-[13.5px]">₹2,000+</div>
-                <div className="py-4.5 px-4 text-center border-r border-line text-ink-2 text-[13.5px]">₹15,000+</div>
-                <div className="py-4.5 px-4 text-center text-ink-2 text-[13.5px]">₹1,600+</div>
+              <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-[var(--bg-2)] font-semibold" role="row">
+                <div className="py-4.5 px-6 text-[13.5px] text-[var(--ink)] border-r border-[var(--line)] text-left">Typical monthly cost</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 text-primary text-[13.5px]">₹X,XXX</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹8,000+</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹3,500+</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹2,000+</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹15,000+</div>
+                <div className="py-4.5 px-4 text-center text-[var(--ink-2)] text-[13.5px]">₹1,600+</div>
               </div>
             </div>
 
             {/* Mobile Fallback */}
-            <div className="grid lg:hidden gap-4 reveal">
-              <div className="bg-[var(--panel)] border border-line rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
+            <div className="grid lg:hidden gap-4 text-left">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
                 <h4 className="font-display font-bold text-[16px] mb-3 grad-text">Solo Spider replaces all five</h4>
                 {[
                   "Blog writing & publishing", "Blog scheduling", "Social image generation",
                   "Social video generation", "Social scheduling & posting", "SEO audit & fixes",
                   "AEO analysis", "GRO / AI search visibility", "All-in-one dashboard"
                 ].map((item, i) => (
-                  <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-line last:border-b-0">
-                    <span className="text-ink">{item}</span>
+                  <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-[var(--line)] last:border-b-0">
+                    <span className="text-[var(--ink)]">{item}</span>
                     <span className="text-primary font-bold">✓</span>
                   </div>
                 ))}
               </div>
-              <div className="bg-[var(--panel)] border border-line rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
-                <h4 className="font-display font-bold text-[16px] mb-3 text-ink">What you'd pay for the stack</h4>
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
+                <h4 className="font-display font-bold text-[16px] mb-3 text-[var(--ink)]">What you&apos;d pay for the stack</h4>
                 {[
                   { n: "Surfer SEO", p: "₹8,000+" },
                   { n: "Buffer", p: "₹3,500+" },
@@ -612,201 +840,140 @@ export default function HomePage() {
                   { n: "Ahrefs", p: "₹15,000+" },
                   { n: "ChatGPT", p: "₹1,600+" },
                 ].map((item, i) => (
-                  <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-line last:border-b-0 text-ink-2">
-                    <span className="text-ink">{item.n}</span>
+                  <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-[var(--line)] last:border-b-0 text-[var(--ink-2)]">
+                    <span className="text-[var(--ink)]">{item.n}</span>
                     <span>{item.p}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="text-center text-muted text-[13px] mt-4.5 reveal">Prices approximate. Solo Spider replaces all five — for less than the cost of one.</div>
+            <div className="text-center text-[var(--muted)] text-[13px] mt-4.5">Prices approximate. Solo Spider replaces all five — for less than the cost of one.</div>
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden">
-          <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
-              <div className="mono text-primary mb-[18px]">— What people are saying</div>
-              <h2 className="mb-[18px]">Agencies and Creators<br /><span className="grad-text">Who Made the Switch.</span></h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                { q: `"We cancelled Surfer, Buffer, and Canva in the same week. Solo Spider does everything they did — faster, cheaper, and without three different logins."`, a: "PM", n: "Priya M.", r: "Founder, digital content agency · Mumbai" },
-                { q: `"I'm a solopreneur running a D2C brand. Before Solo Spider, marketing took 3 hours a day. Now it takes 20 minutes. I genuinely don't know how I did it without this."`, a: "RD", n: "Rahul D.", r: "Founder · Ahmedabad", d: "d1" },
-                { q: `"I use Solo Spider for 6 clients. The content quality is good enough that two clients thought I'd hired a writer. I hadn't — I just had the right tool."`, a: "SK", n: "Sneha K.", r: "Freelance digital marketer · Bengaluru" },
-                { q: `"The AEO and GRO features alone are worth the subscription. No other tool even tracks AI search visibility. We're way ahead of our competitors because of it."`, a: "AT", n: "Arjun T.", r: "Head of Growth, SaaS startup · Pune", d: "d1" }
-              ].map((test, i) => (
-                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl p-8 lg:p-9 flex flex-col gap-5 transition-colors duration-250 hover:border-primary/30 shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] reveal ${test.d || ''}`}>
-                  <div className="flex gap-0.5 text-yellow text-[15px]">★★★★★</div>
-                  <p className="text-[17px] text-ink font-medium leading-relaxed">
-                    {test.q}
-                  </p>
-                  <div className="flex items-center gap-3.5 pt-4.5 border-t border-line mt-auto">
-                    <div className="w-11 h-11 rounded-full bg-primary text-white flex items-center justify-center font-display font-extrabold text-[18px] shrink-0">
-                      {test.a}
-                    </div>
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-[14.5px] text-ink">{test.n}</span>
-                      <span className="text-[12.5px] text-muted">{test.r}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* PRICING */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="pricing">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 10: PRICING                                           */}
+        {/* "One Price. Everything included."                              */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="pricing">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[48px] reveal">
-              <div className="mono text-primary mb-[18px]">— Pricing</div>
-              <h2 className="mb-[18px]">One Price.<br /><span className="grad-text">Everything Included.</span></h2>
-              <p className="text-[18px] text-ink-2 max-w-[660px] mx-auto">No feature gating. No per-seat pricing surprises. Pick the plan that fits your volume and get access to every single Solo Spider capability.</p>
+            <div className="text-center max-w-[820px] mx-auto mb-[48px]">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● Pricing
+              </span>
+              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
+                One Price.<br />Everything included.
+              </h2>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">No feature gating. No per-seat pricing surprises. Pick the plan that fits your volume and get access to every single Solo Spider capability.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
-              
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-[1080px] mx-auto text-left">
               {/* Starter Plan */}
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal relative">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-7 lg:p-8 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">STARTER</h3>
-                <div className="text-[12px] text-muted -mt-2">For creators just getting started</div>
-                <div className="flex items-baseline justify-center gap-1 mt-1">
-                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">₹0</span>
-                  <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Starter</h3>
+                <div className="text-[12px] text-[var(--muted)] -mt-2">For creators just getting started</div>
+                <div className="flex items-baseline justify-start gap-1 mt-1">
+                  <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary">₹0</span>
+                  <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
-                  {["5 blog posts/month", "20 social posts/month", "Basic SEO audit (1 website)", "AEO insights (limited)", "1 connected social account"].map((f, i) => (
+                <div className="flex flex-col gap-3.5 text-[13.5px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                  {["5 blog posts / month", "20 social posts / month", "Basic SEO audit (1 website)", "AEO insights (limited)", "1 connected social account"].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
-                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="leading-tight">{f}</span>
+                      <span className="text-primary text-[14px] font-bold">✓</span>
+                      <span className="leading-tight text-[var(--ink-2)]">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3.5 text-[13px] font-bold border-[var(--line)] hover:border-primary">Get started free →</button>
               </div>
 
-              {/* Growth Plan */}
-              <div className="relative border border-primary/20 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] hover:border-primary/45 reveal d1 overflow-visible">
+              {/* Solo Plan (internal: growth) */}
+              <div className="relative border-2 border-primary bg-[var(--panel)] shadow-[0_24px_60px_-15px_rgba(144,37,242,0.22)] rounded-3xl p-7 lg:p-8 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 overflow-visible">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink -mt-1 uppercase">GROWTH</h3>
-                <div className="text-[12px] text-muted -mt-2">For founders, freelancers & creators</div>
-                <div className="mt-1 flex flex-col items-center justify-center gap-1">
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary transition-all duration-200">
-                      $199
-                    </span>
-                    <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
-                  </div>
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Most popular for creators</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Solo</h3>
+                <div className="text-[12px] text-[var(--muted)] -mt-2">For founders, freelancers &amp; creators</div>
+                <div className="flex items-baseline justify-start gap-1 mt-1">
+                  <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary">$149</span>
+                  <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
+                <div className="flex flex-col gap-3.5 text-[13.5px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
                   {["Unlimited blog posts", "Unlimited social content", "Full SEO audit + auto-fix", "AEO & GRO dashboard", "5 social accounts", "Priority support"].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
-                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary text-white flex items-center justify-center mt-0.5">
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="leading-tight font-medium text-ink">{f}</span>
+                      <span className="text-primary text-[14px] font-bold">✓</span>
+                      <span className="leading-tight text-[var(--ink-2)] font-semibold">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</button>
+                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-3.5 text-[13px] font-bold relative overflow-hidden transition-all duration-200">Start Solo plan →</button>
               </div>
 
-              {/* Scale Plan */}
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal d2 relative">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">SCALE</h3>
-                <div className="text-[12px] text-muted -mt-2">For growing teams & agencies</div>
-                <div className="flex items-baseline justify-center gap-1 mt-1">
-                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">$699</span>
-                  <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
+              {/* Agency Plan (internal: scale) */}
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-7 lg:p-8 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 relative">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for teams &amp; client work</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Agency</h3>
+                <div className="text-[12px] text-[var(--muted)] -mt-2">For agencies running 10+ clients</div>
+                <div className="flex items-baseline justify-start gap-1 mt-1">
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">Custom</span>
                 </div>
-                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">
-                  {["Everything in GROWTH", "10 client workspaces", "White-label reports", "Bulk content scheduling", "API access parameters", "24/7 dedicated support"].map((f, i) => (
+                <div className="flex flex-col gap-3.5 text-[13.5px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                  {["Everything in SOLO", "25+ client workspaces", "White-label reports", "Bulk content scheduling", "Team collaboration tools", "Dedicated onboarding call"].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
-                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="leading-tight">{f}</span>
+                      <span className="text-primary text-[14px] font-bold">✓</span>
+                      <span className="leading-tight text-[var(--ink-2)]">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</button>
+                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3.5 text-[13px] font-bold border-[var(--line)] hover:border-primary">Talk to us →</button>
               </div>
-
-              {/* Custom Plan */}
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] reveal d3 relative">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise & custom needs</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">CUSTOM</h3>
-                <div className="text-[12px] text-muted -mt-2">For large teams & custom volume</div>
-                <div className="flex items-baseline justify-center gap-1 mt-1">
-                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">Custom</span>
-                </div>
-                <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-7">
-                  {["Everything in SCALE", "Unlimited client workspaces", "Custom AI model tuning", "Dedicated account manager", "SLA guarantees & custom API", "Dedicated onboarding call"].map((f, i) => (
-                    <div key={i} className="flex gap-2.5 items-start">
-                      <div className="shrink-0 w-4.5 h-4.5 rounded-full bg-primary-soft text-primary flex items-center justify-center mt-0.5">
-                        <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span className="leading-tight">{f}</span>
-                    </div>
-                  ))}
-                </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Talk to us →</button>
-              </div>
-
             </div>
 
-            <div className="text-center mt-12 text-muted text-[14px] leading-relaxed reveal">
-              All plans include a <strong className="text-ink">7-day free trial</strong>. Credit card required.
+            <div className="text-center mt-12 text-[var(--muted)] text-[14px] leading-relaxed">
+              All plans include a <strong className="text-[var(--ink)]">14-day free trial</strong>. No credit card required.
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 11: FAQs                                              */}
+        {/* "Everything you want to know before you sign up."             */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px] reveal">
-              <div className="mono text-primary mb-[18px]">— Common questions</div>
-              <h2 className="mb-[18px]">Everything You Want to Know<br /><span className="grad-text">Before You Sign Up.</span></h2>
+            <div className="text-center max-w-[820px] mx-auto mb-[72px]">
+              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+                ● Common questions
+              </span>
+              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
+                Everything you want to<br />know before you sign up.
+              </h2>
             </div>
             
-            <div className="max-w-[880px] mx-auto flex flex-col gap-3.5 reveal">
+            <div className="max-w-[880px] mx-auto flex flex-col gap-3.5 text-left">
               {[
                 { q: "Do I need any technical skills to use Solo Spider?", a: "Not at all. Solo Spider is designed to be used without any coding or technical knowledge. If you can use Gmail, you can use Solo Spider. Setup takes under 5 minutes." },
                 { q: "Will the content actually sound like me?", a: "Yes. Solo Spider learns your brand voice from your existing content, website, and the preferences you set during onboarding. You can always edit and refine drafts before publishing — but most users find they barely need to." },
                 { q: "What platforms does Solo Spider post to?", a: "Instagram, LinkedIn, X (Twitter), Facebook, and more. Blog publishing works with WordPress, Webflow, Wix, and custom CMS setups via API." },
                 { q: "What's AEO and GRO — do I really need it?", a: "AEO (Answer Engine Optimisation) and GRO (Generative Result Optimisation) help you appear in AI-generated search results — like Google's AI Overviews, ChatGPT, and Gemini answers. AI search is growing rapidly. Brands that optimise for it now will have a significant advantage. Yes, you need it." },
                 { q: "How is Solo Spider different from just using ChatGPT?", a: "ChatGPT can write — but it can't publish, schedule, audit, post, or track your SEO and AI visibility. Solo Spider wraps powerful AI writing with an end-to-end marketing workflow. It's the difference between having an ingredient and having a meal." },
-                { q: "Can I manage multiple clients or brands?", a: "Yes. The Agency plan supports 25+ separate client workspaces, each with their own brand settings, content calendars, and reports. You can manage everything without ever logging out." },
-                { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 7-day free trial. Credit card required. You can also use the Starter plan for free, forever." },
+                { q: "Can I manage multiple clients or brands?", a: "Yes. The Agency plan supports client workspaces, each with their own brand settings, content calendars, and reports. You can manage everything without ever logging out." },
+                { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 14-day free trial. No credit card required. You can also use the Starter plan for free, forever." },
               ].map((faq, i) => (
-                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] ${openFaq === i ? 'border-primary/20' : ''}`}>
+                <div key={i} className={`bg-[var(--panel)] border border-[var(--line)] rounded-2xl overflow-hidden transition-all duration-200 ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left font-display font-semibold text-[18px] text-ink"
+                    className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left font-display font-semibold text-[18px] text-[var(--ink)]"
                   >
                     <span>{faq.q}</span>
-                    <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[14px] transition-all duration-250 ${openFaq === i ? 'bg-primary text-white rotate-45 border border-transparent' : 'bg-primary-soft text-primary border border-primary/15'}`}>+</span>
+                    <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[14px] transition-all duration-200 ${openFaq === i ? 'bg-primary text-white rotate-45 border border-transparent' : 'bg-primary-soft text-primary border border-primary/15'}`}>
+                      {openFaq === i ? "×" : "+"}
+                    </span>
                   </button>
                   <div className={`overflow-hidden transition-all duration-350 ease-in-out ${openFaq === i ? 'max-h-[340px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-6 pb-6 pt-4 border-t border-line text-[15px] text-ink-2 leading-relaxed">
+                    <div className="px-6 pb-6 pt-4 border-t border-[var(--line)] text-[15px] text-[var(--ink-2)] leading-relaxed">
                       {faq.a}
                     </div>
                   </div>
@@ -816,37 +983,56 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* FINAL CTA */}
-        <section className="relative bg-[var(--bg)] overflow-hidden py-20 md:py-[130px]">
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* SECTION 12: FINAL CTA                                         */}
+        {/* "Simplify your marketing. Amplify your results."              */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        <section className="relative bg-[var(--bg-2)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)] reveal">
-              <div className="absolute inset-0 rounded-[32px] p-[1.5px] bg-grad [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
+            <div className={`relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
+              isDark 
+                ? "bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] border border-[var(--line)]" 
+                : "bg-primary text-white"
+            }`}>
+              {isDark && <div className="absolute inset-0 rounded-[32px] p-[1.5px] bg-gradient-to-b from-primary to-transparent [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>}
               
-              <div className="mono text-[#22d3ee] mb-3.5">— Ready to switch?</div>
-              <h2 className="text-4xl md:text-[64px] leading-[1.05] mb-6">
-                Simplify Your Marketing.<br />
-                <span className="grad-text">Amplify Your Results.</span>
+              <div className={`mono mb-3.5 font-bold uppercase tracking-wider ${isDark ? "text-cyan-400" : "text-white/80"}`}>— Ready to switch?</div>
+              <h2 className="text-4xl md:text-[64px] leading-[1.05] mb-6 font-black tracking-tight text-white">
+                Simplify your marketing.<br />
+                <span className={isDark ? "grad-text" : "text-purple-200"}>Amplify your results.</span>
               </h2>
-              <p className="text-[18px] text-ink-2 mb-9 max-w-[680px] mx-auto">
+              <p className={`text-[18px] mb-9 max-w-[680px] mx-auto ${isDark ? "text-[var(--ink-2)]" : "text-white/85"}`}>
                 Join 2,000+ agencies and creators who replaced their entire digital marketing workflow with Solo Spider. Less cost. Less complexity. More output.
               </p>
               
               <div className="flex justify-center gap-3.5 flex-wrap mb-9">
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad cursor-pointer">Start Free — No Card Needed →</button>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost cursor-pointer">Book a 20-Minute Demo</button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className={`btn px-8 py-4 rounded-full font-bold cursor-pointer transition-all ${
+                  isDark 
+                    ? "btn-grad" 
+                    : "bg-white text-primary hover:bg-purple-100 hover:scale-[1.02] shadow-lg shadow-black/10"
+                }`}>
+                  Start Free — No Card Needed
+                </button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className={`btn px-8 py-4 rounded-full font-bold cursor-pointer transition-all ${
+                  isDark 
+                    ? "btn-ghost" 
+                    : "bg-transparent border border-white/40 text-white hover:bg-white/10"
+                }`}>
+                  Book a 20-Minute Demo
+                </button>
               </div>
               
-              <div className="flex justify-center flex-wrap gap-x-8 gap-y-4 text-[13.5px] text-ink-2">
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Free plan available, always</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>7-day trial on all paid plans</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Cancel anytime, no questions asked</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Setup in under 5 minutes</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Used by 2,000+ marketers across India</span>
+              <div className={`flex justify-center flex-wrap gap-x-8 gap-y-4 text-[13.5px] ${isDark ? "text-[var(--ink-2)]" : "text-white/80"}`}>
+                {["Free plan, always", "14-day trial on paid plans", "Cancel anytime", "Setup under 5 minutes"].map((p, idx) => (
+                  <span key={idx} className="flex items-center gap-2">
+                    <span className={isDark ? "text-primary font-extrabold" : "text-purple-200 font-extrabold"}>✓</span>
+                    <span>{p}</span>
+                  </span>
+                ))}
               </div>
             </div>
           </div>
         </section>
-
       </main>
 
       <MarketingFooter />

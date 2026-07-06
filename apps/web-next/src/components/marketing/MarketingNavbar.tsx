@@ -19,6 +19,7 @@ import {
   Moon,
   Sun
 } from "lucide-react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
 interface MarketingNavbarProps {
   onOpenWizard?: () => void;
@@ -32,6 +33,14 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const supabase = getSupabaseBrowserClient();
+    supabase.auth.getUser().then(({ data: { user: u } }) => {
+      setUser(u);
+    });
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -129,12 +138,20 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
             >
               {isDark ? <Sun className="w-4 h-4 text-amber-500 animate-pulse" /> : <Moon className="w-4 h-4 text-indigo-650" />}
             </button>
-            <Link href="/login" className="text-[14px] text-[var(--ink)] font-extrabold hover:text-primary transition-colors">
-              Log in
-            </Link>
-            <button onClick={onOpenWizard} className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">
-              Start Free →
-            </button>
+            {user ? (
+              <Link href="/app/en/dashboard" className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="text-[14px] text-[var(--ink)] font-extrabold hover:text-primary transition-colors">
+                  Log in
+                </Link>
+                <Link href="/signup" className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">
+                  Start Free →
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Toggle */}
@@ -183,17 +200,26 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
                 )}
               </button>
             </div>
-            <Link href="/login" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
-              <button className="w-full py-3 rounded-xl border border-line text-ink-2 font-medium hover:bg-bg-2 cursor-pointer">
-                Log in
-              </button>
-            </Link>
-            <button 
-              onClick={() => { setMobileMenuOpen(false); onOpenWizard?.(); }} 
-              className="w-full btn btn-grad justify-center cursor-pointer"
-            >
-              Start Free →
-            </button>
+            {user ? (
+              <Link href="/app/en/dashboard" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
+                <button className="w-full py-3 rounded-xl btn btn-grad justify-center cursor-pointer">
+                  Go to Dashboard
+                </button>
+              </Link>
+            ) : (
+              <>
+                <Link href="/login" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
+                  <button className="w-full py-3 rounded-xl border border-line text-ink-2 font-medium hover:bg-bg-2 cursor-pointer">
+                    Log in
+                  </button>
+                </Link>
+                <Link href="/signup" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
+                  <button className="w-full py-3 rounded-xl btn btn-grad justify-center cursor-pointer">
+                    Start Free →
+                  </button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

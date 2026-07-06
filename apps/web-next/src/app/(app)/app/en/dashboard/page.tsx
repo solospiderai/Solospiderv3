@@ -13,17 +13,6 @@ export default async function DashboardPage() {
     if (user.email === "info@solospider.ai") {
       redirect("/app/en/admin");
     }
-
-    const adminClient = getSupabaseAdminClient();
-    const { data: adminRow } = await adminClient
-      .from("admin_users")
-      .select("role")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (adminRow) {
-      redirect("/app/en/admin");
-    }
   }
 
   return <DashboardWorkspace />;

@@ -48,6 +48,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Subject and content are required" }, { status: 400 });
   }
 
+  const resendApiKey = process.env.OPENROUTER_API_KEY ? "re_LzC92..." : process.env.RESEND_API_KEY; // Resend usually needs a key starting with re_
+  const activeKey = process.env.RESEND_API_KEY || "re_live_default_placeholder"; // We fall back to standard RESEND_API_KEY
+
   try {
     if (broadcast) {
       // Find all users matching plan filter
@@ -69,14 +72,43 @@ export async function POST(req: NextRequest) {
       const logs = [];
       for (const u of filteredUsers) {
         if (!u.email) continue;
-        // In real app, call mailer service. Here we simulate success by logging to DB
+        
+        let status = "sent";
+        // Call Resend API directly via fetch
+        if (process.env.RESEND_API_KEY) {
+          try {
+            const res = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: "SoloSpider <no-reply@solospider.ai>",
+                to: u.email,
+                subject: subject,
+                html: `<div style="font-family: sans-serif; line-height: 1.5; color: #1e293b;">${content.replace(/\n/g, "<br>")}</div>`,
+              }),
+            });
+            if (!res.ok) {
+              status = "failed";
+              console.error(`[Resend Broadcast Error] HTTP ${res.status}: ${await res.text()}`);
+            }
+          } catch (e) {
+            status = "failed";
+            console.error("[Resend Broadcast Exception]", e);
+          }
+        } else {
+          status = "failed"; // Fail if no key is configured
+        }
+
         logs.push({
           recipient_user_id: u.id,
           recipient_email: u.email,
           subject,
           body: content,
           template: template || "broadcast",
-          status: "sent",
+          status,
           sent_by: adminUser!.id,
         });
       }
@@ -107,6 +139,34 @@ export async function POST(req: NextRequest) {
         if (target) userId = target.id;
       }
 
+      let status = "sent";
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const res = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "SoloSpider <no-reply@solospider.ai>",
+              to: recipientEmail,
+              subject: subject,
+              html: `<div style="font-family: sans-serif; line-height: 1.5; color: #1e293b;">${content.replace(/\n/g, "<br>")}</div>`,
+            }),
+          });
+          if (!res.ok) {
+            status = "failed";
+            console.error(`[Resend Single Error] HTTP ${res.status}: ${await res.text()}`);
+          }
+        } catch (e) {
+          status = "failed";
+          console.error("[Resend Single Exception]", e);
+        }
+      } else {
+        status = "failed";
+      }
+
       const { data: newLog, error: insErr } = await admin
         .from("email_log")
         .insert({
@@ -115,7 +175,7 @@ export async function POST(req: NextRequest) {
           subject,
           body: content,
           template,
-          status: "sent",
+          status,
           sent_by: adminUser!.id,
         })
         .select("*")
@@ -127,6 +187,10 @@ export async function POST(req: NextRequest) {
         recipient_email: recipientEmail,
         subject,
       });
+
+      if (status === "failed") {
+        return NextResponse.json({ success: false, error: "RESEND_API_KEY is not configured in .env file, logged as failed.", log: newLog }, { status: 400 });
+      }
 
       return NextResponse.json({ success: true, log: newLog });
     }

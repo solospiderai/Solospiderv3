@@ -108,13 +108,17 @@ export async function getSubscription(): Promise<UserSubscription> {
   try {
     const supabase = getSupabaseBrowserClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (user?.email === "info@solospider.ai") {
+    if (!user) {
+      return { plan: "free" };
+    }
+    if (user.email === "info@solospider.ai") {
       return { plan: "custom" };
     }
 
     const { data, error } = await supabase
       .from("user_subscriptions" as any)
       .select("plan")
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

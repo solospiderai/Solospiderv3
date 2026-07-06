@@ -395,9 +395,33 @@ export function MediaStudioWorkspace() {
 
       if (!imageUrl) throw new Error("No image URL returned");
 
-      // 4. Save to Supabase
+      // 4. Save to Supabase Storage (blog_images bucket)
       const supabase = getSupabaseBrowserClient();
       const userRes = await supabase.auth.getUser();
+
+      let finalImageUrl = imageUrl;
+      try {
+        toast.info("Uploading image to Supabase Storage...");
+        const imageRes = await fetch(imageUrl);
+        const imageBlob = await imageRes.blob();
+        
+        const fileExt = "png";
+        const fileName = `media_assets/${activeProject.id}_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from("blog_images")
+          .upload(fileName, imageBlob, { contentType: "image/png" });
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from("blog_images")
+            .getPublicUrl(fileName);
+          finalImageUrl = publicUrl;
+        } else {
+          console.warn("Image upload to storage returned error, using fallback URL:", uploadError);
+        }
+      } catch (err) {
+        console.warn("Failed to upload generated image to Supabase Storage, using fallback URL:", err);
+      }
 
       const serializedCaption = JSON.stringify({
         text: safeCaption,
@@ -410,7 +434,7 @@ export function MediaStudioWorkspace() {
       const { error } = await supabase.from("media_assets").insert({
         project_id: activeProject.id,
         user_id: userRes.data.user?.id ?? null,
-        image_url: imageUrl,
+        image_url: finalImageUrl,
         caption: serializedCaption,
         hashtags: safeHashtags.join(",")
       });
@@ -1208,14 +1232,14 @@ export function MediaStudioWorkspace() {
 
             <div className="space-y-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Original Base Input</span>
-              <div className="rounded-lg bg-slate-50 p-3 text-xs font-semibold text-slate-600 border min-h-[50px]">
+              <div className="rounded-lg bg-slate-50 p-3 text-xs font-semibold text-slate-600 border min-h-[50px] max-h-[120px] overflow-y-auto break-words leading-relaxed scrollbar-thin">
                 {prompt || "Provide base prompt..."}
               </div>
             </div>
 
             <div className="space-y-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">AI Enhanced Vision</span>
-              <div className="rounded-lg bg-purple-50/50 p-3 text-xs font-semibold text-purple-950 border border-purple-100 min-h-[80px] leading-relaxed">
+              <div className="rounded-lg bg-purple-50/50 p-3 text-xs font-semibold text-purple-950 border border-purple-100 min-h-[80px] max-h-[160px] overflow-y-auto break-words leading-relaxed scrollbar-thin">
                 {enhancedPrompt || "AI enhancement prompt will build here..."}
               </div>
             </div>
@@ -1272,15 +1296,18 @@ export function MediaStudioWorkspace() {
                   onClick={() => setPreviewAsset(asset)}
                   className="relative aspect-square overflow-hidden bg-slate-100 cursor-pointer hover:opacity-90 transition-opacity"
                 >
-                  {asset.url.endsWith(".mp4") || asset.url.includes("/video/") ? (
+                  {asset.url.toLowerCase().endsWith(".mp4") || asset.url.toLowerCase().includes("/video/") || asset.url.toLowerCase().includes("/videos/") ? (
                     <video
-                      src={asset.url}
+                      key={asset.url}
                       autoPlay
                       muted
                       loop
                       playsInline
-                      className="h-full w-full object-cover"
-                    />
+                      {...{ referrerPolicy: "no-referrer" }}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    >
+                      <source src={asset.url} type="video/mp4" />
+                    </video>
                   ) : (
                     <img
                       src={asset.url}
@@ -1488,14 +1515,19 @@ export function MediaStudioWorkspace() {
               <h3 className="text-base font-black text-slate-900 truncate pr-10">{previewAsset.prompt}</h3>
             </div>
             <div className="relative aspect-video max-h-[60vh] overflow-hidden rounded-2xl bg-slate-100 flex items-center justify-center">
-              {previewAsset.url.endsWith(".mp4") || previewAsset.url.includes("/video/") ? (
+              {previewAsset.url.toLowerCase().endsWith(".mp4") || previewAsset.url.toLowerCase().includes("/video/") || previewAsset.url.toLowerCase().includes("/videos/") ? (
                 <video
-                  src={previewAsset.url}
+                  key={previewAsset.url}
                   controls
                   autoPlay
+                  muted
+                  playsInline
                   loop
+                  {...{ referrerPolicy: "no-referrer" }}
                   className="max-h-full max-w-full rounded-xl"
-                />
+                >
+                  <source src={previewAsset.url} type="video/mp4" />
+                </video>
               ) : (
                 <img
                   src={previewAsset.url}

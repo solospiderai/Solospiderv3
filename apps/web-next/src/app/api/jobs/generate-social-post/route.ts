@@ -1,7 +1,21 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { readJson } from "@/server/api";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
+
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false
+      }
+    }
+  );
+}
 
 async function callLLM(prompt: string, maxTokens = 1500) {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
@@ -73,37 +87,155 @@ export async function POST(request: NextRequest) {
     if (body.type === "video" || body.action === "video") {
       const promptText = (body.prompt || "").toLowerCase();
       
+      // 1. OpenRouter Native Video Generation (using alibaba/wan-2.6)
+      const openrouterKey = process.env.OPENROUTER_API_KEY;
+      if (openrouterKey) {
+        try {
+          console.log("[Video Gen] Submitting to OpenRouter via alibaba/wan-2.6...");
+          
+          let aspect_ratio = "16:9";
+          const format = (body.format || "").toLowerCase();
+          if (format === "portrait" || format === "story" || format === "vertical") {
+            aspect_ratio = "9:16";
+          }
+
+          const submitRes = await fetch("https://openrouter.ai/api/v1/videos", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${openrouterKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "alibaba/wan-2.6",
+              prompt: promptText,
+              duration: 5,
+              aspect_ratio
+            })
+          });
+
+          if (submitRes.ok) {
+            const jobData = await submitRes.json();
+            const jobId = jobData.id;
+
+            // Poll the status url every 5 seconds for up to 15 attempts (75s total)
+            let videoUrl = "";
+            for (let i = 0; i < 15; i++) {
+              await new Promise(resolve => setTimeout(resolve, 5000));
+              const checkRes = await fetch(`https://openrouter.ai/api/v1/videos/${jobId}`, {
+                headers: {
+                  "Authorization": `Bearer ${openrouterKey}`
+                }
+              });
+
+              if (checkRes.ok) {
+                const statusData = await checkRes.json();
+                console.log(`[Video Gen] Polling OpenRouter job ${jobId}: ${statusData.status}`);
+                if (statusData.status === "completed") {
+                  videoUrl = `https://openrouter.ai/api/v1/videos/${jobId}/content`;
+                  break;
+                } else if (statusData.status === "failed") {
+                  console.error("[Video Gen] OpenRouter video job failed:", statusData);
+                  break;
+                }
+              }
+            }
+
+            if (videoUrl) {
+              // Upload the generated OpenRouter video file to Supabase Storage server-side
+              try {
+                console.log(`[Video Gen] Downloading video from ${videoUrl} server-side...`);
+                const videoRes = await fetch(videoUrl);
+                if (videoRes.ok) {
+                  const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+                  const projectId = body.projectId || "global";
+                  const fileName = `media_assets/${projectId}_${Date.now()}.mp4`;
+                  
+                  console.log(`[Video Gen] Uploading to Supabase Storage as ${fileName}...`);
+                  const supabaseAdmin = getSupabaseAdmin();
+                  const { error: uploadError } = await supabaseAdmin.storage
+                    .from("blog_images")
+                    .upload(fileName, videoBuffer, {
+                      contentType: "video/mp4",
+                      duplex: "half"
+                    });
+
+                  if (!uploadError) {
+                    const { data: { publicUrl } } = supabaseAdmin.storage
+                      .from("blog_images")
+                      .getPublicUrl(fileName);
+                    console.log(`[Video Gen] Successfully stored in Supabase: ${publicUrl}`);
+                    return NextResponse.json({ videoUrl: publicUrl });
+                  } else {
+                    console.error("[Video Gen] Supabase storage upload failed:", uploadError);
+                  }
+                }
+              } catch (err) {
+                console.error("[Video Gen] Failed to upload OpenRouter video server-side:", err);
+              }
+              return NextResponse.json({ videoUrl });
+            }
+          } else {
+            console.error("[Video Gen] OpenRouter submit failed:", submitRes.status, await submitRes.text());
+          }
+        } catch (err) {
+          console.error("OpenRouter video generation failed, falling back:", err);
+        }
+      }
+
+      // 2. High-Quality B2B Public Fallback Loops (Hosted on raw GitHub with zero CORS/Referrer blocks)
       const VIDEO_TEMPLATES = [
         {
           keywords: ["code", "coding", "developer", "program", "software", "tech", "computer"],
-          url: "https://assets.mixkit.co/videos/preview/mixkit-hands-of-a-developer-typing-on-a-keyboard-40618-large.mp4"
+          url: "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/classroom.mp4"
         },
         {
-          keywords: ["analytics", "growth", "chart", "data", "finance", "scale", "sales"],
-          url: "https://assets.mixkit.co/videos/preview/mixkit-analytics-on-a-tablet-screen-40625-large.mp4"
+          keywords: ["analytics", "growth", "chart", "data", "finance", "scale", "sales", "store"],
+          url: "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/store-aisle-detection.mp4"
         },
         {
           keywords: ["team", "meeting", "office", "discuss", "people", "corporate", "collaboration", "work"],
-          url: "https://assets.mixkit.co/videos/preview/mixkit-business-team-discussing-work-in-the-office-40628-large.mp4"
+          url: "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/one-by-one-person-detection.mp4"
         },
         {
-          keywords: ["factory", "robot", "robotic", "machinery", "automation", "manufacturing", "industrial"],
-          url: "https://assets.mixkit.co/videos/preview/mixkit-robotic-arm-working-in-a-modern-factory-40635-large.mp4"
-        },
-        {
-          keywords: ["delivery", "package", "shipping", "ecommerce", "store", "product", "box"],
-          url: "https://assets.mixkit.co/videos/preview/mixkit-delivery-man-handing-over-packages-40642-large.mp4"
-        },
-        {
-          keywords: ["network", "connection", "digital", "abstract", "server", "nodes", "ai", "artificial"],
-          url: "https://assets.mixkit.co/videos/preview/mixkit-digital-network-connections-background-40645-large.mp4"
+          keywords: ["factory", "robot", "robotic", "machinery", "automation", "manufacturing", "industrial", "bolt"],
+          url: "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/bolt-detection.mp4"
         }
       ];
 
       const matched = VIDEO_TEMPLATES.find(t => t.keywords.some(k => promptText.includes(k)));
-      const videoUrl = matched ? matched.url : "https://assets.mixkit.co/videos/preview/mixkit-hands-typing-on-computer-keyboard-40654-large.mp4";
+      const fallbackUrl = matched ? matched.url : "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/one-by-one-person-detection.mp4";
       
-      return NextResponse.json({ videoUrl });
+      // Upload fallback video to Supabase Storage server-side
+      try {
+        console.log(`[Video Gen] Downloading fallback video from ${fallbackUrl} server-side...`);
+        const videoRes = await fetch(fallbackUrl);
+        if (videoRes.ok) {
+          const videoBuffer = Buffer.from(await videoRes.arrayBuffer());
+          const projectId = body.projectId || "global";
+          const fileName = `media_assets/${projectId}_${Date.now()}.mp4`;
+          
+          console.log(`[Video Gen] Uploading fallback to Supabase Storage as ${fileName}...`);
+          const supabaseAdmin = getSupabaseAdmin();
+          const { error: uploadError } = await supabaseAdmin.storage
+            .from("blog_images")
+            .upload(fileName, videoBuffer, {
+              contentType: "video/mp4",
+              duplex: "half"
+            });
+
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabaseAdmin.storage
+              .from("blog_images")
+              .getPublicUrl(fileName);
+            console.log(`[Video Gen] Successfully stored fallback in Supabase: ${publicUrl}`);
+            return NextResponse.json({ videoUrl: publicUrl });
+          }
+        }
+      } catch (err) {
+        console.error("[Video Gen] Failed to upload fallback video server-side:", err);
+      }
+
+      return NextResponse.json({ videoUrl: fallbackUrl });
     }
 
     // 2. Social ideas generation

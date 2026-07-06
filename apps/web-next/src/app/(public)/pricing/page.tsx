@@ -18,8 +18,19 @@ export default function PricingPage() {
   const [wizardDomain, setWizardDomain] = useState("");
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<"growth" | "scale">("growth");
+  const [backUrl, setBackUrl] = useState<string | null>(null);
 
   const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const from = params.get("redirectedFrom") || params.get("from");
+      if (from) {
+        setBackUrl(from);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -92,6 +103,19 @@ export default function PricingPage() {
         {/* HERO & PRICING PLANS SECTION */}
         <section className="relative pt-[140px] pb-24 bg-[var(--bg)] text-center overflow-hidden">
           <div className="max-w-[820px] mx-auto px-7 relative z-10 mb-16">
+            {backUrl && (
+              <div className="inline-flex items-center gap-3.5 px-5 py-2.5 bg-[var(--bg-2)] border border-[var(--line)] rounded-2xl shadow-sm mb-8 animate-bounce-slow">
+                <span className="text-[12px] font-bold text-slate-555">Need to return to your workspace?</span>
+                <button
+                  onClick={() => {
+                    window.location.href = backUrl;
+                  }}
+                  className="px-3.5 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-750 hover:to-indigo-750 text-white font-extrabold text-[11px] rounded-xl transition-all cursor-pointer shadow-md active:scale-95 flex items-center gap-1.5 border-0"
+                >
+                  No thanks, I will manage ⚡
+                </button>
+              </div>
+            )}
             <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold px-3 py-1 bg-primary-soft rounded-full border border-primary/10">— Pricing plans</span>
             <h1 className="text-4xl md:text-[64px] leading-[1.05] mt-6 mb-6 font-display font-black tracking-tight">
               One Price.<br />

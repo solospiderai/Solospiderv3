@@ -220,3 +220,16 @@ h1, h2, h3, h4, h5, h6 {
 .hero-d2 { animation-delay: 0.2s; }
 .hero-d3 { animation-delay: 0.35s; }
 .hero-d4 { animation-delay: 0.45s; }
+
+@keyframes bounceSlow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounceSlow 2s ease-in-out infinite;
+}

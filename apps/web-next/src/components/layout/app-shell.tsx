@@ -225,7 +225,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       icon: MessageSquare,
       isActive: (path) => path.startsWith("/app/en/support")
     },
-    ...(isAdmin && roleView !== "user" ? [{
+    ...(isAdmin ? [{
       label: "Admin Panel",
       to: "/app/en/admin",
       icon: Shield,
@@ -380,6 +380,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.to}
                 href={item.to}
+                id={`tour-step-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold transition-all rounded-xl ${
                   active
@@ -426,11 +427,25 @@ export function AppShell({ children }: { children: ReactNode }) {
             </p>
           </div>
         </div>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem("solospider_role_view", "admin");
+              }
+              window.location.href = "/app/en/admin";
+            }}
+            className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-bold text-violet-400 hover:bg-white/[0.04] hover:text-violet-300 transition-colors cursor-pointer bg-transparent border-0 text-left"
+          >
+            <Shield className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+            Switch to Admin
+          </button>
+        )}
         <button
           onClick={handleSignOut}
-          className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-bold text-white/50 hover:bg-white/[0.04] hover:text-white transition-colors"
+          className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-bold text-white/50 hover:bg-white/[0.04] hover:text-white transition-colors cursor-pointer bg-transparent border-0 text-left"
         >
-          <LogOut className="h-3.5 w-3.5 text-white/40" />
+          <LogOut className="h-3.5 w-3.5 text-white/40 shrink-0" />
           Sign Out
         </button>
       </div>

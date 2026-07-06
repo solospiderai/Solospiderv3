@@ -14,7 +14,7 @@ export async function GET() {
     const [runsRes, statsRes] = await Promise.all([
       admin
         .from("crawl_runs")
-        .select("*")
+        .select("*, projects(id, name, domain, user_id)")
         .order("created_at", { ascending: false })
         .limit(100),
       admin

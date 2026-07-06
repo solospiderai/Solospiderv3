@@ -15,18 +15,21 @@ export async function GET(req: NextRequest) {
   try {
     let query = admin
       .from("projects")
-      .select("*, user_subscriptions!inner(plan)")
+      .select("*, user_subscriptions(plan)")
       .order("created_at", { ascending: false })
       .limit(200);
 
     const { data, error: qErr } = await query;
     if (qErr) throw qErr;
 
-    let projects = (data || []).map((p: any) => ({
-      ...p,
-      plan: p.user_subscriptions?.plan || "free",
-      user_subscriptions: undefined,
-    }));
+    let projects = (data || []).map((p: any) => {
+      const sub = Array.isArray(p.user_subscriptions) ? p.user_subscriptions[0] : p.user_subscriptions;
+      return {
+        ...p,
+        plan: sub?.plan || "free",
+        user_subscriptions: undefined,
+      };
+    });
 
     if (search) {
       const q = search.toLowerCase();

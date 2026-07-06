@@ -62,7 +62,7 @@ export function StatCard({ label, value, icon: Icon, trend, color = "purple", si
     >
       <div className="flex items-start justify-between">
         <div className="space-y-2">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+          <p className="text-[11.5px] font-black uppercase tracking-widest text-slate-400">{label}</p>
           <p className={`${size === "sm" ? "text-xl" : "text-2xl"} font-black ${colors.value} tracking-tight`}>
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>

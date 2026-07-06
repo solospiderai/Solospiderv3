@@ -757,15 +757,17 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex gap-2">
-            <button
+             <button
               onClick={() => setEditing(false)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${!editing ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              disabled={isGenerating}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 disabled:opacity-50 ${!editing ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}
             >
               <Eye className="h-3.5 w-3.5" /> Preview
             </button>
             <button
               onClick={() => setEditing(true)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${editing ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              disabled={isGenerating}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 disabled:opacity-50 ${editing ? "bg-indigo-600 text-white" : "text-slate-600 hover:bg-slate-100"}`}
             >
               <Pencil className="h-3.5 w-3.5" /> Editor
             </button>
@@ -773,7 +775,7 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopy}
-              disabled={!content.generated_content}
+              disabled={!content.generated_content || isGenerating}
               className="border border-slate-200 text-xs font-bold rounded-lg px-3 py-1.5 hover:bg-slate-50 disabled:opacity-50 transition-all flex items-center gap-1 text-slate-700 bg-white"
             >
               {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
@@ -827,8 +829,8 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
               <div className="flex justify-end pt-2">
                 <button
                   onClick={handleSave}
-                  disabled={saving}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-sm flex items-center gap-1.5 transition-all shadow-md"
+                  disabled={saving || isGenerating}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2 rounded-xl text-sm flex items-center gap-1.5 transition-all shadow-md disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                   Save Changes

@@ -176,7 +176,7 @@ export default function AdminUsersPage() {
         </div>
         <button
           onClick={() => setIsInviteOpen(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-indigo-650 hover:bg-indigo-750 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer w-fit shrink-0"
+          className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition-all cursor-pointer w-fit shrink-0"
         >
           <Plus className="h-4 w-4" /> Add Admin Email
         </button>

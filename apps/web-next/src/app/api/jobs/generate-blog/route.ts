@@ -24,6 +24,17 @@ function getSupabaseAdmin() {
   );
 }
 
+// Bulletproof JSON extractor
+function extractJson(text: string) {
+  let cleaned = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace = cleaned.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+  }
+  return JSON.parse(cleaned);
+}
+
 // Call LLM helper
 async function callLLM(prompt: string, maxTokens = 1500) {
   const openrouterKey = process.env.OPENROUTER_API_KEY;
@@ -50,9 +61,11 @@ async function callLLM(prompt: string, maxTokens = 1500) {
       if (response.ok) {
         const data = await response.json();
         text = data.choices?.[0]?.message?.content?.trim() || "";
+      } else {
+        console.error("[callLLM] OpenRouter returned error:", response.status, await response.text());
       }
     } catch (err) {
-      console.warn("[callLLM] OpenRouter failed:", err);
+      console.error("[callLLM] OpenRouter fetch failed:", err);
     }
   }
 
@@ -107,27 +120,33 @@ Tone: "${item.tone}"
 Target Country: "${item.target_country}"
 Additional Details: "${item.details || "None"}"
 
+STRICT SEO INSTRUCTIONS:
+1. The "seo_title" MUST contain the keyword "${item.main_keyword}" and be between 40 and 65 characters long.
+2. The "meta_description" MUST contain the keyword "${item.main_keyword}" and be between 120 and 155 characters long.
+3. The "h2_list" MUST contain exactly 6 headings. The first heading MUST contain the keyword "${item.main_keyword}" naturally (as it serves as the introduction). At least one other heading in the middle of the article must also include the keyword.
+
 Return ONLY a clean JSON object (no markdown blocks, no think tag, no surrounding text).
 JSON format:
 {
-  "seo_title": "A catchy search-optimized title containing the main keyword, between 35 and 60 characters long",
-  "meta_description": "A search-optimized meta description containing the main keyword, between 120 and 155 characters long",
-  "h2_list": ["Heading 1", "Heading 2", "Heading 3", "Heading 4", "Heading 5"]
+  "seo_title": "Optimized title",
+  "meta_description": "Optimized meta description",
+  "h2_list": ["Heading 1 containing keyword", "Heading 2", "Heading 3", "Heading 4", "Heading 5 containing keyword", "Heading 6"]
 }`;
 
-    const outlineRaw = await callLLM(outlinePrompt, 800);
-    let h2List = ["Introduction", "Core Benefits", "Key Strategies", "Future Outlook", "Conclusion"];
-    let metaDescription = `Learn all about ${item.h1} - an in-depth exploration.`;
-    let seoTitle = item.h1;
+    const outlineRaw = await callLLM(outlinePrompt, 1000);
+    let h2List = [
+      `Introduction to ${item.main_keyword}`,
+      "Core Benefits and Advantages",
+      "Key Implementation Strategies",
+      "Common Pitfalls to Avoid",
+      `Maximizing ROI with ${item.main_keyword}`,
+      "Summary and Next Steps"
+    ];
+    let metaDescription = `Discover the ultimate guide to ${item.main_keyword}. Learn key benefits, implementation strategies, and expert tips to grow your brand.`;
+    let seoTitle = `${item.h1} | Ultimate Guide`;
 
     try {
-      // Clean JSON wrappers
-      let cleaned = outlineRaw.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-      if (cleaned.startsWith("```")) {
-        cleaned = cleaned.replace(/^```(?:json)?\n/, "");
-        cleaned = cleaned.replace(/\n```$/, "");
-      }
-      const outlineObj = JSON.parse(cleaned.trim());
+      const outlineObj = extractJson(outlineRaw);
       if (Array.isArray(outlineObj.h2_list) && outlineObj.h2_list.length > 0) {
         h2List = outlineObj.h2_list;
       }
@@ -138,7 +157,7 @@ JSON format:
         seoTitle = outlineObj.seo_title;
       }
     } catch (e) {
-      console.warn("[runBlogGeneration] Outline JSON parsing failed, using default headings.", e);
+      console.error("[runBlogGeneration] Outline JSON parsing failed, using SEO optimized default fallbacks.", e);
     }
 
     await supabase

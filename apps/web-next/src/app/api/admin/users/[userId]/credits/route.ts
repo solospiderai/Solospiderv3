@@ -12,10 +12,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ use
   const admin = getSupabaseAdminClient();
   const body = await req.json();
 
-  const { type, amount, reason } = body as { type: string; amount: number; reason: string };
+  const { type, amount, reason = "Manual adjustment" } = body as { type: string; amount: number; reason?: string };
 
-  if (!type || !amount || !reason) {
-    return NextResponse.json({ error: "type, amount, and reason are required" }, { status: 400 });
+  if (!type || !amount) {
+    return NextResponse.json({ error: "type and amount are required" }, { status: 400 });
   }
 
   try {

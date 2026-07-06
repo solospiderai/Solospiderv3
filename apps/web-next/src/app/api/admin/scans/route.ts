@@ -14,7 +14,7 @@ export async function GET() {
     const [runsRes, resultsCountRes] = await Promise.all([
       admin
         .from("prompt_scan_runs")
-        .select("*")
+        .select("*, projects(id, name, domain, user_id)")
         .order("created_at", { ascending: false })
         .limit(100),
       admin

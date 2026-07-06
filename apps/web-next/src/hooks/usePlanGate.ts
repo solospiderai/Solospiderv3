@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useProjects } from "./useProjects";
 import { getPlanConfig } from "@/lib/services/projects";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import type { PlanConfig, PlanTier } from "@/types/project";
 
 export function usePlanGate() {
   const router = useRouter();
+  const pathname = usePathname() || "";
   const { projects, currentPlan, canAddProject, projectLimit } = useProjects();
 
   const plan = currentPlan as PlanTier;
@@ -15,7 +16,7 @@ export function usePlanGate() {
 
   const redirectToPricing = (reason?: string) => {
     if (reason) toast.error(reason);
-    router.push("/pricing");
+    router.push(`/pricing?redirectedFrom=${encodeURIComponent(pathname)}`);
   };
 
   const checkProjectLimit = (): boolean => {
@@ -29,7 +30,7 @@ export function usePlanGate() {
           `Your ${config.label} plan allows ${config.projectLimit} project. Upgrade to add more.`
         );
       }
-      router.push("/pricing");
+      router.push(`/pricing?redirectedFrom=${encodeURIComponent(pathname)}`);
       return false;
     }
     return true;

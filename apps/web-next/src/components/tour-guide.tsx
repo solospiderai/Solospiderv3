@@ -1,49 +1,76 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, X, Sparkles, LayoutDashboard, Fingerprint, Search, Megaphone, Plug } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, Sparkles, LayoutDashboard, Fingerprint, Search, Megaphone, Plug, Shield, PlayCircle, BarChart3, TrendingUp, Settings2, HeadphonesIcon, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 interface TourStep {
   title: string;
   description: string;
-  target?: string;
+  targetId: string | null;
   icon: React.ComponentType<any>;
 }
 
 export function TourGuide() {
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [coords, setCoords] = useState<{ top: number; left: number; width: number; height: number } | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const steps: TourStep[] = [
     {
       title: "Welcome to SoloSpider! 🚀",
-      description: "Let's take a quick 1-minute tour of your new AI-powered search optimization center. Click next to begin!",
+      description: "Let's take a quick visual tour of your modules. We will show you where each feature is located.",
+      targetId: null,
       icon: Sparkles
     },
     {
       title: "Consolidated Dashboard",
-      description: "Monitor real-time search trends, organic keywords traffic, site speed, and backlinks all in one place.",
+      description: "Track search traffic, organic keywords, domain authority, and core project alerts in one place.",
+      targetId: "tour-step-dashboard",
       icon: LayoutDashboard
     },
     {
-      title: "AEO / GEO Engine",
-      description: "Analyze search engine listings across Google AI Overviews, Perplexity, ChatGPT, and Gemini. Learn who gets recommended.",
+      title: "Brand Identity profile",
+      description: "Define your company voice, colors, logo, and targeted market parameters to align all AI content.",
+      targetId: "tour-step-branding",
       icon: Fingerprint
     },
     {
-      title: "SEO AI Fixes",
-      description: "Instantly pinpoint title, meta tags, and schema issues, and apply recommendations directly to your workspace.",
+      title: "1-Click SEO Audit",
+      description: "Detect page metadata, semantic headers, schemas, and indexing problems instantly.",
+      targetId: "tour-step-seo",
       icon: Search
     },
     {
-      title: "Media Studio",
-      description: "Draft engaging social media updates, auto-generate video loops or image assets, and schedule posting to Twitter and LinkedIn.",
+      title: "Automated Blog CMS",
+      description: "Plan, generate, schedule, and auto-publish SEO articles directly to Shopify or WordPress.",
+      targetId: "tour-step-blogs",
       icon: Megaphone
     },
     {
-      title: "Stores & Dev Connections",
-      description: "Link GitHub, WordPress, or Shopify directly to SoloSpider to sync and deploy automated code and SEO fixes in seconds.",
-      icon: Plug
+      title: "Backlink Management",
+      description: "Monitor linking websites, analyze trust flow, and submit indexed crawler updates.",
+      targetId: "tour-step-backlinks",
+      icon: PlayCircle
+    },
+    {
+      title: "Social Post Scheduler",
+      description: "Draft posts, design visual templates, and publish directly to Twitter and LinkedIn.",
+      targetId: "tour-step-social-media",
+      icon: Sparkles
+    },
+    {
+      title: "AEO / GEO Analytics",
+      description: "Track how your brand is cited and structured in AI Search engines like ChatGPT, Gemini, and Copilot.",
+      targetId: "tour-step-aeo-geo",
+      icon: Shield
+    },
+    {
+      title: "Media Content Studio",
+      description: "Generate promotional images, AI video templates, and marketing graphics in our interactive canvas.",
+      targetId: "tour-step-media-studio",
+      icon: PlayCircle
     }
   ];
 
@@ -55,6 +82,43 @@ export function TourGuide() {
       }
     }
   }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const targetId = steps[currentStep].targetId;
+    if (!targetId || isMobile) {
+      setCoords(null);
+      return;
+    }
+
+    const updatePosition = () => {
+      const el = document.getElementById(targetId);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setCoords({
+          top: rect.top + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+          height: rect.height,
+        });
+      } else {
+        setCoords(null);
+      }
+    };
+
+    updatePosition();
+    const timer = setTimeout(updatePosition, 150);
+    return () => clearTimeout(timer);
+  }, [currentStep, isOpen, isMobile]);
 
   const handleClose = () => {
     if (typeof window !== "undefined") {
@@ -68,6 +132,7 @@ export function TourGuide() {
       setCurrentStep(prev => prev + 1);
     } else {
       handleClose();
+      toast.success("🏆 You are all set! Explore your SoloSpider dashboard.");
     }
   };
 
@@ -82,78 +147,98 @@ export function TourGuide() {
   const ActiveIcon = steps[currentStep].icon;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-white border border-slate-100 rounded-3xl p-6 shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
-        
-        {/* Close Button */}
+    <>
+      {/* Background shadow overlay */}
+      <div 
+        className="fixed inset-0 z-[9980] bg-slate-950/45 backdrop-blur-[1px] transition-all duration-300"
+        onClick={handleClose}
+      />
+
+      {/* Spotlight Focus ring */}
+      {coords && (
+        <div 
+          className="absolute z-[9990] border-2 border-[#9025F2] rounded-xl shadow-[0_0_0_9999px_rgba(10,8,34,0.65)] pointer-events-none transition-all duration-350 ease-out"
+          style={{
+            top: `${coords.top - 4}px`,
+            left: `${coords.left - 4}px`,
+            width: `${coords.width + 8}px`,
+            height: `${coords.height + 8}px`,
+          }}
+        />
+      )}
+
+      {/* Tooltip dialog card */}
+      <div 
+        className={`w-[320px] bg-white border border-slate-200 rounded-[2rem] p-6 shadow-[0_20px_50px_rgba(14,12,26,0.18)] space-y-5 animate-in fade-in duration-300 z-[9999]`}
+        style={coords ? {
+          position: "absolute",
+          top: `${coords.top + coords.height / 2}px`,
+          left: `${coords.left + coords.width + 16}px`,
+          transform: "translateY(-50%)",
+          transition: "top 0.35s ease-out, left 0.35s ease-out"
+        } : {
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)"
+        }}
+      >
+        {/* Close */}
         <button 
           onClick={handleClose}
-          className="absolute top-4 right-4 text-slate-450 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
-        {/* Tour Icon */}
-        <div className="flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-xl shadow-indigo-600/20">
-            <ActiveIcon className="w-8 h-8" />
+        {/* Header Icon */}
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#9025F2]/10 text-[#9025F2] shadow-sm">
+            <ActiveIcon className="w-5 h-5" />
+          </div>
+          <div className="text-left leading-tight">
+            <span className="text-[9px] font-black uppercase tracking-wider text-[#9025F2] bg-[#9025F2]/5 px-2 py-0.5 rounded-md">
+              Guide {currentStep + 1} / {steps.length}
+            </span>
+            <h4 className="text-sm font-black text-slate-900 mt-1 truncate max-w-[200px]">
+              {steps[currentStep].title}
+            </h4>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="text-center space-y-2">
-          <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-            Step {currentStep + 1} of {steps.length}
-          </span>
-          <h3 className="text-lg font-black text-slate-900 leading-tight">
-            {steps[currentStep].title}
-          </h3>
-          <p className="text-xs text-slate-500 font-semibold leading-relaxed px-2">
-            {steps[currentStep].description}
-          </p>
-        </div>
+        {/* Text */}
+        <p className="text-xs text-slate-500 font-semibold leading-relaxed text-left">
+          {steps[currentStep].description}
+        </p>
 
-        {/* Progress bar */}
-        <div className="flex justify-center gap-1.5">
-          {steps.map((_, i) => (
-            <div 
-              key={i} 
-              className={`h-1.5 rounded-full transition-all duration-350 ${
-                i === currentStep ? "w-6 bg-indigo-600" : "w-1.5 bg-slate-200"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Actions Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+        {/* Footer actions */}
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
           <button 
             onClick={handleClose}
-            className="text-xs font-extrabold text-slate-450 hover:text-slate-650 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
+            className="text-[11px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-wider cursor-pointer bg-transparent border-0"
           >
-            Skip Tour
+            Skip
           </button>
           
           <div className="flex items-center gap-2">
             {currentStep > 0 && (
               <button 
                 onClick={handleBack}
-                className="flex items-center gap-1 border border-slate-200 text-slate-650 font-bold p-2 px-3.5 rounded-xl hover:bg-slate-50 text-xs transition-colors cursor-pointer"
+                className="flex items-center gap-1 border border-slate-200 text-slate-600 font-bold px-3 py-1.5 rounded-xl hover:bg-slate-50 text-[11px] transition-colors cursor-pointer bg-transparent"
               >
-                <ChevronLeft className="w-4 h-4" /> Back
+                Back
               </button>
             )}
             
             <button 
               onClick={handleNext}
-              className="flex items-center gap-1 bg-indigo-600 text-white font-bold p-2 px-4 rounded-xl hover:bg-indigo-700 text-xs transition-all shadow-md shadow-indigo-600/10 active:scale-[0.98] cursor-pointer"
+              className="flex items-center gap-1 bg-[#9025F2] text-white font-bold px-3.5 py-1.5 rounded-xl hover:bg-[#a844ff] text-[11px] transition-all shadow-md shadow-[#9025F2]/20 active:scale-[0.98] cursor-pointer border-0"
             >
-              {currentStep === steps.length - 1 ? "Finish" : "Next"} <ChevronRight className="w-4 h-4" />
+              {currentStep === steps.length - 1 ? "Finish" : "Next"} <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
-
       </div>
-    </div>
+    </>
   );
 }

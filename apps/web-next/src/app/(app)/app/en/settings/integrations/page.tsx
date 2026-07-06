@@ -15,7 +15,8 @@ import {
   AlertCircle, 
   FolderKanban,
   RefreshCw,
-  Info
+  Info,
+  ChevronDown
 } from "lucide-react";
 
 // Official High-Fidelity Brand SVG Icons
@@ -116,9 +117,19 @@ export default function IntegrationsSettingsPage() {
 
   // GitHub form states
   const [githubToken, setGithubToken] = useState("");
-  const [githubOwner, setGithubOwner] = useState("");
-  const [githubRepo, setGithubRepo] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
   const [githubBranch, setGithubBranch] = useState("main");
+
+  const parseGitHubUrl = (url: string): { owner: string; repo: string } | null => {
+    const cleanUrl = url.trim().replace(/\.git$/, "");
+    const httpsMatch = cleanUrl.match(/(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/]+)\/([^\/]+)/i);
+    if (httpsMatch) return { owner: httpsMatch[1], repo: httpsMatch[2] };
+    const sshMatch = cleanUrl.match(/git@github\.com:([^\/]+)\/([^\/]+)/i);
+    if (sshMatch) return { owner: sshMatch[1], repo: sshMatch[2] };
+    const parts = cleanUrl.split("/");
+    if (parts.length === 2 && parts[0] && parts[1]) return { owner: parts[0], repo: parts[1] };
+    return null;
+  };
 
   // WordPress form states
   const [wpUrl, setWpUrl] = useState("");
@@ -148,6 +159,7 @@ export default function IntegrationsSettingsPage() {
   const [gscClientId, setGscClientId] = useState("");
   const [gscClientSecret, setGscClientSecret] = useState("");
   const [gscRefreshToken, setGscRefreshToken] = useState("");
+  const [showGscGuide, setShowGscGuide] = useState(false);
 
   // Verification states
   const [editingIntegrationId, setEditingIntegrationId] = useState<string | null>(null);
@@ -317,14 +329,19 @@ export default function IntegrationsSettingsPage() {
 
   const handleAddGitHub = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!githubToken || !githubOwner || !githubRepo) {
-      toast.error("Please fill in all GitHub connection fields.");
+    if (!githubToken || !githubUrl) {
+      toast.error("Please fill in both GitHub Token and Repository URL.");
+      return;
+    }
+    const parsed = parseGitHubUrl(githubUrl);
+    if (!parsed) {
+      toast.error("Invalid GitHub URL. Use format: https://github.com/owner/repo");
       return;
     }
     const creds = {
       token: githubToken.trim(),
-      owner: githubOwner.trim(),
-      repo: githubRepo.trim(),
+      owner: parsed.owner,
+      repo: parsed.repo,
       branch: githubBranch.trim() || "main"
     };
 
@@ -536,6 +553,26 @@ export default function IntegrationsSettingsPage() {
     );
   };
 
+  const isPlatformConnected = (platform: string) => {
+    return allConnectedIntegrations.some((int: any) => int.platform === platform);
+  };
+
+  const getPlatformDetails = (platform: string) => {
+    return allConnectedIntegrations.find((int: any) => int.platform === platform);
+  };
+
+  const quickViewPlatforms = [
+    { id: "wordpress", name: "WordPress", icon: WordPressIcon },
+    { id: "shopify", name: "Shopify", icon: ShopifyIcon },
+    { id: "magento", name: "Magento", icon: MagentoIcon },
+    { id: "github", name: "GitHub", icon: GitHubIcon },
+    { id: "google_search_console", name: "Search Console", icon: (props: any) => (
+      <svg className="w-5 h-5 text-blue-650" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+    ) },
+  ];
+
   return (
     <div className="mx-auto max-w-4xl space-y-8 p-6 animate-slide-in">
       
@@ -558,6 +595,52 @@ export default function IntegrationsSettingsPage() {
           </div>
         </div>
       </header>
+
+      {/* Quick View Status Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+        {quickViewPlatforms.map((p) => {
+          const connected = isPlatformConnected(p.id);
+          const details = getPlatformDetails(p.id);
+          const Icon = p.icon;
+
+          return (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => {
+                setActiveForm(activeForm === p.id ? null : (p.id as any));
+              }}
+              className={`flex flex-col items-start p-4 rounded-2xl border transition-all text-left group cursor-pointer ${
+                connected 
+                  ? "bg-emerald-50/20 hover:bg-emerald-50/40 border-emerald-200 shadow-sm" 
+                  : "bg-white hover:bg-slate-50/60 border-slate-200"
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <div className="p-2 rounded-xl bg-slate-50 border border-slate-100 group-hover:scale-110 transition-transform">
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-500 animate-pulse" : "bg-slate-300"}`} />
+                  <span className={`text-[8px] font-black uppercase tracking-wider ${connected ? "text-emerald-700" : "text-slate-400"}`}>
+                    {connected ? "Active" : "Offline"}
+                  </span>
+                </div>
+              </div>
+              <p className="mt-3.5 text-xs font-black text-slate-800">{p.name}</p>
+              <p className="text-[9px] text-slate-450 font-bold truncate w-full mt-0.5">
+                {connected 
+                  ? (p.id === "wordpress" ? details?.credentials?.siteUrl 
+                     : p.id === "shopify" ? `${details?.credentials?.shopName}.myshopify.com` 
+                     : p.id === "github" ? `${details?.credentials?.owner}/${details?.credentials?.repo}` 
+                     : "Verified & Connected")
+                  : "Setup Integration"
+                }
+              </p>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Pending SEO Fix Action Banner */}
       {pendingFix && (
@@ -778,41 +861,43 @@ export default function IntegrationsSettingsPage() {
               <form onSubmit={handleAddGitHub} className="bg-slate-50/50 rounded-2xl p-4 border border-slate-300 space-y-4 animate-in slide-in-from-top-3 duration-200">
                 <h4 className="text-[11px] font-black uppercase text-slate-700">GitHub Repository Sync</h4>
                 
-                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2 text-[11px]">
-                  <p className="font-extrabold text-slate-700 uppercase tracking-wide text-[9px]">How to connect:</p>
-                  <p className="text-slate-500 font-medium leading-relaxed">
-                    Create a <strong className="text-slate-700">Personal Access Token (classic)</strong> with <code className="bg-slate-100 px-1 rounded">repo</code> scope on GitHub, and input your repository details below.
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 space-y-3 text-[11.5px] text-slate-600">
+                  <p className="font-extrabold text-slate-900 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                    🔑 How to get your GitHub Personal Access Token (PAT):
                   </p>
+                  <ol className="list-decimal pl-4.5 space-y-1.5 font-medium leading-relaxed">
+                    <li>Go to <strong className="text-slate-800">github.com</strong> &rarr; click your profile picture (top-right) &rarr; <strong className="text-slate-800">Settings</strong>.</li>
+                    <li>On the far left sidebar, scroll down to the bottom and click <strong className="text-slate-800">Developer settings</strong>.</li>
+                    <li>Click <strong className="text-slate-800">Personal access tokens</strong> &rarr; select <strong className="text-slate-800">Tokens (classic)</strong>.</li>
+                    <li>Click <strong className="text-slate-800">Generate new token</strong> &rarr; <strong className="text-slate-850">Generate new token (classic)</strong>.</li>
+                    <li>Enter a name (e.g. <code>Solo Spider</code>), check the <code className="bg-slate-100 px-1 rounded">repo</code> scope box, scroll down and click <strong className="text-slate-800">Generate token</strong>.</li>
+                    <li>Copy your token (starts with <code>ghp_</code>) and paste it below.</li>
+                  </ol>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   <input
                     type="password"
                     placeholder="GitHub Personal Access Token (ghp_...)"
                     value={githubToken}
                     onChange={(e) => setGithubToken(e.target.value)}
-                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                    required
                   />
                   <input
                     type="text"
-                    placeholder="Repository Owner (e.g. MyGithubOrg)"
-                    value={githubOwner}
-                    onChange={(e) => setGithubOwner(e.target.value)}
-                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Repository Name (e.g. my-website-repo)"
-                    value={githubRepo}
-                    onChange={(e) => setGithubRepo(e.target.value)}
-                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                    placeholder="GitHub Repository URL (e.g. https://github.com/my-org/my-website-repo)"
+                    value={githubUrl}
+                    onChange={(e) => setGithubUrl(e.target.value)}
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-3 outline-none font-semibold text-slate-800"
+                    required
                   />
                   <input
                     type="text"
                     placeholder="Branch (default: main)"
                     value={githubBranch}
                     onChange={(e) => setGithubBranch(e.target.value)}
-                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-2.5 outline-none font-semibold text-slate-800"
+                    className="w-full text-xs bg-white border border-slate-200 focus:border-slate-800 rounded-xl p-3 outline-none font-semibold text-slate-800"
                   />
                 </div>
 
@@ -894,70 +979,87 @@ export default function IntegrationsSettingsPage() {
               <p className="text-[11px] text-slate-450 font-semibold mt-0.5">Sync search volume, impressions, keywords, and backlinks.</p>
             </div>
 
-            {/* Embedded GSC Step-by-Step Guide */}
-            <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-4 space-y-3 text-[11px]">
-              <p className="font-extrabold text-blue-700 uppercase tracking-wide text-[9px]">GSC Connection Steps:</p>
-              <ol className="list-decimal list-inside space-y-2 text-slate-550 font-semibold leading-relaxed">
-                <li>Make sure your website domain is verified on <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Google Search Console</a>.</li>
-                <li>Open the <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">OAuth Consent Screen</a> in your Google Cloud Console. Choose <strong className="text-slate-700">External</strong>, fill in the app name (e.g. <code className="bg-slate-100 px-1 rounded">SoloSpider</code>) and contact email, and save. Under <strong className="text-slate-700">Test Users</strong>, add the Google email address of your Search Console account.</li>
-                <li>Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Credentials Page</a>, click <strong className="text-slate-700">Create Credentials &rarr; OAuth client ID</strong>, select <strong className="text-slate-700">Web application</strong>, and add <code className="bg-slate-100 px-1 rounded text-slate-700">https://developers.google.com/oauthplayground</code> under <strong className="text-slate-700">Authorized Redirect URIs</strong>. Click Create to get your <strong className="text-slate-700">Client ID</strong> and <strong className="text-slate-700">Client Secret</strong>.</li>
-                <li>Open the <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Google OAuth Playground</a>. Click the gear icon ⚙️ (top-right), check <strong className="text-slate-700">Use your own OAuth credentials</strong>, and enter your Client ID &amp; Secret. On the left, select <strong className="text-slate-700">Google Search Console API v3</strong> (or input <code className="bg-slate-100 px-1 rounded">https://www.googleapis.com/auth/webmasters.readonly</code>), click <strong className="text-slate-700">Authorize APIs</strong>, log in, and click <strong className="text-slate-700">Exchange authorization code for tokens</strong> to get your <strong className="text-slate-700">Refresh Token</strong>.</li>
-              </ol>
-            </div>
-
-            {/* GSC Form */}
+            {/* GSC Form and Collapsible Guide */}
             {activeForm === "google_search_console" && (
-              <form onSubmit={handleAddGoogleSearchConsole} className="bg-slate-50/50 rounded-2xl p-4 border border-blue-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
+              <div className="space-y-4 animate-in slide-in-from-top-3 duration-200 bg-slate-50/40 p-4 border border-slate-200/60 rounded-2xl">
                 <h4 className="text-[11px] font-black uppercase text-slate-700">Google Search Console Setup</h4>
 
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Client ID (from Google Cloud Console)"
-                    value={gscClientId}
-                    onChange={(e) => setGscClientId(e.target.value)}
-                    className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Client Secret"
-                    value={gscClientSecret}
-                    onChange={(e) => setGscClientSecret(e.target.value)}
-                    className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Refresh Token"
-                    value={gscRefreshToken}
-                    onChange={(e) => setGscRefreshToken(e.target.value)}
-                    className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                </div>
+                {/* Collapsible Guide Trigger */}
+                <button
+                  type="button"
+                  onClick={() => setShowGscGuide(!showGscGuide)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-750 font-bold text-[10px] rounded-lg transition-all cursor-pointer border-0"
+                >
+                  📖 {showGscGuide ? "Hide Connection Guide" : "Show Setup Guide"}
+                  <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${showGscGuide ? "rotate-180" : ""}`} />
+                </button>
 
-                {verificationResult && (
-                  <div className={`p-2.5 rounded-xl border text-[10px] font-bold flex gap-2 items-center ${
-                    verificationResult.ok ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"
-                  }`}>
-                    {verificationResult.ok ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
-                    <span>{verificationResult.message || verificationResult.error}</span>
+                {/* Collapsible Step-by-Step Guide */}
+                {showGscGuide && (
+                  <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-3 text-[11px] text-slate-600 animate-in fade-in duration-200">
+                    <p className="font-extrabold text-blue-700 uppercase tracking-wide text-[9px]">GSC Connection Steps:</p>
+                    <ol className="list-decimal pl-4.5 space-y-1.5 font-medium leading-relaxed">
+                      <li>Make sure your website domain is verified on <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Google Search Console</a>.</li>
+                      <li>Open the <a href="https://console.cloud.google.com/apis/credentials/consent" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">OAuth Consent Screen</a> in Google Cloud. Choose <strong className="text-slate-700">External</strong>, fill in the details, and add the Search Console Google email under <strong className="text-slate-700">Test Users</strong>.</li>
+                      <li>Go to the <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">Credentials Page</a>, create an OAuth client ID for Web App, and add <code className="bg-slate-100 px-1 rounded text-slate-700">https://developers.google.com/oauthplayground</code> under Redirect URIs.</li>
+                      <li>Open <a href="https://developers.google.com/oauthplayground" target="_blank" rel="noreferrer" className="text-blue-650 underline font-bold">OAuth Playground</a>, check use own credentials, select Webmasters API, authorize, and exchange the code to get your Refresh Token.</li>
+                    </ol>
                   </div>
                 )}
 
-                <button
-                  type="submit"
-                  disabled={isVerifying || addIntegrationMutation.isPending}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[11px] py-2 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  {(isVerifying || addIntegrationMutation.isPending) ? (
-                    <>
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Saving Connection...
-                    </>
-                  ) : (
-                    "Save & Connect"
+                <form onSubmit={handleAddGoogleSearchConsole} className="space-y-3">
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Client ID (from Google Cloud Console)"
+                      value={gscClientId}
+                      onChange={(e) => setGscClientId(e.target.value)}
+                      className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                      required
+                    />
+                    <input
+                      type="password"
+                      placeholder="Client Secret"
+                      value={gscClientSecret}
+                      onChange={(e) => setGscClientSecret(e.target.value)}
+                      className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                      required
+                    />
+                    <input
+                      type="password"
+                      placeholder="Refresh Token"
+                      value={gscRefreshToken}
+                      onChange={(e) => setGscRefreshToken(e.target.value)}
+                      className="w-full text-[11px] font-bold bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 transition-colors"
+                      required
+                    />
+                  </div>
+
+                  {verificationResult && (
+                    <div className={`p-2.5 rounded-xl border text-[10px] font-bold flex gap-2 items-center ${
+                      verificationResult.ok ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-red-50 border-red-200 text-red-700"
+                    }`}>
+                      {verificationResult.ok ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                      <span>{verificationResult.message || verificationResult.error}</span>
+                    </div>
                   )}
-                </button>
-              </form>
+
+                  <button
+                    type="submit"
+                    disabled={isVerifying || addIntegrationMutation.isPending}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[11px] py-2.5 px-4 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {(isVerifying || addIntegrationMutation.isPending) ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Saving Connection...
+                      </>
+                    ) : (
+                      "Save & Connect"
+                    )}
+                  </button>
+                </form>
+              </div>
             )}
 
             {/* GSC Actions / Status */}
@@ -978,7 +1080,11 @@ export default function IntegrationsSettingsPage() {
                           Edit
                         </button>
                         <button
-                          onClick={() => disconnectCmsMutation.mutate(gsc.id)}
+                          onClick={() => {
+                            if (confirm("Are you sure you want to disconnect Google Search Console?")) {
+                              disconnectCmsMutation.mutate(gsc.id);
+                            }
+                          }}
                           className="bg-red-50 hover:bg-red-100 text-red-650 border border-red-200/50 text-[10px] font-bold py-1.5 px-3 rounded-lg transition-colors cursor-pointer"
                         >
                           Disconnect

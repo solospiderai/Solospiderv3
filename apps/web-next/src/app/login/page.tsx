@@ -16,36 +16,28 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [adminUser, setAdminUser] = useState<any>(null);
-
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       const supabase = getSupabaseBrowserClient();
-      const { error, data: authData } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       toast.success("Welcome back!");
       
       if (email === "info@solospider.ai") {
-        setAdminUser(authData.user);
-      } else {
-        const { data: adminCheck } = await supabase
-          .from("admin_users")
-          .select("role")
-          .eq("user_id", authData.user?.id)
-          .maybeSingle();
-
-        if (adminCheck) {
-          setAdminUser(authData.user);
-        } else {
-          if (typeof window !== "undefined") {
-            window.localStorage.setItem("solospider_role_view", "user");
-          }
-          router.replace(redirectedFrom);
-          router.refresh();
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem("solospider_role_view", "admin");
         }
+        router.replace("/app/en/admin");
+        router.refresh();
+      } else {
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem("solospider_role_view", "user");
+        }
+        router.replace(redirectedFrom);
+        router.refresh();
       }
     } catch (err: any) {
       toast.error(err?.message || "Login failed");
@@ -61,7 +53,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/app/en/dashboard`,
+          redirectTo: `${window.location.origin}/auth/callback?next=/app/en/dashboard`,
         },
       });
       if (error) throw error;
@@ -167,64 +159,20 @@ export default function LoginPage() {
             </form>
           </div>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Don't have an account?{" "}
-            <Link
-              href="/signup"
-              className="text-primary font-medium hover:underline"
-            >
-              Sign up
-            </Link>
-          </p>
-        </div>
-      </div>
-
-      {/* Admin View Selection Overlay */}
-      {adminUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0a0822]/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl space-y-6 text-slate-900 animate-in zoom-in-95 duration-200 text-center">
-            <div className="flex justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-xl shadow-indigo-600/20">
-                <Shield className="w-8 h-8" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-black tracking-tight text-slate-900 leading-none">Administrator Access</h3>
-              <p className="text-xs text-slate-500 font-semibold leading-relaxed mt-2">
-                Welcome back! Select which view you would like to open for this session.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.localStorage.setItem("solospider_role_view", "admin");
-                  }
-                  router.replace("/app/en/admin");
-                  router.refresh();
-                }}
-                className="flex flex-col items-center justify-center gap-2 p-4 border border-violet-100 hover:border-violet-200 bg-violet-50/50 hover:bg-violet-50 text-violet-750 font-black text-xs rounded-2xl transition-all cursor-pointer"
+          <div className="relative mt-8 group">
+            <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-r from-[#9025F2] to-[#ec4899] opacity-25 blur-sm group-hover:opacity-100 group-hover:blur-md transition duration-500"></div>
+            <div className="relative flex items-center justify-between px-5 py-4 bg-white border border-line rounded-2xl shadow-sm">
+              <span className="text-[13px] font-extrabold text-slate-500">New to Solo Spider?</span>
+              <Link
+                href="/signup"
+                className="flex items-center gap-1.5 px-4.5 py-2.5 bg-gradient-to-r from-[#9025F2] to-[#b260ff] hover:from-[#7a17d6] hover:to-[#9a45f8] text-white font-extrabold text-[12px] uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 animate-bounce-slow cursor-pointer shrink-0"
               >
-                <Shield className="w-6 h-6 text-violet-600" />
-                Go to Admin Panel
-              </button>
-              <button
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    window.localStorage.setItem("solospider_role_view", "user");
-                  }
-                  router.replace("/app/en/dashboard");
-                  router.refresh();
-                }}
-                className="flex flex-col items-center justify-center gap-2 p-4 border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-slate-50 text-slate-800 font-black text-xs rounded-2xl transition-all cursor-pointer"
-              >
-                <LayoutDashboard className="w-6 h-6 text-slate-700" />
-                Go to Dashboard
-              </button>
+                Create Account ⚡
+              </Link>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

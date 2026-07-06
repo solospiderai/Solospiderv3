@@ -241,7 +241,9 @@ Instructions:
     const searchPromise = (async () => {
       console.log(`[PromptScanWorker] Querying Gemini for live search grounding: "${promptText.slice(0, 50)}…"`);
       try {
-        const searchSysPrompt = `You are a real-time search engine query synthesizer. Provide a detailed summary of live web search results, top sources, links, comparison of brands, and a list of competitor brands visible on the web for this query. Be objective and cite real websites.`;
+        const searchSysPrompt = `You are a real-time search engine query synthesizer. Provide a detailed summary of live web search results, top sources, links, comparison of brands, and a list of competitor brands visible on the web for this query. Be objective and cite real websites.
+To synthesize these results, you must ground your answer using the following indexed website records:
+${groundingContext}`;
         const res = await queryModel("gemini", promptText, searchSysPrompt);
         perplexityCache.set(promptId, res);
         trackTokens("gemini", res.usage);
@@ -275,15 +277,18 @@ Instructions:
       } else {
         const searchCtx = await getPerplexityGrounding(prompt.id, prompt.prompt);
         const enrichedSystemPrompt = `You are a search engine assistant (like ChatGPT Search, Gemini Search, or Perplexity Search) synthesizing search results to answer a user's query.
-To answer the user's query, you must utilize the following real-time search engine results:
+To answer the user's query, you must utilize the following search engine index records and grounding context:
+
+${groundingContext}
 
 Real-time Search Engine Results (Context from live web search):
 ${searchCtx.text}
 
 Instructions:
-1. Provide a comprehensive, detailed response synthesizing the query based on the search results.
-2. Be objective. Cite specific tools, products, companies, and brand names as mentioned in the search results where appropriate. Do not favor, inject, or hallucinate any brand that is not organically supported by the search results.
-3. Maintain a natural, authoritative search engine synthesis tone.`;
+1. Provide a comprehensive, detailed response synthesizing the query based on the search results and grounding context.
+2. Integrate citations, links, or mentions of the brand (${brandNameGround})${competitorInstruction} where relevant to the user query, as a search engine would.
+3. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
+4. Maintain a natural, authoritative search engine synthesis tone.`;
 
         console.log(`[PromptScanWorker] Querying model: ${modelKey} for prompt "${prompt.prompt.slice(0, 50)}…"`);
         res = await queryModel(modelKey, prompt.prompt, enrichedSystemPrompt);

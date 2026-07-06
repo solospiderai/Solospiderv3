@@ -128,16 +128,11 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
     updateProfileMutation.mutate({ plan: selectedPlan });
   };
 
-  const handleAdjustCredits = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!adjustReason.trim()) {
-      toast.error("Please provide a reason for the credit adjustment");
-      return;
-    }
+  const handleAdjustCredits = (type: "grant" | "deduct") => {
     adjustCreditsMutation.mutate({
-      type: adjustType,
+      type,
       amount: adjustAmount,
-      reason: adjustReason,
+      reason: adjustReason.trim() || `${type === "grant" ? "Grant" : "Deduct"} adjustment`,
     });
   };
 
@@ -223,12 +218,15 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
 
             <div className="space-y-2 pt-4 border-t border-slate-100">
               <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">
-                Administrative Permissions
+                Administrative Permissions (Admin Access)
               </label>
+              <p className="text-[11px] text-slate-500 leading-normal mb-2">
+                Enabling this grants the user full access to this administrator dashboard, system logs, finance audits, and queue controls.
+              </p>
               <div className="flex items-center justify-between p-3 border border-slate-100 rounded-xl bg-slate-50/50">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4 text-violet-600" />
-                  <span className="font-bold text-slate-700">Administrator</span>
+                  <span className="font-bold text-slate-700">Administrator Panel Access</span>
                 </div>
                 <button
                   onClick={() => {
@@ -241,7 +239,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
                       : "bg-violet-50 hover:bg-violet-100 border-violet-200 text-violet-700"
                   }`}
                 >
-                  {data.isAdmin ? "Demote" : "Promote"}
+                  {data.isAdmin ? "Revoke Access" : "Grant Access"}
                 </button>
               </div>
             </div>
@@ -270,34 +268,10 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
             </div>
           </div>
 
-          <form onSubmit={handleAdjustCredits} className="space-y-3 pt-2">
+          <div className="space-y-3 pt-2">
             <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">
-              Adjust Credits
+              Adjust Credits (Executes Immediately)
             </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setAdjustType("grant")}
-                className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${
-                  adjustType === "grant"
-                    ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                    : "bg-slate-50 text-slate-400 border-transparent hover:text-slate-600"
-                }`}
-              >
-                Grant (+)
-              </button>
-              <button
-                type="button"
-                onClick={() => setAdjustType("deduct")}
-                className={`flex-1 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${
-                  adjustType === "deduct"
-                    ? "bg-red-50 text-red-600 border-red-200"
-                    : "bg-slate-50 text-slate-400 border-transparent hover:text-slate-600"
-                }`}
-              >
-                Deduct (-)
-              </button>
-            </div>
             <div className="grid grid-cols-3 gap-2">
               <input
                 type="number"
@@ -308,19 +282,37 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ user
               />
               <input
                 type="text"
-                placeholder="Reason (e.g. support compensation)"
+                placeholder="Reason (Optional)"
                 value={adjustReason}
                 onChange={(e) => setAdjustReason(e.target.value)}
                 className="col-span-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[12px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none focus:border-violet-500/50 transition-colors"
               />
             </div>
-            <button
-              type="submit"
-              className="w-full py-2 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-[12px] rounded-xl transition-colors cursor-pointer"
-            >
-              Submit Adjustment
-            </button>
-          </form>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={adjustCreditsMutation.isPending}
+                onClick={() => handleAdjustCredits("grant")}
+                className="flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 disabled:opacity-50 text-emerald-600 border border-emerald-250 font-bold text-[12px] rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {adjustCreditsMutation.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : null}
+                Grant (+)
+              </button>
+              <button
+                type="button"
+                disabled={adjustCreditsMutation.isPending}
+                onClick={() => handleAdjustCredits("deduct")}
+                className="flex-1 py-2 bg-red-50 hover:bg-red-100 disabled:opacity-50 text-red-650 border border-red-250 font-bold text-[12px] rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {adjustCreditsMutation.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : null}
+                Deduct (-)
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Quick Stats Panel */}
