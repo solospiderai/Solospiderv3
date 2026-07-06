@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, logAdminAction } from "@/lib/admin-auth";
 import { getSupabaseAdminClient } from "@/server/supabase-admin";
+import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 
@@ -49,6 +50,10 @@ export async function POST(req: NextRequest) {
   }
 
   const resendApiKey = process.env.RESEND_API_KEY;
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = parseInt(process.env.SMTP_PORT || "587", 10);
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
 
   try {
     if (broadcast) {
@@ -73,8 +78,32 @@ export async function POST(req: NextRequest) {
         if (!u.email) continue;
         
         let status = "sent";
-        // Call Resend API directly via fetch if key is present
-        if (resendApiKey) {
+        
+        // 1. Try sending via SMTP direct
+        if (smtpHost && smtpUser && smtpPass) {
+          try {
+            const transporter = nodemailer.createTransport({
+              host: smtpHost,
+              port: smtpPort,
+              secure: smtpPort === 465,
+              auth: {
+                user: smtpUser,
+                password: smtpPass,
+              },
+            });
+            await transporter.sendMail({
+              from: `SoloSpider <${smtpUser}>`,
+              to: u.email,
+              subject: subject,
+              html: `<div style="font-family: sans-serif; line-height: 1.5; color: #1e293b;">${content.replace(/\n/g, "<br>")}</div>`,
+            });
+          } catch (e) {
+            status = "failed";
+            console.error(`[SMTP Broadcast Error to ${u.email}]`, e);
+          }
+        }
+        // 2. Try sending via Resend API
+        else if (resendApiKey) {
           try {
             const res = await fetch("https://api.resend.com/emails", {
               method: "POST",
@@ -91,16 +120,16 @@ export async function POST(req: NextRequest) {
             });
             if (!res.ok) {
               status = "failed";
-              console.error(`[Resend Broadcast Error] HTTP ${res.status}: ${await res.text()}`);
+              console.error(`[Resend Broadcast Error to ${u.email}] HTTP ${res.status}: ${await res.text()}`);
             }
           } catch (e) {
             status = "failed";
             console.error("[Resend Broadcast Exception]", e);
           }
         } else {
-          // If no key is set, we simulate success for demo purposes
+          // If no key or server is set, we simulate success for demo purposes
           status = "sent";
-          console.warn(`[SMTP/Resend Simulation] Broadcast email sent to ${u.email} (No RESEND_API_KEY set)`);
+          console.warn(`[SMTP/Resend Simulation] Broadcast email sent to ${u.email} (No RESEND_API_KEY or SMTP configured)`);
         }
 
         logs.push({
@@ -125,7 +154,7 @@ export async function POST(req: NextRequest) {
         recipient_count: logs.length,
       });
 
-      return NextResponse.json({ success: true, count: logs.length, simulated: !resendApiKey });
+      return NextResponse.json({ success: true, count: logs.length, type: (smtpHost ? "smtp" : (resendApiKey ? "resend" : "simulated")) });
     } else {
       if (!recipientEmail) {
         return NextResponse.json({ error: "Recipient email is required" }, { status: 400 });
@@ -141,7 +170,32 @@ export async function POST(req: NextRequest) {
       }
 
       let status = "sent";
-      if (resendApiKey) {
+
+      // 1. Try sending via SMTP direct
+      if (smtpHost && smtpUser && smtpPass) {
+        try {
+          const transporter = nodemailer.createTransport({
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: {
+              user: smtpUser,
+              password: smtpPass,
+            },
+          });
+          await transporter.sendMail({
+            from: `SoloSpider <${smtpUser}>`,
+            to: recipientEmail,
+            subject: subject,
+            html: `<div style="font-family: sans-serif; line-height: 1.5; color: #1e293b;">${content.replace(/\n/g, "<br>")}</div>`,
+          });
+        } catch (e) {
+          status = "failed";
+          console.error(`[SMTP Single Error to ${recipientEmail}]`, e);
+        }
+      }
+      // 2. Try sending via Resend API
+      else if (resendApiKey) {
         try {
           const res = await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -166,7 +220,7 @@ export async function POST(req: NextRequest) {
         }
       } else {
         status = "sent";
-        console.warn(`[SMTP/Resend Simulation] Single email sent to ${recipientEmail} (No RESEND_API_KEY set)`);
+        console.warn(`[SMTP/Resend Simulation] Single email sent to ${recipientEmail} (No RESEND_API_KEY or SMTP configured)`);
       }
 
       const { data: newLog, error: insErr } = await admin
@@ -190,7 +244,7 @@ export async function POST(req: NextRequest) {
         subject,
       });
 
-      return NextResponse.json({ success: true, log: newLog, simulated: !resendApiKey });
+      return NextResponse.json({ success: true, log: newLog, type: (smtpHost ? "smtp" : (resendApiKey ? "resend" : "simulated")) });
     }
   } catch (err) {
     return NextResponse.json(
