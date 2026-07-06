@@ -22,6 +22,7 @@ export default function HomePage() {
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<"growth" | "scale">("growth");
   const [isDark, setIsDark] = useState(false);
+  const [activeMetricTab, setActiveMetricTab] = useState<"seo" | "aeo" | "geo">("seo");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -103,24 +104,8 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* SECTION 1: HERO                                               */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative pt-[120px] pb-[90px] overflow-hidden">
-          {/* Radial Grid Background */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.06] dark:opacity-[0.03] z-0 flex items-center justify-center">
-            <svg className="w-[1200px] h-[1200px] shrink-0" viewBox="0 0 1200 1200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="600" cy="600" r="100" stroke="var(--ink)" strokeWidth="1" strokeDasharray="4 4" />
-              <circle cx="600" cy="600" r="200" stroke="var(--ink)" strokeWidth="1" />
-              <circle cx="600" cy="600" r="300" stroke="var(--ink)" strokeWidth="1" strokeDasharray="4 4" />
-              <circle cx="600" cy="600" r="400" stroke="var(--ink)" strokeWidth="1" />
-              <circle cx="600" cy="600" r="500" stroke="var(--ink)" strokeWidth="1" strokeDasharray="4 4" />
-              <circle cx="600" cy="600" r="600" stroke="var(--ink)" strokeWidth="1" />
-              {/* Radial lines */}
-              <line x1="0" y1="600" x2="1200" y2="600" stroke="var(--ink)" strokeWidth="1" />
-              <line x1="600" y1="0" x2="600" y2="1200" stroke="var(--ink)" strokeWidth="1" />
-              <line x1="175.7" y1="175.7" x2="1024.3" y2="1024.3" stroke="var(--ink)" strokeWidth="1" strokeDasharray="2 2" />
-              <line x1="1024.3" y1="175.7" x2="175.7" y2="1024.3" stroke="var(--ink)" strokeWidth="1" strokeDasharray="2 2" />
-            </svg>
-          </div>
-          <div className="relative text-center max-w-[980px] mx-auto px-7 z-10">
+        <section className="relative pt-[120px] pb-[90px]">
+          <div className="relative text-center max-w-[980px] mx-auto px-7">
             <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 mb-7">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse-gentle"></span>
               Now live — The AI marketing OS for agencies &amp; creators
@@ -429,7 +414,7 @@ export default function HomePage() {
         {/* "Discover how AI interprets your brand"                       */}
         {/* Left: SEO/AEO/GEO text blocks. Right: Search results mockup   */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
+        <section className="relative py-20 md:py-[130px] bg-[#FAF9F5] dark:bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-16">
               <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
@@ -443,41 +428,108 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-15 items-center">
-              {/* Left text panel */}
-              <div className="flex flex-col gap-8 text-left">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-12 items-stretch">
+              {/* Left Column: Cards Stack */}
+              <div className="flex flex-col gap-5 justify-between">
                 {[
-                  { title: "SEO", desc: "Monitor traditional search query performance and ensure all classic technical indexing signals are optimized for maximum visibility." },
-                  { title: "AEO", desc: "Identify brand footprint citation indexes within large language model conversational answers (ChatGPT, Claude, Gemini)." },
-                  { title: "GEO", desc: "Optimize semantic data structure context maps so geographic and contextual results identify your brand details reliably." }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex flex-col gap-2">
-                    <h3 className="text-2xl font-extrabold text-primary">{item.title}</h3>
-                    <p className="text-[15px] text-[var(--ink-2)] opacity-85 leading-relaxed">{item.desc}</p>
+                  {
+                    id: "seo",
+                    title: "SEO",
+                    desc: "Monitor traditional search query performance and ensure all classic technical indexing signals are optimized for maximum visibility."
+                  },
+                  {
+                    id: "aeo",
+                    title: "AEO",
+                    desc: "Identify brand footprint citation indexes within large language model conversational answers (ChatGPT, Claude, Gemini)."
+                  },
+                  {
+                    id: "geo",
+                    title: "GEO",
+                    desc: "Optimize semantic data structure context maps so geographic and contextual results identify your brand details reliably."
+                  }
+                ].map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => setActiveMetricTab(item.id as "seo" | "aeo" | "geo")}
+                    className={`p-6 md:p-8 rounded-2xl cursor-pointer text-left transition-all duration-300 flex flex-col justify-center border ${
+                      activeMetricTab === item.id
+                        ? "bg-white dark:bg-[var(--panel)] border-[var(--line)] shadow-[0_12px_36px_rgba(144,37,242,0.06)]"
+                        : "bg-[#F4F3EE] dark:bg-[var(--panel-soft)] border-transparent hover:bg-[#eae9e3] dark:hover:bg-[var(--line)]"
+                    }`}
+                  >
+                    <h3 className={`text-2xl font-black mb-2.5 font-display ${activeMetricTab === item.id ? "text-primary" : "text-[var(--ink)]"}`}>
+                      {item.title}
+                    </h3>
+                    <p className="text-[14px] text-[var(--ink-2)] leading-relaxed opacity-90">
+                      {item.desc}
+                    </p>
                   </div>
                 ))}
               </div>
 
-              {/* Right mockup panel */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-6 lg:p-8 shadow-[0_20px_50px_-20px_rgba(14,12,26,0.1)] flex flex-col gap-5 text-left">
-                <div className="flex items-center justify-between bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-3 text-[13.5px]">
-                  <span className="text-[var(--ink-2)] font-semibold">Digital Marketing Company...</span>
-                  <span className="text-primary font-black cursor-pointer">🔍</span>
+              {/* Right Column: Figma Search Mockup Card */}
+              <div className="bg-[#F4F3EE] dark:bg-[var(--panel-soft)] rounded-[32px] p-6 lg:p-8 flex flex-col gap-6 text-left border border-[var(--line)]">
+                {/* Search Bar Input */}
+                <div className="flex items-center justify-between bg-white dark:bg-[var(--panel)] rounded-full pl-5 pr-1.5 py-1.5 shadow-[0_4px_15px_rgba(0,0,0,0.02)] border border-[var(--line)]">
+                  <span className="text-[13.5px] text-[var(--ink-2)] opacity-70 font-medium">Digital Marketing Company...</span>
+                  <button type="button" className="w-9 h-9 rounded-full bg-[#9025F2] hover:bg-[#7c1ed4] text-white flex items-center justify-center transition-colors">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                  </button>
                 </div>
                 
-                <div className="flex flex-col gap-3">
-                  {[
-                    { num: "01", site: "www.solospider.ai" },
-                    { num: "02", site: "www.northwind.com" },
-                    { num: "03", site: "www.peakagency.in" },
-                    { num: "04", site: "www.loomstack.co" },
-                  ].map((entry) => (
-                    <div key={entry.num} className="flex items-center justify-between border-b border-dashed border-[var(--line)] pb-3 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-3.5">
-                        <span className="font-mono text-[12px] text-primary font-extrabold">{entry.num}.</span>
-                        <span className="text-[13.5px] font-bold text-[var(--ink)]">{entry.site}</span>
+                {/* Search Result Items */}
+                <div className="flex flex-col gap-6">
+                  {activeMetricTab === "seo" && [1, 2, 3, 4].map((num) => (
+                    <div key={num} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-mono text-[13.5px] text-[#9025F2] font-black">0{num}.</span>
+                        <span className="text-[13.5px] font-black text-[var(--ink)]">www.website.com</span>
                       </div>
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      <span className="text-[11px] text-[var(--muted)] pl-[26px] font-mono leading-none">www.website.com</span>
+                      <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
+                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[70%]"></div>
+                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[50%]"></div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {activeMetricTab === "aeo" && [
+                    { name: "ChatGPT", citation: "Mentioned in 12 major query responses" },
+                    { name: "Gemini", citation: "Cited as primary source in 8 queries" },
+                    { name: "Claude", citation: "Highly recommended for SEO automation" },
+                    { name: "Perplexity", citation: "Listed in top 3 marketing platforms" }
+                  ].map((engine, idx) => (
+                    <div key={idx} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-mono text-[13.5px] text-[#9025F2] font-black">0{idx+1}.</span>
+                        <span className="text-[13.5px] font-black text-[var(--ink)]">{engine.name}</span>
+                      </div>
+                      <span className="text-[11px] text-[var(--muted)] pl-[26px] font-mono leading-none">{engine.citation}</span>
+                      <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
+                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[65%]"></div>
+                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[45%]"></div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {activeMetricTab === "geo" && [
+                    { area: "New York, USA", rank: "Ranked #1 in Local Pack" },
+                    { area: "London, UK", rank: "Ranked #2 in Marketing Services" },
+                    { area: "San Francisco, USA", rank: "Ranked #1 in SEO Agencies" },
+                    { area: "Tokyo, JP", rank: "Ranked #3 in Global Solutions" }
+                  ].map((geo, idx) => (
+                    <div key={idx} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
+                      <div className="flex items-center gap-2.5">
+                        <span className="font-mono text-[13.5px] text-[#9025F2] font-black">0{idx+1}.</span>
+                        <span className="text-[13.5px] font-black text-[var(--ink)]">{geo.area}</span>
+                      </div>
+                      <span className="text-[11px] text-[var(--muted)] pl-[26px] font-mono leading-none">{geo.rank}</span>
+                      <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
+                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[60%]"></div>
+                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[40%]"></div>
+                      </div>
                     </div>
                   ))}
                 </div>
