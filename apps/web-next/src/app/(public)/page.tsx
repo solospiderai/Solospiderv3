@@ -249,7 +249,7 @@ export default function HomePage() {
 
               {/* Left: 6 tool cards (rounded squares, scattered layout) */}
               {[
-                { icon: "📊", name: "SFO", sub: "", top: 20, left: 0 },
+                { icon: "📊", name: "Surfer", sub: "", top: 20, left: 0 },
                 { icon: "☰", name: "Buffer", sub: "Social", top: 70, left: 90 },
                 { icon: "✦", name: "Canva", sub: "Design", top: 140, left: -5 },
                 { icon: "⟐", name: "ahrefs", sub: "SEO", top: 160, left: 90 },
@@ -281,7 +281,7 @@ export default function HomePage() {
 
               {/* Right: 5 target capsules */}
               {[
-                { icon: "✓", title: "SEO", sub: "OPTIMIZED", top: 35 },
+                { icon: "✓", title: "SEO", sub: "SEARCH ENGINE OPTIMIZED", top: 35 },
                 { icon: "★", title: "AEO", sub: "ANSWER ENGINE OPTIMIZED", top: 112 },
                 { icon: "📍", title: "GEO", sub: "GEOGRAPHICALLY OPTIMIZED", top: 189 },
                 { icon: "💬", title: "Social", sub: "SOCIAL MEDIA OPTIMIZED", top: 262 },
@@ -322,130 +322,13 @@ export default function HomePage() {
               <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
             </div>
 
-            {/* Two overlapping browser windows (matching screenshot) */}
-            <div className="relative w-full max-w-[1100px] mx-auto" style={{ minHeight: 520 }}>
-              {/* Back browser window (slightly rotated / offset) */}
-              <div className="absolute top-0 left-0 w-[60%] z-10 bg-[var(--panel)] border border-[var(--line)] rounded-2xl overflow-hidden shadow-[0_32px_64px_-24px_rgba(14,12,26,0.18)]">
-                {/* Browser chrome */}
-                <div className="bg-[var(--bg-2)] border-b border-[var(--line)] px-4 py-2.5 flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></span>
-                  </div>
-                  <div className="mx-auto bg-[var(--panel)] border border-[var(--line)] rounded-md px-8 py-0.5 text-[10px] font-mono text-[var(--muted)] font-medium">
-                    solospider.ai/dashboard
-                  </div>
-                </div>
-                {/* Dashboard content */}
-                <div className="grid grid-cols-[140px_1fr] min-h-[380px]">
-                  {/* Sidebar */}
-                  <div className="bg-[var(--bg-2)] border-r border-[var(--line)] p-3 flex flex-col gap-3.5 text-[11px]">
-                    <div className="font-bold flex items-center gap-1.5 text-primary text-[12px]">
-                      <span>🕷️</span> Solo Spider
-                    </div>
-                    <div className="flex flex-col gap-0.5 text-left">
-                      {["Overview", "SEO Scan", "AEO Optimizer", "Content Writer", "Social", "Analytics"].map((item, idx) => (
-                        <div key={idx} className={`px-2 py-1.5 rounded-md font-semibold cursor-pointer text-[10px] ${idx === 0 ? "bg-primary/10 text-primary" : "text-[var(--ink-2)] opacity-70"}`}>
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Main content */}
-                  <div className="p-4 flex flex-col gap-4 bg-[var(--panel)] text-[var(--ink)]">
-                    {/* Stat cards */}
-                    <div className="grid grid-cols-3 gap-2.5 text-left">
-                      <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
-                        <div className="text-[9px] uppercase font-mono text-[var(--muted)] font-bold">SEO Health</div>
-                        <div className="text-xl font-black text-emerald-500 mt-0.5">94%</div>
-                        <div className="text-[8px] text-[var(--muted)] mt-0.5">↑ 2.4% vs last scan</div>
-                      </div>
-                      <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
-                        <div className="text-[9px] uppercase font-mono text-[var(--muted)] font-bold">AI Citation</div>
-                        <div className="text-xl font-black text-primary mt-0.5">26.8%</div>
-                        <div className="text-[8px] text-[var(--muted)] mt-0.5">143 engine queries</div>
-                      </div>
-                      <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
-                        <div className="text-[9px] uppercase font-mono text-[var(--muted)] font-bold">AEO Authority</div>
-                        <div className="text-xl font-black text-indigo-500 mt-0.5">High</div>
-                        <div className="text-[8px] text-[var(--muted)] mt-0.5">Active content</div>
-                      </div>
-                    </div>
-                    {/* Chart area */}
-                    <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)] flex flex-col gap-2 text-left">
-                      <div className="flex justify-between items-center">
-                        <div className="font-bold text-[11px]">Weekly AI Search Visibility</div>
-                        <div className="flex gap-2 text-[9px] font-mono">
-                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary"></span>ChatGPT</span>
-                          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span>Gemini</span>
-                        </div>
-                      </div>
-                      <div className="h-24 w-full flex items-end">
-                        <svg className="w-full h-full" viewBox="0 0 500 80" preserveAspectRatio="none">
-                          <path d="M0,65 Q80,40 160,50 T320,15 T500,8" fill="none" stroke="#9025F2" strokeWidth="2.5" />
-                          <path d="M0,72 Q80,60 160,40 T320,35 T500,20" fill="none" stroke="#10B981" strokeWidth="2" />
-                          <line x1="0" y1="80" x2="500" y2="80" stroke="var(--line)" strokeWidth="1" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Front browser window (overlapping, offset right & down) */}
-              <div className="absolute top-[60px] right-0 w-[55%] z-20 bg-[var(--panel)] border border-[var(--line)] rounded-2xl overflow-hidden shadow-[0_40px_80px_-24px_rgba(14,12,26,0.25)]">
-                {/* Browser chrome */}
-                <div className="bg-[var(--bg-2)] border-b border-[var(--line)] px-4 py-2.5 flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></span>
-                  </div>
-                  <div className="mx-auto bg-[var(--panel)] border border-[var(--line)] rounded-md px-8 py-0.5 text-[10px] font-mono text-[var(--muted)] font-medium">
-                    solospider.ai
-                  </div>
-                </div>
-                {/* Content - blog/content creation view */}
-                <div className="p-5 flex flex-col gap-4 bg-[var(--panel)] text-[var(--ink)] min-h-[360px]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[14px] font-bold">📝</div>
-                    <div>
-                      <div className="text-[13px] font-bold">Content Generation</div>
-                      <div className="text-[9px] text-[var(--muted)]">AI-powered blog & social content</div>
-                    </div>
-                  </div>
-                  {/* Blog post preview cards */}
-                  <div className="flex flex-col gap-2.5">
-                    {[
-                      { title: "10 SEO Trends for 2026", status: "Published", color: "text-emerald-500" },
-                      { title: "AEO: The Complete Guide", status: "Scheduled", color: "text-primary" },
-                      { title: "Social Media Automation Tips", status: "Draft", color: "text-amber-500" },
-                    ].map((post, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)]">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-6 h-6 rounded bg-primary/5 flex items-center justify-center text-[10px]">📄</div>
-                          <span className="text-[11px] font-semibold">{post.title}</span>
-                        </div>
-                        <span className={`text-[9px] font-bold ${post.color}`}>{post.status}</span>
-                      </div>
-                    ))}
-                  </div>
-                  {/* Social schedule mini */}
-                  <div className="p-3 rounded-lg border border-[var(--line)] bg-[var(--bg-2)] flex flex-col gap-2">
-                    <div className="text-[10px] font-bold uppercase text-[var(--muted)] tracking-wider">Upcoming Social Posts</div>
-                    <div className="flex gap-2">
-                      {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, idx) => (
-                        <div key={idx} className={`flex-1 text-center py-1.5 rounded-md text-[9px] font-bold ${idx < 3 ? "bg-primary/10 text-primary" : "bg-[var(--panel)] text-[var(--muted)] border border-[var(--line)]"}`}>
-                          {day}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Spacer for layout */}
-              <div className="pt-[480px]"></div>
+            {/* Clean browser window mockup showing the actual dashboard mockup image */}
+            <div className="relative w-full max-w-[1100px] mx-auto rounded-2xl overflow-hidden border border-[var(--line)] shadow-[0_32px_64px_-24px_rgba(14,12,26,0.22)]">
+              <img
+                src={isDark ? "/assets/dashboard-dark.png" : "/assets/dashboard-light.png"}
+                alt="Solo Spider Dashboard Preview"
+                className="w-full h-auto block"
+              />
             </div>
           </div>
         </section>
@@ -454,7 +337,7 @@ export default function HomePage() {
         {/* SECTION 4: WHO IT'S FOR – Two cards side by side              */}
         {/* "Built for agencies. Priced for solo creators."               */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="audience">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-16">
               <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">

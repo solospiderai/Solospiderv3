@@ -103,7 +103,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
               onClick={(e) => handleScrollTo(e, "audience")} 
               className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary"
             >
-              Who It's For
+              Who's It For
             </a>
 
             <Link 
@@ -171,7 +171,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
             Features
           </a>
           <a href="/#audience" className="text-lg text-ink-2 py-2 border-b border-line cursor-pointer font-semibold" onClick={(e) => handleScrollTo(e, "audience")}>
-            Who It's For
+            Who's It For
           </a>
           <Link href="/pricing" className="text-lg text-ink-2 py-2 border-b border-line cursor-pointer font-semibold" onClick={() => setMobileMenuOpen(false)}>
             Pricing

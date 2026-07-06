@@ -60,8 +60,16 @@ async function callOpenRouter(prompt: string, model = "google/gemini-2.5-flash")
   // Fallback to pollinations if OpenRouter is unavailable
   if (!text) {
     try {
-      const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}?model=openai`;
-      const res = await fetch(pollinationsUrl);
+      const res = await fetch("https://text.pollinations.ai/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: prompt }],
+          model: "openai"
+        }),
+      });
       if (res.ok) {
         text = (await res.text()).trim();
       } else {

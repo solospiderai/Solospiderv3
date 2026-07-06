@@ -247,8 +247,16 @@ Format the output strictly as raw JSON. Do not include markdown code block forma
       } catch (err: any) {
         console.warn("[GeneratePromptsWizard] OpenRouter failed, trying Pollinations fallback:", err?.message || err);
         try {
-          const pollinationsUrl = `https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`;
-          const res = await fetch(pollinationsUrl);
+          const res = await fetch("https://text.pollinations.ai/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              messages: [{ role: "user", content: promptText }],
+              model: "openai"
+            }),
+          });
           if (res.ok) {
             llmResponse = (await res.text()).trim();
           } else {
