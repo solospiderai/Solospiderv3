@@ -9,6 +9,7 @@ import Link from "next/link";
 
 export default function AdminCrawlsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "running" | "failed" | "done">("all");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin", "crawls"],
@@ -85,6 +86,16 @@ export default function AdminCrawlsPage() {
   }
 
   const groupedData = Object.values(projectGroups);
+
+  // Filter grouped data by card status filter selection
+  let filteredGroupedData = groupedData;
+  if (statusFilter === "running") {
+    filteredGroupedData = groupedData.filter((g) => g.latestStatus === "running");
+  } else if (statusFilter === "failed") {
+    filteredGroupedData = groupedData.filter((g) => g.latestStatus === "failed");
+  } else if (statusFilter === "done") {
+    filteredGroupedData = groupedData.filter((g) => g.latestStatus === "done");
+  }
 
   const projectColumns = [
     {
@@ -227,24 +238,62 @@ export default function AdminCrawlsPage() {
       <div>
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">SEO Crawls & Audits</h1>
         <p className="text-xs font-semibold text-slate-400 mt-1">
-          Review crawl logs and pages crawled by system workers across domain workspaces. Click a project row to inspect its history logs.
+          Review crawl logs and pages crawled by system workers across domain workspaces. Click cards to filter status or select a project to view history.
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats (Clickable) */}
       <StatCardGrid>
-        <div className="cursor-pointer" onClick={() => setSelectedProjectId(null)}>
+        <button
+          onClick={() => { setStatusFilter("all"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "all" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
           <StatCard label="Total Crawl Runs" value={stats.totalRuns} icon={Search} color="purple" />
-        </div>
-        <StatCard label="Active Crawls" value={stats.activeRuns} icon={Search} color="blue" />
-        <StatCard label="Total Database Pages" value={stats.totalPagesInDb} icon={CheckCircle2} color="green" />
-        <StatCard label="Failed Crawls" value={stats.failedRuns} icon={ShieldAlert} color="red" />
+        </button>
+        <button
+          onClick={() => { setStatusFilter("running"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "running" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
+          <StatCard label="Active Crawls" value={stats.activeRuns} icon={Search} color="blue" />
+        </button>
+        <button
+          onClick={() => { setStatusFilter("done"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "done" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
+          <StatCard label="Total Database Pages" value={stats.totalPagesInDb} icon={CheckCircle2} color="green" />
+        </button>
+        <button
+          onClick={() => { setStatusFilter("failed"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "failed" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
+          <StatCard label="Failed Crawls" value={stats.failedRuns} icon={ShieldAlert} color="red" />
+        </button>
       </StatCardGrid>
 
       {/* Grouped Table */}
       <div className="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-bold text-slate-800">Project-wise Audit Frequency</h3>
-        <DataTable columns={projectColumns} data={groupedData} searchable={true} searchPlaceholder="Search by project name or domain..." searchKeys={["projectName", "projectDomain"]} pageSize={10} />
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+          <h3 className="text-sm font-bold text-slate-800">
+            Project-wise Audit Frequency {statusFilter !== "all" && <span className="text-violet-600 uppercase text-[10px] font-black tracking-wider ml-1">({statusFilter} only)</span>}
+          </h3>
+          {statusFilter !== "all" && (
+            <button
+              onClick={() => setStatusFilter("all")}
+              className="text-xs text-slate-400 hover:text-slate-600 font-bold"
+            >
+              Reset Filter
+            </button>
+          )}
+        </div>
+        <DataTable columns={projectColumns} data={filteredGroupedData} searchable={true} searchPlaceholder="Search by project name or domain..." searchKeys={["projectName", "projectDomain"]} pageSize={10} />
       </div>
 
       {/* Detailed run list for selected project */}

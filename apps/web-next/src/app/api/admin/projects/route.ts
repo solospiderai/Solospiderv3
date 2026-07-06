@@ -13,23 +13,27 @@ export async function GET(req: NextRequest) {
   const search = url.searchParams.get("search") || "";
 
   try {
-    let query = admin
-      .from("projects")
-      .select("*, user_subscriptions(plan)")
-      .order("created_at", { ascending: false })
-      .limit(200);
+    // Manually join projects and user_subscriptions using parallel fetching to avoid Postgrest relation failures
+    const [projectsRes, subsRes] = await Promise.all([
+      admin
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(200),
+      admin
+        .from("user_subscriptions")
+        .select("user_id, plan")
+    ]);
 
-    const { data, error: qErr } = await query;
-    if (qErr) throw qErr;
+    if (projectsRes.error) throw projectsRes.error;
+    if (subsRes.error) throw subsRes.error;
 
-    let projects = (data || []).map((p: any) => {
-      const sub = Array.isArray(p.user_subscriptions) ? p.user_subscriptions[0] : p.user_subscriptions;
-      return {
-        ...p,
-        plan: sub?.plan || "free",
-        user_subscriptions: undefined,
-      };
-    });
+    const subMap = new Map((subsRes.data || []).map((s) => [s.user_id, s.plan]));
+
+    let projects = (projectsRes.data || []).map((p: any) => ({
+      ...p,
+      plan: subMap.get(p.user_id) || "free",
+    }));
 
     if (search) {
       const q = search.toLowerCase();

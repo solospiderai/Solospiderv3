@@ -9,6 +9,7 @@ import Link from "next/link";
 
 export default function AdminScansPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "done" | "failed" | "pending">("all");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin", "scans"],
@@ -89,6 +90,16 @@ export default function AdminScansPage() {
 
   const groupedData = Object.values(projectGroups);
 
+  // Filter grouped data based on status selection
+  let filteredGroupedData = groupedData;
+  if (statusFilter === "done") {
+    filteredGroupedData = groupedData.filter((g) => g.latestStatus === "done");
+  } else if (statusFilter === "failed") {
+    filteredGroupedData = groupedData.filter((g) => g.latestStatus === "failed");
+  } else if (statusFilter === "pending") {
+    filteredGroupedData = groupedData.filter((g) => g.latestStatus === "pending" || g.latestStatus === "running");
+  }
+
   const projectColumns = [
     {
       key: "projectName",
@@ -128,7 +139,7 @@ export default function AdminScansPage() {
       render: (row: any) => {
         const rate = row.totalPrompts > 0 ? Math.round((row.totalMentions / row.totalPrompts) * 100) : 0;
         return (
-          <span className="font-black text-emerald-650 text-xs">
+          <span className="font-black text-emerald-655 text-xs">
             {rate}% <span className="text-[9px] text-slate-400 font-semibold">({row.totalMentions}/{row.totalPrompts})</span>
           </span>
         );
@@ -143,9 +154,9 @@ export default function AdminScansPage() {
           className={`px-2 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-wider ${
             row.latestStatus === "done"
               ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-              : row.latestStatus === "running"
+              : row.latestStatus === "running" || row.latestStatus === "pending"
               ? "bg-violet-600/10 text-violet-600 border-violet-200/20 animate-pulse"
-              : "bg-red-50 text-red-600 border-red-100"
+              : "bg-red-50 text-red-650 border-red-100"
           }`}
         >
           {row.latestStatus}
@@ -184,7 +195,7 @@ export default function AdminScansPage() {
           className={`px-2 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-wider ${
             row.status === "done"
               ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-              : row.status === "running"
+              : row.status === "running" || row.status === "pending"
               ? "bg-violet-600/10 text-violet-600 border-violet-200/20 animate-pulse"
               : "bg-red-50 text-red-650 border-red-100"
           }`}
@@ -206,7 +217,7 @@ export default function AdminScansPage() {
       key: "brand_mentioned_count",
       label: "Mentions Detected",
       render: (row: any) => (
-        <span className="font-black text-emerald-600">
+        <span className="font-black text-emerald-650">
           {row.brand_mentioned_count} mentions
         </span>
       ),
@@ -228,24 +239,62 @@ export default function AdminScansPage() {
       <div>
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">AEO & AI Search Scan Monitor</h1>
         <p className="text-xs font-semibold text-slate-400 mt-1">
-          Review LLM brand mention prompt scan logs and AI answers metrics. Click a project row to inspect its history logs.
+          Review LLM brand mention prompt scan logs and AI answers metrics. Click cards to filter status or select a project to view history.
         </p>
       </div>
 
-      {/* Stats */}
+      {/* Stats (Clickable) */}
       <StatCardGrid>
-        <div className="cursor-pointer" onClick={() => setSelectedProjectId(null)}>
+        <button
+          onClick={() => { setStatusFilter("all"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "all" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
           <StatCard label="Total Scans" value={stats.totalRuns} icon={Sparkles} color="purple" />
-        </div>
-        <StatCard label="Completed Runs" value={stats.completedRuns} icon={CheckCircle2} color="green" />
-        <StatCard label="Total Results Scanned" value={stats.totalResults} icon={Sparkles} color="blue" />
-        <StatCard label="Avg Mention Rate" value={`${stats.avgMentionRate}%`} icon={Percent} color="amber" />
+        </button>
+        <button
+          onClick={() => { setStatusFilter("done"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "done" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
+          <StatCard label="Completed Runs" value={stats.completedRuns} icon={CheckCircle2} color="green" />
+        </button>
+        <button
+          onClick={() => { setStatusFilter("pending"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "pending" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
+          <StatCard label="Total Results Scanned" value={stats.totalResults} icon={Sparkles} color="blue" />
+        </button>
+        <button
+          onClick={() => { setStatusFilter("failed"); setSelectedProjectId(null); }}
+          className={`text-left block transition-all hover:scale-[1.01] rounded-2xl p-0.5 border ${
+            statusFilter === "failed" ? "border-violet-600 ring-2 ring-violet-600/20" : "border-transparent"
+          }`}
+        >
+          <StatCard label="Avg Mention Rate" value={`${stats.avgMentionRate}%`} icon={Percent} color="amber" />
+        </button>
       </StatCardGrid>
 
       {/* Grouped Table */}
       <div className="bg-white border border-slate-200/80 shadow-sm rounded-2xl p-5 space-y-4">
-        <h3 className="text-sm font-bold text-slate-800">Project-wise AEO Visibility</h3>
-        <DataTable columns={projectColumns} data={groupedData} searchable={true} searchPlaceholder="Search by project name or domain..." searchKeys={["projectName", "projectDomain"]} pageSize={10} />
+        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+          <h3 className="text-sm font-bold text-slate-800">
+            Project-wise AEO Visibility {statusFilter !== "all" && <span className="text-violet-600 uppercase text-[10px] font-black tracking-wider ml-1">({statusFilter} only)</span>}
+          </h3>
+          {statusFilter !== "all" && (
+            <button
+              onClick={() => setStatusFilter("all")}
+              className="text-xs text-slate-400 hover:text-slate-600 font-bold"
+            >
+              Reset Filter
+            </button>
+          )}
+        </div>
+        <DataTable columns={projectColumns} data={filteredGroupedData} searchable={true} searchPlaceholder="Search by project name or domain..." searchKeys={["projectName", "projectDomain"]} pageSize={10} />
       </div>
 
       {/* Detailed run list for selected project */}

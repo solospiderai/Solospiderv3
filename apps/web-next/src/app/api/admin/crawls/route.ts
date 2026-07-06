@@ -11,19 +11,32 @@ export async function GET() {
   const admin = getSupabaseAdminClient();
 
   try {
-    const [runsRes, statsRes] = await Promise.all([
+    const [runsRes, statsRes, projectsRes] = await Promise.all([
       admin
         .from("crawl_runs")
-        .select("*, projects(id, name, domain, user_id)")
+        .select("*")
         .order("created_at", { ascending: false })
         .limit(100),
       admin
         .from("crawled_pages")
         .select("project_id", { count: "exact", head: true }),
+      admin
+        .from("projects")
+        .select("id, name, domain, user_id")
     ]);
 
+    if (runsRes.error) throw runsRes.error;
+    if (statsRes.error) throw statsRes.error;
+    if (projectsRes.error) throw projectsRes.error;
+
+    // Manual in-memory join
+    const projectMap = new Map((projectsRes.data || []).map((p) => [p.id, p]));
+    const runs = (runsRes.data || []).map((r) => ({
+      ...r,
+      projects: projectMap.get(r.project_id) || null,
+    }));
+
     // Aggregate stats
-    const runs = runsRes.data || [];
     const totalRuns = runs.length;
     const activeRuns = runs.filter((r) => r.status === "running").length;
     const failedRuns = runs.filter((r) => r.status === "failed").length;
