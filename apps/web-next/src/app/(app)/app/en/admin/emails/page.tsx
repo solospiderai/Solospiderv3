@@ -39,7 +39,8 @@ export default function AdminEmailsPage() {
     },
     onSuccess: (data: any) => {
       if (data?.type === "simulated") {
-        toast.warning("Email process simulated! Configure RESEND_API_KEY or SMTP credentials in your .env file to send real emails.");
+        const missing = data.missingVars && data.missingVars.length > 0 ? data.missingVars.join(", ") : "credentials";
+        toast.warning(`Email process simulated! Server is missing these environment variables: ${missing}`);
       } else {
         toast.success(`Email sent successfully via ${data?.type || "provider"}!`);
       }

@@ -161,7 +161,18 @@ export async function POST(req: NextRequest) {
         recipient_count: logs.length,
       });
 
-      return NextResponse.json({ success: true, count: logs.length, type: (isSmtpConfigured ? "smtp" : (isResendConfigured ? "resend" : "simulated")) });
+      const missingVars = [];
+      if (!smtpHost) missingVars.push("SMTP_HOST");
+      if (!smtpUser) missingVars.push("SMTP_USER");
+      if (!smtpPass) missingVars.push("SMTP_PASS");
+      if (!resendApiKey) missingVars.push("RESEND_API_KEY");
+
+      return NextResponse.json({
+        success: true,
+        count: logs.length,
+        type: (isSmtpConfigured ? "smtp" : (isResendConfigured ? "resend" : "simulated")),
+        missingVars
+      });
     } else {
       if (!recipientEmail) {
         return NextResponse.json({ error: "Recipient email is required" }, { status: 400 });
@@ -251,14 +262,18 @@ export async function POST(req: NextRequest) {
         subject,
       });
 
-      if (status === "failed") {
-        return NextResponse.json(
-          { error: "Failed to dispatch email. Please check your SMTP credentials and server connection." },
-          { status: 500 }
-        );
-      }
+      const missingVars = [];
+      if (!smtpHost) missingVars.push("SMTP_HOST");
+      if (!smtpUser) missingVars.push("SMTP_USER");
+      if (!smtpPass) missingVars.push("SMTP_PASS");
+      if (!resendApiKey) missingVars.push("RESEND_API_KEY");
 
-      return NextResponse.json({ success: true, log: newLog, type: (isSmtpConfigured ? "smtp" : (isResendConfigured ? "resend" : "simulated")) });
+      return NextResponse.json({
+        success: true,
+        log: newLog,
+        type: (isSmtpConfigured ? "smtp" : (isResendConfigured ? "resend" : "simulated")),
+        missingVars
+      });
     }
   } catch (err) {
     return NextResponse.json(
