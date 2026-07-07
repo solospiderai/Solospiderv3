@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { 
   Users, CheckCircle2, XCircle, ArrowRight, Shield, 
@@ -52,8 +50,6 @@ interface PayoutRequest {
 }
 
 export default function AffiliateAdminPage() {
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [wizardDomain, setWizardDomain] = useState("");
   const [isDark, setIsDark] = useState(false);
   
   // Tabs
@@ -303,10 +299,7 @@ export default function AffiliateAdminPage() {
     }
   };
 
-  const triggerWizard = () => {
-    setWizardDomain("");
-    setIsWizardOpen(true);
-  };
+
 
   // Admin Actions
   const handleApprove = async (app: Application) => {
@@ -534,7 +527,28 @@ export default function AffiliateAdminPage() {
         } as React.CSSProperties
       }
     >
-      <MarketingNavbar isDark={isDark} onToggleTheme={toggleTheme} onOpenWizard={triggerWizard} />
+      {/* Custom Clean Affiliate Navbar */}
+      <header className="sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/80 backdrop-blur-md">
+        <div className="max-w-[1240px] mx-auto px-7 h-16 flex items-center justify-between">
+          <Link href="/affiliate" className="flex items-center gap-2.5">
+            <span className="font-display font-black text-lg tracking-tight">
+              SoloSpider <span className="grad-text text-xs font-bold uppercase ml-1 px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
+            </span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-[var(--bg-2)] text-[var(--ink)] cursor-pointer text-xs font-bold"
+            >
+              {isDark ? "☀️ Light Mode" : "🌙 Dark Mode"}
+            </button>
+            <Link href="/" className="text-xs font-bold text-[var(--ink-2)] hover:text-primary transition-colors">
+              Back to Main Site
+            </Link>
+          </div>
+        </div>
+      </header>
 
       <main className="flex-grow pt-28 pb-20">
         <div className="max-w-[1240px] mx-auto px-7">
@@ -851,8 +865,6 @@ export default function AffiliateAdminPage() {
       </main>
 
       <MarketingFooter />
-
-      <AeoWizardModal isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} initialDomain={wizardDomain} />
     </div>
   );
 }
