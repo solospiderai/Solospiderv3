@@ -274,15 +274,14 @@ export default function HomePage() {
             </div>
 
             {/* Right: Diagram inside bordered panel card */}
-            <div className={`relative w-full overflow-hidden flex items-center justify-center p-6 border rounded-3xl shadow-xl h-auto min-h-[300px] sm:min-h-[460px] z-10 transition-all duration-300 ${
+            <div className={`relative w-full overflow-hidden flex items-center justify-center p-4 border rounded-3xl shadow-xl h-auto min-h-[300px] sm:min-h-[460px] z-10 transition-all duration-300 ${
               isDark 
                 ? "bg-[#0b0918] border-[rgba(144,37,242,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.4)]" 
                 : "bg-[#f5f4ed]/60 border-[#e2e1da] shadow-[0_20px_50px_rgba(0,0,0,0.02)]"
             }`}>
-              <div className="origin-center scale-[0.44] min-[400px]:scale-[0.50] sm:scale-75 md:scale-100 shrink-0 w-[680px] h-[420px] relative transition-all duration-300">
-              
-              {/* SVG connection lines */}
-              <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 680 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <div className="origin-center scale-[0.44] min-[400px]:scale-[0.50] sm:scale-75 md:scale-[0.85] lg:scale-[0.80] xl:scale-100 shrink-0 w-[620px] h-[420px] relative transition-all duration-300">
+                {/* SVG connection lines */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 620 420" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Glow Filter for Dark Mode */}
                 <defs>
                   <filter id="glow-lines" x="-20%" y="-20%" width="140%" height="140%">
@@ -295,30 +294,30 @@ export default function HomePage() {
                 </defs>
 
                 {/* Left bezier connection lines */}
-                <path d="M 76,61 C 120,61 160,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 176,106 C 200,106 210,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 46,171 C 110,171 160,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 141,206 C 180,206 200,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 76,271 C 120,271 160,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 171,316 C 200,316 210,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 81,61 C 130,61 155,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 171,106 C 195,106 205,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 56,171 C 115,171 155,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 146,206 C 185,206 200,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 81,271 C 130,271 155,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 171,316 C 195,316 205,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
 
                 {/* Dotted paths connecting center */}
-                <line x1="230" y1="205" x2="285" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
-                <line x1="395" y1="205" x2="450" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
+                <line x1="225" y1="205" x2="255" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
+                <line x1="365" y1="205" x2="395" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
 
                 {/* Right bezier connection lines */}
-                <path d="M 450,205 C 475,205 490,50 520,50" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 450,205 C 475,205 490,130 520,130" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 450,205 C 475,205 490,210 520,210" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 450,205 C 475,205 490,290 520,290" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 450,205 C 475,205 490,370 520,370" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 395,205 C 410,205 425,50 450,50" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 395,205 C 410,205 425,130 450,130" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 395,205 C 410,205 425,210 450,210" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 395,205 C 410,205 425,290 450,290" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 395,205 C 410,205 425,370 450,370" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
 
                 {/* Hub node circles */}
-                <circle cx="230" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
-                <circle cx="230" cy="205" r="2.5" fill="#ffffff" />
+                <circle cx="225" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
+                <circle cx="225" cy="205" r="2.5" fill="#ffffff" />
                 
-                <circle cx="450" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
-                <circle cx="450" cy="205" r="2.5" fill="#ffffff" />
+                <circle cx="395" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
+                <circle cx="395" cy="205" r="2.5" fill="#ffffff" />
               </svg>
 
               {/* Left: 6 squircle tool cards placed precisely per Figma */}
@@ -327,7 +326,7 @@ export default function HomePage() {
                   name: "SFO", 
                   sub: "SEO", 
                   top: 30, 
-                  left: 45,
+                  left: 50,
                   icon: (
                     <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M18 20V10M12 20V4M6 20v-6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -349,21 +348,21 @@ export default function HomePage() {
                   name: "Canva", 
                   sub: "Design", 
                   top: 140, 
-                  left: 15,
+                  left: 25,
                   icon: <span className="font-serif italic font-extrabold text-[12px] tracking-tighter text-white leading-none">Canva</span>
                 },
                 { 
                   name: "ahrefs", 
                   sub: "SEO", 
                   top: 175, 
-                  left: 110,
+                  left: 115,
                   icon: <span className="font-sans font-black text-[11px] tracking-tight text-white leading-none">ahrefs</span>
                 },
                 { 
                   name: "CMS", 
                   sub: "CMS", 
                   top: 240, 
-                  left: 45,
+                  left: 50,
                   icon: (
                     <div className="w-6.5 h-6.5 rounded-full border-2 border-white/90 flex items-center justify-center font-serif font-black text-xs text-white">W</div>
                   )
@@ -398,7 +397,7 @@ export default function HomePage() {
               ))}
 
               {/* Center: Purple gradient squircle with spider mask logo */}
-              <div className="absolute z-10" style={{ top: 125, left: 285 }}>
+              <div className="absolute z-10" style={{ top: 125, left: 255 }}>
                 <div className={`w-[110px] h-[160px] rounded-[28px] flex flex-col items-center justify-center text-white border transition-all duration-300 ${
                   isDark 
                     ? "border-[#ec4899] shadow-[0_0_25px_rgba(236,72,153,0.55)]" 
@@ -472,7 +471,7 @@ export default function HomePage() {
                 <div
                   key={item.title}
                   className="absolute z-10 select-none"
-                  style={{ top: item.top, right: 15 }}
+                  style={{ top: item.top, right: 25 }}
                 >
                   <div className={`w-[145px] h-[60px] rounded-xl bg-[#141226] text-white flex items-center gap-2.5 px-3 border shadow-md transition-all duration-300 ${
                     isDark 
