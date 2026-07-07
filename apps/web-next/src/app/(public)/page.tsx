@@ -268,8 +268,8 @@ export default function HomePage() {
             </div>
 
             {/* Right: Diagram */}
-            <div className="relative w-full overflow-hidden flex items-center justify-center h-[235px] sm:h-[315px] md:h-[420px]" style={{ minHeight: 'auto' }}>
-              <div className="origin-center scale-[0.52] sm:scale-75 md:scale-100 shrink-0 w-[680px] h-[420px] relative transition-all duration-300">
+            <div className="relative w-full overflow-hidden flex items-center justify-center h-[185px] min-[400px]:h-[210px] sm:h-[315px] md:h-[420px]" style={{ minHeight: 'auto' }}>
+              <div className="origin-center scale-[0.44] min-[400px]:scale-[0.50] sm:scale-75 md:scale-100 shrink-0 w-[680px] h-[420px] relative transition-all duration-300">
               {/* SVG connection lines */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 680 420" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 110,55 C 160,55 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
@@ -293,12 +293,12 @@ export default function HomePage() {
 
               {/* Left: 6 tool cards */}
               {[
-                { icon: "📊", name: "Surfer", sub: "", top: 20, left: 0 },
-                { icon: "☰", name: "Buffer", sub: "Social", top: 70, left: 90 },
-                { icon: "✦", name: "Canva", sub: "Design", top: 140, left: -5 },
-                { icon: "⟐", name: "ahrefs", sub: "SEO", top: 160, left: 90 },
-                { icon: "✎", name: "CMS", sub: "", top: 245, left: 0 },
-                { icon: "◎", name: "AI Writing", sub: "", top: 305, left: 80 },
+                { icon: "📊", name: "Surfer", sub: "", top: 20, left: 12 },
+                { icon: "☰", name: "Buffer", sub: "Social", top: 70, left: 95 },
+                { icon: "✦", name: "Canva", sub: "Design", top: 140, left: 8 },
+                { icon: "⟐", name: "ahrefs", sub: "SEO", top: 160, left: 95 },
+                { icon: "✎", name: "CMS", sub: "", top: 245, left: 12 },
+                { icon: "◎", name: "AI Writing", sub: "", top: 305, left: 85 },
               ].map((tool) => (
                 <div
                   key={tool.name}
@@ -505,7 +505,8 @@ export default function HomePage() {
                 ))}
               </div>
 
-              <div className={`rounded-[32px] p-6 lg:p-8 flex flex-col gap-6 text-left border transition-all duration-300 ${
+              {/* Right Column: Search Mockup (Hidden on mobile/tablet view to maximize space) */}
+              <div className={`hidden lg:flex rounded-[32px] p-6 lg:p-8 flex-col gap-6 text-left border transition-all duration-300 ${
                 isDark 
                   ? "bg-[var(--bg-2)] border-[var(--line)]" 
                   : "bg-[#F4F3EE] border-[var(--line)]"
