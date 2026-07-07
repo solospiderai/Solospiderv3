@@ -111,7 +111,7 @@ export default function AffiliateLoginPage() {
       
       // Seed a local affiliate if not already existing
       const stored = window.localStorage.getItem("solospider_affiliate_state");
-      let state = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], commissionRate: 25 };
+      let state = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], firstTimeRate: 30, recurringRate: 15 };
       
       const exists = state.affiliates.find((a: any) => a.email === mockEmail);
       if (!exists) {

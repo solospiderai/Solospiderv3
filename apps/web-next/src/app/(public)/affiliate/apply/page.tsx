@@ -86,7 +86,7 @@ export default function AffiliateApplyPage() {
       
       // Fallback to local storage if tables are not created or connection error
       const stored = window.localStorage.getItem("solospider_affiliate_state");
-      let state = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], commissionRate: 25 };
+      let state = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], firstTimeRate: 30, recurringRate: 15 };
       
       const newApp = {
         id: "app-" + Date.now(),

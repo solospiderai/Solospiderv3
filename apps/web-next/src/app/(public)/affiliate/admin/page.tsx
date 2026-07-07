@@ -62,7 +62,8 @@ export default function AffiliateAdminPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
-  const [commissionRate, setCommissionRate] = useState(25);
+  const [firstTimeRate, setFirstTimeRate] = useState(30);
+  const [recurringRate, setRecurringRate] = useState(15);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -200,7 +201,8 @@ export default function AffiliateAdminPage() {
         setApplications(parsed.applications || []);
         setAffiliates(parsed.affiliates || []);
         setPayouts(parsed.payouts || []);
-        setCommissionRate(parsed.commissionRate || 25);
+        setFirstTimeRate(parsed.firstTimeRate || 30);
+        setRecurringRate(parsed.recurringRate || 15);
       } else {
         // Seed default demo data
         const seedApps: Application[] = [
@@ -296,9 +298,10 @@ export default function AffiliateAdminPage() {
         setApplications(seedApps);
         setAffiliates(seedAffiliates);
         setPayouts(seedPayouts);
-        setCommissionRate(25);
+        setFirstTimeRate(30);
+        setRecurringRate(15);
 
-        saveState(seedApps, seedAffiliates, seedPayouts, 25);
+        saveState(seedApps, seedAffiliates, seedPayouts, 30, 15);
       }
     }
   };
@@ -311,14 +314,16 @@ export default function AffiliateAdminPage() {
     apps: Application[],
     affs: Affiliate[],
     pays: PayoutRequest[],
-    rate: number
+    ftRate: number,
+    recRate: number
   ) => {
     if (typeof window !== "undefined") {
       const stateObj = {
         applications: apps,
         affiliates: affs,
         payouts: pays,
-        commissionRate: rate
+        firstTimeRate: ftRate,
+        recurringRate: recRate
       };
       window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(stateObj));
     }
@@ -398,7 +403,7 @@ export default function AffiliateAdminPage() {
       const updatedAffiliates = [newAffiliate, ...affiliates];
       setApplications(updatedApps);
       setAffiliates(updatedAffiliates);
-      saveState(updatedApps, updatedAffiliates, payouts, commissionRate);
+      saveState(updatedApps, updatedAffiliates, payouts, firstTimeRate, recurringRate);
       toast.success(`🎉 Approved ${app.name}! Link ref is ${refId}`);
     }
   };
@@ -418,7 +423,7 @@ export default function AffiliateAdminPage() {
       console.warn("Supabase rejection failed, falling back to localStorage:", dbError);
       const updatedApps = applications.filter((a) => a.id !== appId);
       setApplications(updatedApps);
-      saveState(updatedApps, affiliates, payouts, commissionRate);
+      saveState(updatedApps, affiliates, payouts, firstTimeRate, recurringRate);
       toast.error("Application rejected successfully.");
     }
   };
@@ -448,7 +453,7 @@ export default function AffiliateAdminPage() {
         return a;
       });
       setAffiliates(updatedAffiliates);
-      saveState(applications, updatedAffiliates, payouts, commissionRate);
+      saveState(applications, updatedAffiliates, payouts, firstTimeRate, recurringRate);
     }
   };
 
@@ -512,7 +517,7 @@ export default function AffiliateAdminPage() {
 
       setPayouts(updatedPayouts);
       setAffiliates(updatedAffiliates);
-      saveState(applications, updatedAffiliates, updatedPayouts, commissionRate);
+      saveState(applications, updatedAffiliates, updatedPayouts, firstTimeRate, recurringRate);
       toast.success(`Payout of $${targetPayout.amount} approved! Txn: ${refNumber}`);
     }
   };
@@ -537,14 +542,14 @@ export default function AffiliateAdminPage() {
         return p;
       });
       setPayouts(updatedPayouts);
-      saveState(applications, affiliates, updatedPayouts, commissionRate);
+      saveState(applications, affiliates, updatedPayouts, firstTimeRate, recurringRate);
       toast.error("Payout request rejected.");
     }
   };
 
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    saveState(applications, affiliates, payouts, commissionRate);
+    saveState(applications, affiliates, payouts, firstTimeRate, recurringRate);
     toast.success("Affiliate settings saved successfully!");
   };
 
@@ -705,7 +710,7 @@ export default function AffiliateAdminPage() {
               { label: "Total Partners", val: affiliates.length, icon: Users },
               { label: "Pending Apps", val: applications.length, icon: Layers },
               { label: "Payout Requests", val: payouts.filter((p) => p.status === "pending").length, icon: DollarSign },
-              { label: "Rate Tier", val: `${commissionRate}%`, icon: Percent }
+              { label: "Rates", val: `${firstTimeRate}% / ${recurringRate}%`, icon: Percent }
             ].map((m, idx) => {
               const Icon = m.icon;
               return (
@@ -956,24 +961,44 @@ export default function AffiliateAdminPage() {
                 <h3 className="font-display text-xl font-extrabold mb-6">Program Configuration</h3>
                 
                 <form onSubmit={handleSaveSettings} className="space-y-6">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Global Commission Percentage (%)</label>
-                    <div className="flex gap-4 max-w-xs">
-                      <input 
-                        type="number" 
-                        required 
-                        value={commissionRate}
-                        onChange={(e) => setCommissionRate(Number(e.target.value))}
-                        className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
-                        min="1"
-                        max="100"
-                      />
-                      <span className="flex items-center justify-center font-bold px-4 bg-[var(--bg-2)] border border-[var(--line)] rounded-xl">%</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">First-Time Commission (%)</label>
+                      <div className="flex gap-3">
+                        <input 
+                          type="number" 
+                          required 
+                          value={firstTimeRate}
+                          onChange={(e) => setFirstTimeRate(Number(e.target.value))}
+                          className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
+                          min="1"
+                          max="100"
+                        />
+                        <span className="flex items-center justify-center font-bold px-4 bg-[var(--bg-2)] border border-[var(--line)] rounded-xl">%</span>
+                      </div>
+                      <p className="text-[10px] text-[var(--muted)] mt-2 font-semibold">Applied to the first month of a referred sale.</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Recurring Commission (%)</label>
+                      <div className="flex gap-3">
+                        <input 
+                          type="number" 
+                          required 
+                          value={recurringRate}
+                          onChange={(e) => setRecurringRate(Number(e.target.value))}
+                          className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
+                          min="1"
+                          max="100"
+                        />
+                        <span className="flex items-center justify-center font-bold px-4 bg-[var(--bg-2)] border border-[var(--line)] rounded-xl">%</span>
+                      </div>
+                      <p className="text-[10px] text-[var(--muted)] mt-2 font-semibold">Applied to all subsequent monthly renewals.</p>
                     </div>
                   </div>
 
                   <div className="bg-[var(--bg-2)] p-4 rounded-xl border border-[var(--line)] text-xs text-[var(--muted)] font-semibold leading-relaxed">
-                    Adjusting this rate updates the default commission assigned to new affiliate program registrations. Already active commissions remain unaffected.
+                    These rates are flat and the same for all affiliates regardless of plan tier. First-time rate applies to new customer acquisitions; recurring rate applies from month 2 onwards.
                   </div>
 
                   <button 
