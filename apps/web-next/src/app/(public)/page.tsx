@@ -22,7 +22,6 @@ export default function HomePage() {
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<"growth" | "scale">("growth");
   const [isDark, setIsDark] = useState(false);
-  const [activeMetricTab, setActiveMetricTab] = useState<"seo" | "aeo" | "geo">("seo");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -312,14 +311,14 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-16">
+            <div className="text-center max-w-[960px] mx-auto mb-16">
               <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
                 ● Dashboard
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black text-[var(--ink)]">
+              <h2 className="mb-[18px] text-4xl md:text-[48px] tracking-tight font-black text-[var(--ink)] whitespace-nowrap">
                 Built for agencies. Priced for solo creators.
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[760px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
             </div>
 
             {/* Clean browser window mockup showing the actual dashboard mockup image */}
@@ -339,14 +338,14 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="audience">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-16">
+            <div className="text-center max-w-[960px] mx-auto mb-16">
               <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
                 ● Who it&apos;s for
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black text-[var(--ink)]">
+              <h2 className="mb-[18px] text-4xl md:text-[48px] tracking-tight font-black text-[var(--ink)] whitespace-nowrap">
                 Built for agencies. Priced for solo creators.
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
+              <p className="text-[18px] text-[var(--ink-2)] max-w-[760px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
@@ -414,7 +413,7 @@ export default function HomePage() {
         {/* "Discover how AI interprets your brand"                       */}
         {/* Left: SEO/AEO/GEO text blocks. Right: Search results mockup   */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[#FAF9F5] dark:bg-[var(--bg)]">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-16">
               <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
@@ -429,35 +428,31 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-12 items-stretch">
-              {/* Left Column: Cards Stack */}
+              {/* Left Column: Static Cards Stack */}
               <div className="flex flex-col gap-5 justify-between">
                 {[
                   {
-                    id: "seo",
                     title: "SEO",
                     desc: "Monitor traditional search query performance and ensure all classic technical indexing signals are optimized for maximum visibility."
                   },
                   {
-                    id: "aeo",
                     title: "AEO",
                     desc: "Identify brand footprint citation indexes within large language model conversational answers (ChatGPT, Claude, Gemini)."
                   },
                   {
-                    id: "geo",
                     title: "GEO",
                     desc: "Optimize semantic data structure context maps so geographic and contextual results identify your brand details reliably."
                   }
-                ].map((item) => (
+                ].map((item, idx) => (
                   <div
-                    key={item.id}
-                    onClick={() => setActiveMetricTab(item.id as "seo" | "aeo" | "geo")}
-                    className={`p-6 md:p-8 rounded-2xl cursor-pointer text-left transition-all duration-300 flex flex-col justify-center border ${
-                      activeMetricTab === item.id
+                    key={idx}
+                    className={`p-6 md:p-8 rounded-2xl text-left flex flex-col justify-center border ${
+                      idx === 0
                         ? "bg-white dark:bg-[var(--panel)] border-[var(--line)] shadow-[0_12px_36px_rgba(144,37,242,0.06)]"
-                        : "bg-[#F4F3EE] dark:bg-[var(--panel-soft)] border-transparent hover:bg-[#eae9e3] dark:hover:bg-[var(--line)]"
+                        : "bg-[#F4F3EE] dark:bg-[var(--panel-soft)] border-transparent"
                     }`}
                   >
-                    <h3 className={`text-2xl font-black mb-2.5 font-display ${activeMetricTab === item.id ? "text-primary" : "text-[var(--ink)]"}`}>
+                    <h3 className={`text-2xl font-black mb-2.5 font-display ${idx === 0 ? "text-[var(--ink)]" : "text-[var(--ink)]"}`}>
                       {item.title}
                     </h3>
                     <p className="text-[14px] text-[var(--ink-2)] leading-relaxed opacity-90">
@@ -467,7 +462,7 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Right Column: Figma Search Mockup Card */}
+              {/* Right Column: Search Mockup Card */}
               <div className="bg-[#F4F3EE] dark:bg-[var(--panel-soft)] rounded-[32px] p-6 lg:p-8 flex flex-col gap-6 text-left border border-[var(--line)]">
                 {/* Search Bar Input */}
                 <div className="flex items-center justify-between bg-white dark:bg-[var(--panel)] rounded-full pl-5 pr-1.5 py-1.5 shadow-[0_4px_15px_rgba(0,0,0,0.02)] border border-[var(--line)]">
@@ -479,9 +474,9 @@ export default function HomePage() {
                   </button>
                 </div>
                 
-                {/* Search Result Items */}
+                {/* Search Result Items — static */}
                 <div className="flex flex-col gap-6">
-                  {activeMetricTab === "seo" && [1, 2, 3, 4].map((num) => (
+                  {[1, 2, 3, 4].map((num) => (
                     <div key={num} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
                       <div className="flex items-center gap-2.5">
                         <span className="font-mono text-[13.5px] text-[#9025F2] font-black">0{num}.</span>
@@ -491,44 +486,6 @@ export default function HomePage() {
                       <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
                         <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[70%]"></div>
                         <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[50%]"></div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {activeMetricTab === "aeo" && [
-                    { name: "ChatGPT", citation: "Mentioned in 12 major query responses" },
-                    { name: "Gemini", citation: "Cited as primary source in 8 queries" },
-                    { name: "Claude", citation: "Highly recommended for SEO automation" },
-                    { name: "Perplexity", citation: "Listed in top 3 marketing platforms" }
-                  ].map((engine, idx) => (
-                    <div key={idx} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-mono text-[13.5px] text-[#9025F2] font-black">0{idx+1}.</span>
-                        <span className="text-[13.5px] font-black text-[var(--ink)]">{engine.name}</span>
-                      </div>
-                      <span className="text-[11px] text-[var(--muted)] pl-[26px] font-mono leading-none">{engine.citation}</span>
-                      <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
-                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[65%]"></div>
-                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[45%]"></div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {activeMetricTab === "geo" && [
-                    { area: "New York, USA", rank: "Ranked #1 in Local Pack" },
-                    { area: "London, UK", rank: "Ranked #2 in Marketing Services" },
-                    { area: "San Francisco, USA", rank: "Ranked #1 in SEO Agencies" },
-                    { area: "Tokyo, JP", rank: "Ranked #3 in Global Solutions" }
-                  ].map((geo, idx) => (
-                    <div key={idx} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-mono text-[13.5px] text-[#9025F2] font-black">0{idx+1}.</span>
-                        <span className="text-[13.5px] font-black text-[var(--ink)]">{geo.area}</span>
-                      </div>
-                      <span className="text-[11px] text-[var(--muted)] pl-[26px] font-mono leading-none">{geo.rank}</span>
-                      <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
-                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[60%]"></div>
-                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[40%]"></div>
                       </div>
                     </div>
                   ))}
@@ -543,7 +500,7 @@ export default function HomePage() {
         {/* "Six superpowers. One subscription."                           */}
         {/* 2-col header: title left, description right                   */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="features">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="features">
           <div className="max-w-[1240px] mx-auto px-7">
             {/* 2-Column Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6 mb-16 text-left border-b border-[var(--line)] pb-10">
@@ -782,13 +739,12 @@ export default function HomePage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
               {[
-                { num: "01", icon: LinkIcon, title: "Connect your channels", desc: "Link your website, social accounts, and any existing CMS. Solo Spider pulls in your brand voice, existing content, and target audience automatically." },
-                { num: "02", icon: Target, title: "Set your goals", desc: "Tell Solo Spider what you want to achieve — more blog traffic, stronger social presence, better rankings, or AI search visibility. It builds your content strategy around your goals." },
-                { num: "03", icon: CheckSquare, title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call." },
-                { num: "04", icon: Rocket, title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't." }
+                { icon: LinkIcon, title: "Connect your channels", desc: "Link your website, social accounts, and any existing CMS. Solo Spider pulls in your brand voice, existing content, and target audience automatically." },
+                { icon: Target, title: "Set your goals", desc: "Tell Solo Spider what you want to achieve — more blog traffic, stronger social presence, better rankings, or AI search visibility. It builds your content strategy around your goals." },
+                { icon: CheckSquare, title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call." },
+                { icon: Rocket, title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't." }
               ].map((step, i) => (
-                <div key={i} className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] text-left">
-                  <span className="font-mono text-[13px] text-[var(--muted)] tracking-wider font-bold">{step.num}</span>
+                <div key={i} className="bg-[var(--bg-2)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] text-left">
                   <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-1">
                     <step.icon className="w-6 h-6" />
                   </div>
