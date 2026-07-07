@@ -40,14 +40,14 @@ export default function AffiliatePage() {
             </div>
           </div>
 
-          <div className="max-w-[1240px] mx-auto px-7 relative z-10">
+          <div className="max-w-[1240px] mx-auto px-7 relative z-10 text-center flex flex-col items-center justify-center">
             <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-primary/10 text-primary text-[12px] font-mono font-bold uppercase tracking-wider mb-5">
               ● Affiliate Program
             </span>
-            <h1 className="text-4xl md:text-[64px] font-black tracking-tight leading-[1.1] mb-6 max-w-[850px] mx-auto animate-fade-in">
-              Refer & Earn with <span className="grad-text">Solo Spider</span>
+            <h1 className="text-4xl md:text-[64px] font-black tracking-tight leading-[1.1] mb-6 max-w-[850px] mx-auto animate-fade-in text-center">
+              Solo Spider <span className="grad-text">Affiliate</span>
             </h1>
-            <p className="text-[19px] text-[var(--ink-2)] max-w-[680px] mx-auto leading-relaxed mb-10">
+            <p className="text-[19px] text-[var(--ink-2)] max-w-[680px] mx-auto leading-relaxed mb-10 text-center">
               Join the Solo Spider affiliate program and earn industry-leading commissions by sharing the AI marketing OS with your audience.
             </p>
 

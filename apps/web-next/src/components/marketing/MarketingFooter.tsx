@@ -6,8 +6,8 @@ export const MarketingFooter = () => {
   return (
     <footer className="bg-[#0e0c1a] border-t border-white/10 pt-20 pb-8 text-white/70 mt-auto">
       <div className="max-w-[1240px] mx-auto px-7">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr] gap-8 lg:gap-12 mb-16">
-          <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-[1.5fr_1fr_1fr_1fr_1fr] gap-8 lg:gap-12 mb-16">
+          <div className="flex flex-col gap-4 col-span-2 md:col-span-1">
             <Link href="/" className="mb-2">
               <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[34px] w-auto block filter brightness-0 invert" />
             </Link>
