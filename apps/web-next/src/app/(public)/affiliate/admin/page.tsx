@@ -572,9 +572,10 @@ export default function AffiliateAdminPage() {
         }
       >
         <header className="sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/80 backdrop-blur-md">
-          <div className="max-w-[1240px] mx-auto px-7 h-16 flex items-center justify-between">
-            <Link href="/" className="font-display font-black text-lg tracking-tight">
-              SoloSpider <span className="grad-text text-xs font-bold uppercase ml-1 px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
+          <div className="max-w-[1240px] mx-auto px-7 h-[72px] flex items-center justify-between">
+            <Link href="/affiliate" className="flex items-center gap-2.5 font-display font-extrabold text-[20px] tracking-tight shrink-0">
+              <img src="/assets/solospider-logo.png" alt="Solo Spider" className={`h-[34px] w-auto block ${isDark ? "brightness-0 invert" : ""}`} />
+              <span className="grad-text text-sm font-bold uppercase px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
             </Link>
           </div>
         </header>
@@ -655,21 +656,20 @@ export default function AffiliateAdminPage() {
     >
       {/* Custom Clean Affiliate Navbar */}
       <header className="sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/80 backdrop-blur-md">
-        <div className="max-w-[1240px] mx-auto px-7 h-16 flex items-center justify-between">
-          <Link href="/affiliate" className="flex items-center gap-2.5">
-            <span className="font-display font-black text-lg tracking-tight">
-              SoloSpider <span className="grad-text text-xs font-bold uppercase ml-1 px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
-            </span>
+        <div className="max-w-[1240px] mx-auto px-7 h-[72px] flex items-center justify-between">
+          <Link href="/affiliate" className="flex items-center gap-2.5 font-display font-extrabold text-[20px] tracking-tight shrink-0">
+            <img src="/assets/solospider-logo.png" alt="Solo Spider" className={`h-[34px] w-auto block ${isDark ? "brightness-0 invert" : ""}`} />
+            <span className="grad-text text-sm font-bold uppercase px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
           </Link>
 
           <div className="flex items-center gap-4">
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-[var(--bg-2)] text-[var(--ink)] cursor-pointer text-xs font-bold"
+              className="p-2 rounded-full hover:bg-[var(--bg-2)] text-[var(--ink)] cursor-pointer text-sm font-bold mr-1"
             >
-              {isDark ? "☀️ Light Mode" : "🌙 Dark Mode"}
+              {isDark ? "☀️" : "🌙"}
             </button>
-            <Link href="/" className="text-xs font-bold text-[var(--ink-2)] hover:text-primary transition-colors">
+            <Link href="/" className="text-sm font-bold text-[var(--ink-2)] hover:text-primary transition-colors">
               Back to Main Site
             </Link>
           </div>

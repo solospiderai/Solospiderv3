@@ -2,16 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { CheckCircle2, Sparkles, ChevronRight } from "lucide-react";
 
 export default function AffiliateApplyPage() {
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [wizardDomain, setWizardDomain] = useState("");
   const [isDark, setIsDark] = useState(false);
   
   // Form fields
@@ -53,10 +49,7 @@ export default function AffiliateApplyPage() {
     }
   };
 
-  const triggerWizard = () => {
-    setWizardDomain("");
-    setIsWizardOpen(true);
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,7 +126,30 @@ export default function AffiliateApplyPage() {
         } as React.CSSProperties
       }
     >
-      <MarketingNavbar isDark={isDark} onToggleTheme={toggleTheme} onOpenWizard={triggerWizard} />
+      {/* Custom Clean Affiliate Navbar */}
+      <header className="sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/80 backdrop-blur-md">
+        <div className="max-w-[1240px] mx-auto px-7 h-[72px] flex items-center justify-between">
+          <Link href="/affiliate" className="flex items-center gap-2.5 font-display font-extrabold text-[20px] tracking-tight shrink-0">
+            <img src="/assets/solospider-logo.png" alt="Solo Spider" className={`h-[34px] w-auto block ${isDark ? "brightness-0 invert" : ""}`} />
+            <span className="grad-text text-sm font-bold uppercase px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
+          </Link>
+
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-[var(--bg-2)] text-[var(--ink)] cursor-pointer text-sm font-bold"
+            >
+              {isDark ? "☀️" : "🌙"}
+            </button>
+            <Link 
+              href="/affiliate/login" 
+              className="bg-[var(--bg-2)] hover:bg-[var(--line)] border border-[var(--line)] px-5 py-2.5 rounded-xl text-sm font-bold transition-all block text-[var(--ink)]"
+            >
+              Partner Login
+            </Link>
+          </div>
+        </div>
+      </header>
 
       <main className="flex-grow pt-28 pb-20 flex items-center justify-center">
         <div className="max-w-[640px] w-full mx-auto px-7">
@@ -317,8 +333,6 @@ export default function AffiliateApplyPage() {
       </main>
 
       <MarketingFooter />
-
-      <AeoWizardModal isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} initialDomain={wizardDomain} />
     </div>
   );
 }

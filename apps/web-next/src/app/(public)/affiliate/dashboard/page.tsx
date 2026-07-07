@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { 
   Users, CheckCircle2, DollarSign, BarChart3, Settings, 
@@ -49,11 +50,11 @@ interface PayoutRequest {
 }
 
 export default function AffiliateDashboardPage() {
+  const router = useRouter();
   const [isDark, setIsDark] = useState(false);
 
   // Auth simulation
   const [currentAffiliate, setCurrentAffiliate] = useState<Affiliate | null>(null);
-  const [loginEmail, setLoginEmail] = useState("");
   const [availableAffiliates, setAvailableAffiliates] = useState<Affiliate[]>([]);
   
   // Dashboard Tabs
@@ -83,6 +84,50 @@ export default function AffiliateDashboardPage() {
       } else {
         document.documentElement.classList.remove("dark");
       }
+
+      const checkAuth = async () => {
+        try {
+          const supabase = getSupabaseBrowserClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          const storedPartner = window.sessionStorage.getItem("solospider_partner_email");
+
+          if (!user && !storedPartner) {
+            toast.error("Please login to access the partner dashboard.");
+            router.push("/affiliate/login");
+          } else {
+            const activeEmail = user?.email || storedPartner;
+            const stored = window.localStorage.getItem("solospider_affiliate_state");
+            const stateObj = stored ? JSON.parse(stored) : null;
+            const affiliatesList = stateObj?.affiliates || [];
+            const found = affiliatesList.find((a: any) => a.email.toLowerCase() === activeEmail?.toLowerCase());
+            
+            if (found) {
+              setCurrentAffiliate(found);
+              setProfileName(found.name);
+            } else {
+              const fallbackAff: Affiliate = {
+                id: "aff-session-" + Date.now(),
+                name: activeEmail === "info@solospider.ai" ? "Admin Account" : activeEmail?.split("@")[0] || "Partner",
+                email: activeEmail || "partner@example.com",
+                refId: activeEmail?.split("@")[0] || "partner",
+                clicks: 0,
+                signups: 0,
+                activeCustomers: 0,
+                pendingCommission: 0.00,
+                paidCommission: 0.00,
+                totalEarnings: 0.00,
+                balance: 0.00,
+                status: "active"
+              };
+              setCurrentAffiliate(fallbackAff);
+              setProfileName(fallbackAff.name);
+            }
+          }
+        } catch {
+          router.push("/affiliate/login");
+        }
+      };
+      checkAuth();
     }
   }, []);
 
@@ -250,22 +295,6 @@ export default function AffiliateDashboardPage() {
     return () => window.removeEventListener("storage", loadState);
   }, [currentAffiliate?.id]);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const aff = availableAffiliates.find((a) => a.email.toLowerCase() === loginEmail.toLowerCase());
-    if (aff) {
-      if (aff.status === "suspended") {
-        toast.error("This affiliate account is suspended. Please contact support.");
-        return;
-      }
-      setCurrentAffiliate(aff);
-      setProfileName(aff.name);
-      toast.success(`Logged in as ${aff.name}`);
-    } else {
-      toast.error("Email not found. Verify application status in Admin panel first.");
-    }
-  };
-
   const handleQuickLogin = (aff: Affiliate) => {
     if (aff.status === "suspended") {
       toast.error("This affiliate account is suspended. Please contact support.");
@@ -278,7 +307,12 @@ export default function AffiliateDashboardPage() {
 
   const handleLogout = () => {
     setCurrentAffiliate(null);
+    if (typeof window !== "undefined") {
+      window.sessionStorage.removeItem("solospider_partner_email");
+      window.sessionStorage.removeItem("solospider_admin_authenticated");
+    }
     toast.info("Logged out from affiliate dashboard.");
+    router.push("/affiliate/login");
   };
 
   const handleCopyLink = (text: string) => {
@@ -394,6 +428,14 @@ export default function AffiliateDashboardPage() {
   const activeRefs = stateReferrals.filter((r) => r.affiliateId === currentAffiliate?.id);
   const activePayouts = statePayouts.filter((p) => p.affiliateId === currentAffiliate?.id);
 
+  if (!currentAffiliate) {
+    return (
+      <div className="min-h-screen bg-[#0e0c1a] flex items-center justify-center text-white">
+        <div className="text-sm font-mono tracking-widest animate-pulse">LOADING PARTNER WORKSPACE...</div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="min-h-screen bg-[var(--bg)] text-[var(--ink)] flex flex-col font-sans transition-colors duration-300"
@@ -411,21 +453,20 @@ export default function AffiliateDashboardPage() {
     >
       {/* Custom Clean Affiliate Navbar */}
       <header className="sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/80 backdrop-blur-md">
-        <div className="max-w-[1240px] mx-auto px-7 h-16 flex items-center justify-between">
-          <Link href="/affiliate" className="flex items-center gap-2.5">
-            <span className="font-display font-black text-lg tracking-tight">
-              SoloSpider <span className="grad-text text-xs font-bold uppercase ml-1 px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
-            </span>
+        <div className="max-w-[1240px] mx-auto px-7 h-[72px] flex items-center justify-between">
+          <Link href="/affiliate" className="flex items-center gap-2.5 font-display font-extrabold text-[20px] tracking-tight shrink-0">
+            <img src="/assets/solospider-logo.png" alt="Solo Spider" className={`h-[34px] w-auto block ${isDark ? "brightness-0 invert" : ""}`} />
+            <span className="grad-text text-sm font-bold uppercase px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
           </Link>
 
           <div className="flex items-center gap-4">
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-[var(--bg-2)] text-[var(--ink)] cursor-pointer text-xs font-bold"
+              className="p-2 rounded-full hover:bg-[var(--bg-2)] text-[var(--ink)] cursor-pointer text-sm font-bold mr-1"
             >
-              {isDark ? "☀️ Light Mode" : "🌙 Dark Mode"}
+              {isDark ? "☀️" : "🌙"}
             </button>
-            <Link href="/" className="text-xs font-bold text-[var(--ink-2)] hover:text-primary transition-colors">
+            <Link href="/" className="text-sm font-bold text-[var(--ink-2)] hover:text-primary transition-colors">
               Back to Main Site
             </Link>
           </div>
@@ -435,69 +476,8 @@ export default function AffiliateDashboardPage() {
       <main className="flex-grow pt-28 pb-20">
         <div className="max-w-[1240px] mx-auto px-7">
           
-          {!currentAffiliate ? (
-            /* Login Simulation Screen */
-            <div className="max-w-[480px] w-full mx-auto bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-10 shadow-xl text-left">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-primary mb-2 block">Affiliate portal</span>
-              <h2 className="text-3xl font-black mb-6">Partner Login</h2>
-              
-              <form onSubmit={handleLogin} className="space-y-5">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Registered Email Address</label>
-                  <input 
-                    type="email" 
-                    required 
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                    className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
-                    placeholder="name@company.com"
-                  />
-                </div>
-
-                <button 
-                  type="submit" 
-                  className="w-full btn btn-grad py-3.5 text-sm font-bold shadow-lg shadow-primary/25 cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  Access Dashboard <ArrowRight className="w-4 h-4" />
-                </button>
-              </form>
-
-              {/* Quick Select Panel */}
-              <div className="mt-8 pt-8 border-t border-[var(--line)] space-y-4">
-                <h4 className="font-bold text-xs text-primary uppercase tracking-wider flex items-center gap-1.5">
-                  <Key className="w-4 h-4" />
-                  Quick Login (Approved Accounts)
-                </h4>
-                <p className="text-xs text-[var(--muted)] font-semibold leading-relaxed">
-                  Select one of the pre-loaded seed partner profiles to explore:
-                </p>
-                <div className="space-y-2">
-                  {availableAffiliates.map((aff) => (
-                    <button
-                      key={aff.id}
-                      onClick={() => handleQuickLogin(aff)}
-                      className="w-full bg-[var(--bg-2)] hover:bg-primary-soft/10 border border-[var(--line)] rounded-xl p-3.5 flex items-center justify-between text-left cursor-pointer transition-colors"
-                    >
-                      <div>
-                        <div className="font-bold text-xs text-[var(--ink)]">{aff.name}</div>
-                        <div className="text-[10px] text-[var(--muted)] font-semibold">{aff.email}</div>
-                      </div>
-                      <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded font-mono font-bold">ref: {aff.refId}</span>
-                    </button>
-                  ))}
-                  {availableAffiliates.length === 0 && (
-                    <div className="text-xs text-[var(--muted)] font-semibold">No approved accounts. Please submit an application or use the Admin panel to approve.</div>
-                  )}
-                </div>
-                
-                <p className="text-[11px] text-[var(--muted)] pt-2 font-semibold">
-                  New to the program? <Link href="/affiliate/apply" className="text-primary hover:underline font-bold">Apply now to partner</Link>
-                </p>
-              </div>
-            </div>
-          ) : (
-            /* Active Dashboard Interface */
-            <div>
+          {/* Active Dashboard Interface */}
+          <div>
               {/* Profile Bar */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[var(--line)] mb-10 text-left">
                 <div>
@@ -944,12 +924,43 @@ export default function AffiliateDashboardPage() {
                       >
                         Save Settings
                       </button>
+
+                      {/* Dev Sandbox Preview Switcher */}
+                      {availableAffiliates.length > 0 && (
+                        <div className="mt-8 pt-8 border-t border-[var(--line)] space-y-4">
+                          <h4 className="font-bold text-xs text-primary uppercase tracking-wider flex items-center gap-1.5">
+                            Sandbox Switch Partner Account
+                          </h4>
+                          <p className="text-[11px] text-[var(--muted)] font-semibold leading-relaxed">
+                            Developer Sandbox: Switch to another simulated partner account instantly without logging out.
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {availableAffiliates.map((aff) => (
+                              <button
+                                key={aff.id}
+                                type="button"
+                                onClick={() => handleQuickLogin(aff)}
+                                className={`p-3.5 border rounded-xl flex items-center justify-between text-left cursor-pointer transition-colors ${
+                                  currentAffiliate.email === aff.email
+                                    ? "bg-primary/5 border-primary"
+                                    : "bg-[var(--bg-2)] hover:bg-[var(--line)] border-[var(--line)]"
+                                }`}
+                              >
+                                <div>
+                                  <div className="font-bold text-xs text-[var(--ink)]">{aff.name}</div>
+                                  <div className="text-[10px] text-[var(--muted)] font-semibold">{aff.email}</div>
+                                </div>
+                                <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded font-mono font-bold">ref: {aff.refId}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </form>
                   </div>
                 )}
               </div>
             </div>
-          )}
 
         </div>
       </main>
