@@ -17,7 +17,7 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Product</h6>
+            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '24px' }}>Product</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Features</Link>
               <Link href="/pricing" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Pricing</Link>
@@ -28,7 +28,7 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Use Cases</h6>
+            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '24px' }}>Use Cases</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/use-cases/agencies" className="text-white/65 hover:text-[#c5a3ff] transition-colors">For Digital Agencies</Link>
               <Link href="/use-cases/solo" className="text-white/65 hover:text-[#c5a3ff] transition-colors">For Solo Creators</Link>
@@ -39,7 +39,7 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Resources</h6>
+            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '24px' }}>Resources</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Blog</Link>
               <Link href="/#faq" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Help Center</Link>
@@ -50,7 +50,7 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Company</h6>
+            <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '24px' }}>Company</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/about" className="text-white/65 hover:text-[#c5a3ff] transition-colors">About Us</Link>
               <a href="mailto:support@solospider.co" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Contact</a>

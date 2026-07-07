@@ -318,9 +318,9 @@ export default function PrivacyPolicyPage() {
 
             {/* Section 17 */}
             <section id="contact" className="scroll-mt-24 space-y-4 text-left">
-              <h2 className="font-display text-2xl font-black tracking-tight text-[var(--ink)]">17. Contact Us</h2>
+              <h2 className="font-display text-2xl font-black tracking-tight text-[var(--ink)]" style={{ marginBottom: '16px' }}>17. Contact Us</h2>
               <p>If you have any questions or privacy-related complaints, please reach out to us:</p>
-              <div className="bg-[var(--panel)] border border-[var(--line)] p-6 rounded-2xl max-w-md space-y-3 shadow-sm">
+              <div className="bg-[var(--panel)] border border-[var(--line)] p-6 rounded-2xl max-w-md space-y-3 shadow-sm" style={{ marginTop: '16px' }}>
                 <h4 className="font-bold text-base">SoloSpider</h4>
                 <div className="flex items-center gap-2.5 text-sm text-[var(--ink-2)]">
                   <Mail className="w-4 h-4 text-primary shrink-0" />
