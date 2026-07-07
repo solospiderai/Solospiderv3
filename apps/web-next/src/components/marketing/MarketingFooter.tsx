@@ -55,8 +55,8 @@ export const MarketingFooter = () => {
               <Link href="/" className="text-white/65 hover:text-[#c5a3ff] transition-colors">About Us</Link>
               <a href="mailto:support@solospider.co" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Contact</a>
               <Link href="/affiliate" className="text-white/65 hover:text-[#c5a3ff] transition-colors font-medium">Become Affiliate</Link>
-              <Link href="/#" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Privacy Policy</Link>
-              <Link href="/#" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Terms of Service</Link>
+              <Link href="/privacy" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Terms of Service</Link>
               <Link href="/#" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Careers</Link>
             </div>
           </div>

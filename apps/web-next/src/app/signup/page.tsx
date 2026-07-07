@@ -158,7 +158,7 @@ export default function SignupPage() {
                   className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer mt-0.5" 
                 />
                 <label htmlFor="agree" className="text-[11.5px] text-slate-450 leading-relaxed font-semibold cursor-pointer">
-                  I agree to the <a href="#" className="text-primary hover:underline">Terms of Service</a> and <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
+                  I agree to the <a href="/terms" className="text-primary hover:underline">Terms of Service</a> and <a href="/privacy" className="text-primary hover:underline">Privacy Policy</a>.
                 </label>
               </div>
 
