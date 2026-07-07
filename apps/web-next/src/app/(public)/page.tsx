@@ -251,18 +251,21 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* PROBLEM SECTION – "You're paying for 6 tools…"               */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="problem">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden" id="problem">
           <div className="max-w-[1240px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-14 items-center">
             {/* Left: Text */}
             <div className="text-left">
-              <div className="mono text-pink-500 mb-4 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+              {/* Custom Pill Badge matching Figma */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--bg)] border border-[var(--line)] text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-6 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-[#9025F2]"></span>
                 The problem
               </div>
-              <h2 className="text-4xl md:text-[56px] leading-[1.1] mb-6 font-black tracking-tight">
-                You&apos;re paying for <span className="text-pink-500">6 tools</span><br />
-                that should be <span className="grad-text">one.</span>
+              
+              <h2 className="text-4xl md:text-[56px] leading-[1.1] mb-6 font-black tracking-tight text-[var(--ink)]">
+                You&apos;re paying for 6 tools<br />
+                that should be one.
               </h2>
+              
               <div className="text-[17px] text-[var(--ink-2)] space-y-5 leading-relaxed">
                 <p>The average digital marketer juggles Surfer SEO, Buffer, Canva, Ahrefs, a blog CMS, and a separate AI writing tool — spending $350–$950 a month on subscriptions that barely talk to each other.</p>
                 <p>That&apos;s before counting the hours lost copy-pasting between tools, briefing freelancers, chasing approvals, and manually posting content.</p>
@@ -271,79 +274,215 @@ export default function HomePage() {
             </div>
 
             {/* Right: Diagram inside bordered panel card */}
-            <div className="relative w-full overflow-hidden flex items-center justify-center p-6 bg-[var(--panel)] border border-[var(--line)] rounded-3xl shadow-xl h-auto min-h-[300px] sm:min-h-[460px] relative z-10">
-              <div className="origin-center scale-[0.44] min-[400px]:scale-[0.50] sm:scale-65 md:scale-80 lg:scale-[0.75] xl:scale-[0.95] 2xl:scale-100 shrink-0 w-[680px] h-[420px] relative transition-all duration-300">
+            <div className={`relative w-full overflow-hidden flex items-center justify-center p-6 border rounded-3xl shadow-xl h-auto min-h-[300px] sm:min-h-[460px] z-10 transition-all duration-300 ${
+              isDark 
+                ? "bg-[#0b0918] border-[rgba(144,37,242,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.4)]" 
+                : "bg-[#f5f4ed]/60 border-[#e2e1da] shadow-[0_20px_50px_rgba(0,0,0,0.02)]"
+            }`}>
+              <div className="origin-center scale-[0.44] min-[400px]:scale-[0.50] sm:scale-75 md:scale-100 shrink-0 w-[680px] h-[420px] relative transition-all duration-300">
+              
               {/* SVG connection lines */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 680 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M 110,55 C 160,55 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 150,105 C 180,105 180,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 80,175 C 130,175 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 155,195 C 175,195 185,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 80,280 C 130,280 170,210 195,210" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 155,345 C 175,345 185,230 195,210" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <line x1="210" y1="205" x2="265" y2="205" stroke={isDark ? "#ffffff15" : "#00000010"} strokeWidth="1.5" strokeDasharray="4 4" />
-                <line x1="415" y1="205" x2="470" y2="205" stroke={isDark ? "#ffffff15" : "#00000010"} strokeWidth="1.5" strokeDasharray="4 4" />
-                <path d="M 485,195 C 510,195 520,65 535,65" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 485,195 C 510,195 520,140 535,140" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 485,205 C 510,205 520,215 535,215" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 485,210 C 510,210 520,290 535,290" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <path d="M 485,215 C 510,215 520,360 535,360" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                <circle cx="200" cy="205" r="6" fill={isDark ? "#1c1a35" : "#ffffff"} stroke={isDark ? "#ffffff30" : "#00000020"} strokeWidth="1.5" />
-                <circle cx="200" cy="205" r="2.5" fill={isDark ? "#ffffff" : "#000000"} />
-                <circle cx="480" cy="205" r="6" fill={isDark ? "#1c1a35" : "#ffffff"} stroke={isDark ? "#ffffff30" : "#00000020"} strokeWidth="1.5" />
-                <circle cx="480" cy="205" r="2.5" fill={isDark ? "#ffffff" : "#000000"} />
+                {/* Glow Filter for Dark Mode */}
+                <defs>
+                  <filter id="glow-lines" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="2.5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                {/* Left bezier connection lines */}
+                <path d="M 76,61 C 120,61 160,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 176,106 C 200,106 210,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 46,171 C 110,171 160,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 141,206 C 180,206 200,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 76,271 C 120,271 160,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 171,316 C 200,316 210,205 230,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+
+                {/* Dotted paths connecting center */}
+                <line x1="230" y1="205" x2="285" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
+                <line x1="395" y1="205" x2="450" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
+
+                {/* Right bezier connection lines */}
+                <path d="M 450,205 C 475,205 490,50 520,50" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 450,205 C 475,205 490,130 520,130" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 450,205 C 475,205 490,210 520,210" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 450,205 C 475,205 490,290 520,290" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+                <path d="M 450,205 C 475,205 490,370 520,370" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
+
+                {/* Hub node circles */}
+                <circle cx="230" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
+                <circle cx="230" cy="205" r="2.5" fill="#ffffff" />
+                
+                <circle cx="450" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
+                <circle cx="450" cy="205" r="2.5" fill="#ffffff" />
               </svg>
 
-              {/* Left: 6 tool cards */}
+              {/* Left: 6 squircle tool cards placed precisely per Figma */}
               {[
-                { icon: "📊", name: "Surfer", sub: "", top: 20, left: 12 },
-                { icon: "☰", name: "Buffer", sub: "Social", top: 70, left: 95 },
-                { icon: "✦", name: "Canva", sub: "Design", top: 140, left: 8 },
-                { icon: "⟐", name: "ahrefs", sub: "SEO", top: 160, left: 95 },
-                { icon: "✎", name: "CMS", sub: "", top: 245, left: 12 },
-                { icon: "◎", name: "AI Writing", sub: "", top: 305, left: 85 },
+                { 
+                  name: "SFO", 
+                  sub: "SEO", 
+                  top: 30, 
+                  left: 45,
+                  icon: (
+                    <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M18 20V10M12 20V4M6 20v-6" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
+                { 
+                  name: "Buffer", 
+                  sub: "Social", 
+                  top: 75, 
+                  left: 140,
+                  icon: (
+                    <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
+                { 
+                  name: "Canva", 
+                  sub: "Design", 
+                  top: 140, 
+                  left: 15,
+                  icon: <span className="font-serif italic font-extrabold text-[12px] tracking-tighter text-white leading-none">Canva</span>
+                },
+                { 
+                  name: "ahrefs", 
+                  sub: "SEO", 
+                  top: 175, 
+                  left: 110,
+                  icon: <span className="font-sans font-black text-[11px] tracking-tight text-white leading-none">ahrefs</span>
+                },
+                { 
+                  name: "CMS", 
+                  sub: "CMS", 
+                  top: 240, 
+                  left: 45,
+                  icon: (
+                    <div className="w-6.5 h-6.5 rounded-full border-2 border-white/90 flex items-center justify-center font-serif font-black text-xs text-white">W</div>
+                  )
+                },
+                { 
+                  name: "AI Writing", 
+                  sub: "AI Writing", 
+                  top: 285, 
+                  left: 140,
+                  icon: (
+                    <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 3v18M3 12h18M12 12m-6 0a6 6 0 1 0 12 0 6 6 0 1 0-12 0" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
               ].map((tool) => (
                 <div
                   key={tool.name}
-                  className="absolute z-10 flex flex-col items-center"
+                  className="absolute z-10 flex flex-col items-center select-none"
                   style={{ top: tool.top, left: tool.left }}
                 >
-                  <div className="w-[62px] h-[62px] rounded-2xl bg-[#141226] text-white flex flex-col items-center justify-center border border-white/10 shadow-lg">
-                    <span className="text-[18px] mb-0.5">{tool.icon}</span>
-                    <span className="text-[8px] font-extrabold tracking-wide uppercase leading-none">{tool.name}</span>
+                  <div className={`w-[62px] h-[62px] rounded-2xl bg-[#141226] text-white flex flex-col items-center justify-center border shadow-lg transition-all duration-300 ${
+                    isDark 
+                      ? "border-[#d946ef] shadow-[0_0_12px_rgba(217,70,239,0.35)]" 
+                      : "border-white/10"
+                  }`}>
+                    <div className="flex items-center justify-center h-7">{tool.icon}</div>
+                    <span className="text-[7.5px] font-black tracking-wider uppercase leading-none mt-1">{tool.name}</span>
                   </div>
-                  {tool.sub && (
-                    <span className="text-[8px] font-bold text-[var(--muted)] mt-1 uppercase tracking-wider">{tool.sub}</span>
-                  )}
+                  <span className="text-[7.5px] font-bold text-[var(--muted)] mt-1 uppercase tracking-widest">{tool.sub}</span>
                 </div>
               ))}
 
-              {/* Center: Purple gradient squircle */}
-              <div className="absolute z-10" style={{ top: 115, left: 265 }}>
-                <div className="w-[150px] h-[170px] rounded-[28px] flex flex-col items-center justify-center text-white shadow-[0_20px_50px_rgba(144,37,242,0.4)] border border-white/15" style={{ background: 'linear-gradient(180deg, #a855f7 0%, #9025F2 50%, #c084fc 100%)' }}>
-                  <span className="text-[42px] mb-1">🕷️</span>
-                  <span className="font-display font-black text-[15px] tracking-wide">solospider</span>
+              {/* Center: Purple gradient squircle with spider mask logo */}
+              <div className="absolute z-10" style={{ top: 125, left: 285 }}>
+                <div className={`w-[110px] h-[160px] rounded-[28px] flex flex-col items-center justify-center text-white border transition-all duration-300 ${
+                  isDark 
+                    ? "border-[#ec4899] shadow-[0_0_25px_rgba(236,72,153,0.55)]" 
+                    : "border-white/15"
+                }`} style={{ background: 'linear-gradient(180deg, #a855f7 0%, #9025F2 50%, #c084fc 100%)' }}>
+                  {/* Styled Spider Mask Logo */}
+                  <svg className="w-12 h-12 text-white mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 2a5 5 0 0 0-5 5v2a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z" fill="currentColor"/>
+                    <path d="M7 11c0 2 1 4 3 5M17 11c0 2-1 4-3 5M5 7c-2 0-3 1-3 3M19 7c2 0 3 1 3 3" strokeLinecap="round"/>
+                    <path d="M4 14c-1.5.5-2 2-2 3.5M20 14c1.5.5 2 2 2 3.5M6 19.5c-1 1-1 2.5-1 3.5M18 19.5c1 1 1 2.5 1 3.5" strokeLinecap="round"/>
+                  </svg>
+                  <span className="font-display font-black text-[13px] tracking-wide mt-1">solospider</span>
                 </div>
               </div>
 
               {/* Right: 5 target capsules */}
               {[
-                { icon: "✓", title: "SEO", sub: "SEARCH ENGINE OPTIMIZED", top: 35 },
-                { icon: "★", title: "AEO", sub: "ANSWER ENGINE OPTIMIZED", top: 112 },
-                { icon: "📍", title: "GEO", sub: "GEOGRAPHICALLY OPTIMIZED", top: 189 },
-                { icon: "💬", title: "Social", sub: "SOCIAL MEDIA OPTIMIZED", top: 262 },
-                { icon: "✍", title: "AI Writing", sub: "AI POWERED CONTENT", top: 335 },
+                { 
+                  title: "SEO", 
+                  sub: "OPTIMIZED", 
+                  top: 25,
+                  icon: (
+                    <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M22 4L12 14.01l-3-3" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
+                { 
+                  title: "AEO", 
+                  sub: "ANSWER ENGINE OPTIMIZED", 
+                  top: 105,
+                  icon: (
+                    <svg className="w-4 h-4 text-amber-400 fill-amber-400/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  )
+                },
+                { 
+                  title: "GEO", 
+                  sub: "GEOGRAPHICALLY OPTIMIZED", 
+                  top: 185,
+                  icon: (
+                    <svg className="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeLinecap="round" strokeLinejoin="round"/>
+                      <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                  )
+                },
+                { 
+                  title: "Social", 
+                  sub: "SOCIAL MEDIA OPTIMIZED", 
+                  top: 265,
+                  icon: (
+                    <svg className="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
+                { 
+                  title: "AI Writing", 
+                  sub: "AI POWERED CONTENT", 
+                  top: 345,
+                  icon: (
+                    <svg className="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="absolute z-10"
-                  style={{ top: item.top, right: 0 }}
+                  className="absolute z-10 select-none"
+                  style={{ top: item.top, right: 15 }}
                 >
-                  <div className="w-[145px] h-[60px] rounded-xl bg-[#141226] text-white flex items-center gap-2.5 px-3 border border-white/8 shadow-md">
-                    <span className="text-[14px] shrink-0">{item.icon}</span>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[12px] leading-tight">{item.title}</span>
-                      <span className="text-[6.5px] tracking-wider text-gray-400 font-bold leading-tight mt-0.5 uppercase">{item.sub}</span>
+                  <div className={`w-[145px] h-[60px] rounded-xl bg-[#141226] text-white flex items-center gap-2.5 px-3 border shadow-md transition-all duration-300 ${
+                    isDark 
+                      ? "border-[#d946ef] shadow-[0_0_12px_rgba(217,70,239,0.35)]" 
+                      : "border-white/10"
+                  }`}>
+                    <span className="shrink-0">{item.icon}</span>
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold text-[12px] leading-tight text-white">{item.title}</span>
+                      <span className="text-[6px] tracking-wide text-gray-400 font-bold leading-tight mt-0.5 uppercase">{item.sub}</span>
                     </div>
                   </div>
                 </div>
