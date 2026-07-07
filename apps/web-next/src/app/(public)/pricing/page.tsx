@@ -137,7 +137,7 @@ export default function PricingPage() {
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">FREE</h3>
                 <div className="text-[12px] text-muted -mt-2">For creators just getting started</div>
                 <div className="flex items-baseline justify-center gap-1 mt-1">
-                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">₹0</span>
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">$0</span>
                   <span className="text-[13px] font-semibold text-muted font-sans ml-1">/month</span>
                 </div>
                 <div className="flex flex-col gap-3 text-[13px] text-ink-2 border-t border-line pt-5 mt-1">

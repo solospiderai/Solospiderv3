@@ -261,7 +261,7 @@ export default function HomePage() {
                 that should be <span className="grad-text">one.</span>
               </h2>
               <div className="text-[17px] text-[var(--ink-2)] space-y-5 leading-relaxed">
-                <p>The average digital marketer juggles Surfer SEO, Buffer, Canva, Ahrefs, a blog CMS, and a separate AI writing tool — spending ₹30,000–₹80,000 a month on subscriptions that barely talk to each other.</p>
+                <p>The average digital marketer juggles Surfer SEO, Buffer, Canva, Ahrefs, a blog CMS, and a separate AI writing tool — spending $350–$950 a month on subscriptions that barely talk to each other.</p>
                 <p>That&apos;s before counting the hours lost copy-pasting between tools, briefing freelancers, chasing approvals, and manually posting content.</p>
                 <p>Solo Spider was built to collapse the entire stack into a single, automated workflow — so you spend less time on the tools and more time on the work that actually grows your business.</p>
               </div>
@@ -810,7 +810,7 @@ export default function HomePage() {
                 { v: "6 tools", l: "Replaced by a single Solo Spider subscription." },
                 { v: "80%", l: "Reduction in time spent on repetitive marketing tasks." },
                 { v: "5 mins", l: "Average setup time to publish your first blog." },
-                { v: "₹40k+", l: "Avg. monthly tool cost replaced by one Solo Spider plan." },
+                { v: "$500+", l: "Avg. monthly tool cost replaced by one Solo Spider plan." },
                 { v: "2,000+", l: "Agencies and creators already using Solo Spider." }
               ].map((num, i) => (
                 <div key={i} className="bg-[var(--panel)] p-8 lg:p-12 flex flex-col gap-2.5 text-left">
@@ -873,12 +873,12 @@ export default function HomePage() {
               
               <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-[var(--bg-2)] font-semibold" role="row">
                 <div className="py-4.5 px-6 text-[13.5px] text-[var(--ink)] border-r border-[var(--line)] text-left">Typical monthly cost</div>
-                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 text-primary text-[13.5px]">₹20,000</div>
-                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹8,000+</div>
-                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹3,500+</div>
-                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹2,000+</div>
-                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹15,000+</div>
-                <div className="py-4.5 px-4 text-center text-[var(--ink-2)] text-[13.5px]">₹1,600+</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 text-primary text-[13.5px]">$240</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">$99+</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">$42+</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">$24+</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">$180+</div>
+                <div className="py-4.5 px-4 text-center text-[var(--ink-2)] text-[13.5px]">$20+</div>
               </div>
             </div>
 
@@ -900,11 +900,11 @@ export default function HomePage() {
               <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
                 <h4 className="font-display font-bold text-[16px] mb-3 text-[var(--ink)]">What you&apos;d pay for the stack</h4>
                 {[
-                  { n: "Surfer SEO", p: "₹8,000+" },
-                  { n: "Buffer", p: "₹3,500+" },
-                  { n: "Canva Pro", p: "₹2,000+" },
-                  { n: "Ahrefs", p: "₹15,000+" },
-                  { n: "ChatGPT", p: "₹1,600+" },
+                  { n: "Surfer SEO", p: "$99+" },
+                  { n: "Buffer", p: "$42+" },
+                  { n: "Canva Pro", p: "$24+" },
+                  { n: "Ahrefs", p: "$180+" },
+                  { n: "ChatGPT", p: "$20+" },
                 ].map((item, i) => (
                   <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-[var(--line)] last:border-b-0 text-[var(--ink-2)]">
                     <span className="text-[var(--ink)]">{item.n}</span>
@@ -940,7 +940,7 @@ export default function HomePage() {
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Free</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For creators just getting started</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
-                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-primary">₹0</span>
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-primary">$0</span>
                   <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
                 <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
