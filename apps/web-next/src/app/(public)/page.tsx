@@ -103,16 +103,16 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* HERO SECTION                                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative pt-[100px] pb-[70px] md:pt-[130px] md:pb-[90px] border-b border-[var(--line)]">
+        <section className="relative pt-[90px] pb-[60px] md:pt-[130px] md:pb-[95px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero">
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <svg
-              className="absolute left-1/2 -translate-x-1/2 top-[-100px] md:top-[-50px] w-[1920px] h-[1800px] opacity-[0.09] dark:opacity-[0.14]"
-              viewBox="0 0 1920 1800"
+              className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[1920px] h-[859px] opacity-[0.09] dark:opacity-[0.14]"
+              viewBox="0 0 1920 859"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* Radiating Lines from center (960, 859) */}
+              {/* Radiating Lines from bottom-center (960, 859) */}
               <line x1="960" y1="859" x2="960" y2="-53" stroke="#9025F2" strokeWidth="1.275" />
               <line x1="960" y1="859" x2="1195.2" y2="-21.8" stroke="#9025F2" strokeWidth="1.275" />
               <line x1="960" y1="859" x2="1416" y2="69.4" stroke="#9025F2" strokeWidth="1.275" />
@@ -167,9 +167,9 @@ export default function HomePage() {
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
 
-            {/* URL Input Bar - Fully Mobile Responsive */}
+            {/* URL Input Bar - Fully Mobile Responsive & Rectangular Shape Radius */}
             <div className="max-w-[640px] mx-auto mb-5 relative z-20">
-              <form onSubmit={handleStartAnalysis} className="p-2 sm:p-1.5 rounded-2xl sm:rounded-full bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <form onSubmit={handleStartAnalysis} className="p-2 sm:p-1.5 rounded-[12px] bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="flex-grow flex items-center pl-3">
                   <Globe className="w-4.5 h-4.5 text-[var(--muted)] shrink-0" />
                   <input
@@ -184,7 +184,7 @@ export default function HomePage() {
                 <button
                   type="submit"
                   disabled={analyzing}
-                  className="btn btn-grad px-6 sm:px-7 py-3 h-[46px] text-[13px] sm:text-[13.5px] font-black tracking-wide rounded-xl sm:rounded-full shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="btn btn-grad px-6 sm:px-7 py-3 h-[46px] text-[13px] sm:text-[13.5px] font-black tracking-wide rounded-[8px] shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {analyzing ? (
                     <>
@@ -203,18 +203,18 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Sub CTA Buttons */}
+            {/* Sub CTA Buttons with rx=5 Shape Radius */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-9">
-              <button onClick={() => router.push("/signup")} className="btn btn-primary bg-primary hover:bg-primary-2 text-white px-8 py-3.5 rounded-full text-[14px] sm:text-[14.5px] font-bold cursor-pointer w-full sm:w-auto shadow-md">
+              <button onClick={() => router.push("/signup")} className="btn btn-primary bg-primary hover:bg-primary-2 text-white px-8 py-3.5 rounded-[6px] text-[14px] sm:text-[14.5px] font-bold cursor-pointer w-full sm:w-auto shadow-md">
                 Start free trial →
               </button>
-              <a href="#problem" className="px-8 py-3.5 rounded-full text-[14px] sm:text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center w-full sm:w-auto">
+              <a href="#problem" className="px-8 py-3.5 rounded-[6px] text-[14px] sm:text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center w-full sm:w-auto">
                 See How It Works
               </a>
             </div>
 
             {/* Promo Items */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-10">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-5">
               {["No credit card required", "Free plan available", "Set up in 5 minutes"].map((p, i) => (
                 <div key={i} className="flex items-center gap-1.5">
                   <span className="text-emerald-500 text-[14px] font-extrabold">✓</span>
@@ -223,22 +223,22 @@ export default function HomePage() {
               ))}
             </div>
           </div>
+        </section>
 
-          {/* Trust Bar (Standardized logos and responsive layout) */}
-          <div className="pt-10 pb-2 mt-12">
-            <div className="max-w-[1240px] mx-auto px-7">
-              <div className="text-center text-[12px] sm:text-[13px] text-[var(--muted)] mb-7 tracking-wider uppercase font-bold">
-                Trusted by 2,000+ agencies, freelancers, and solo founders
-              </div>
-              <div className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] font-display font-bold text-base sm:text-lg opacity-70">
-                <span className="tracking-tight">Loomstack</span>
-                <span className="tracking-wider uppercase">NORTHWIND</span>
-                <span className="font-extrabold uppercase">PEAK CO</span>
-                <span className="flex items-center gap-1">◇ Lattice</span>
-                <span className="uppercase tracking-widest font-extrabold">CIVIC</span>
-                <span className="flex items-center gap-1.5 font-bold"><span className="text-xs">●</span> Pulse</span>
-                <span className="font-serif italic font-medium">Modern</span>
-              </div>
+        {/* TRUSTED BY LOGO BAR (Separate Section to prevent grid line overflow) */}
+        <section className="py-12 border-b border-[var(--line)] bg-[var(--bg)] relative z-10">
+          <div className="max-w-[1240px] mx-auto px-7">
+            <div className="text-center text-[12.5px] sm:text-[13px] text-[var(--muted)] mb-7 tracking-wider uppercase font-bold">
+              Trusted by 2,000+ agencies, freelancers, and solo founders
+            </div>
+            <div className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] font-display font-bold text-base sm:text-lg opacity-70">
+              <span className="tracking-tight">Loomstack</span>
+              <span className="tracking-wider uppercase">NORTHWIND</span>
+              <span className="font-extrabold uppercase">PEAK CO</span>
+              <span className="flex items-center gap-1">◇ Lattice</span>
+              <span className="uppercase tracking-widest font-extrabold">CIVIC</span>
+              <span className="flex items-center gap-1.5 font-bold"><span className="text-xs">●</span> Pulse</span>
+              <span className="font-serif italic font-medium">Modern</span>
             </div>
           </div>
         </section>
