@@ -52,7 +52,6 @@ interface PayoutRequest {
 export default function AffiliateAdminPage() {
   const [isDark, setIsDark] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean | null>(null);
-  const [adminPasscode, setAdminPasscode] = useState("");
   
   // Tabs
   const [activeTab, setActiveTab] = useState<"applications" | "affiliates" | "payouts" | "settings">("applications");
@@ -74,40 +73,22 @@ export default function AffiliateAdminPage() {
         document.documentElement.classList.remove("dark");
       }
       
-      const isAuth = window.sessionStorage.getItem("solospider_admin_authenticated") === "true";
-      if (isAuth) {
-        setIsAdminAuthenticated(true);
-      } else {
-        const checkUser = async () => {
-          try {
-            const supabase = getSupabaseBrowserClient();
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user && (user.email === "info@solospider.ai" || user.email?.endsWith("@solospider.ai"))) {
-              setIsAdminAuthenticated(true);
-            } else {
-              setIsAdminAuthenticated(false);
-            }
-          } catch {
+      const checkUser = async () => {
+        try {
+          const supabase = getSupabaseBrowserClient();
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && user.email === "info@solospider.ai") {
+            setIsAdminAuthenticated(true);
+          } else {
             setIsAdminAuthenticated(false);
           }
-        };
-        checkUser();
-      }
+        } catch {
+          setIsAdminAuthenticated(false);
+        }
+      };
+      checkUser();
     }
   }, []);
-
-  const handlePasscodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (adminPasscode === "solospider-admin-2026") {
-      setIsAdminAuthenticated(true);
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem("solospider_admin_authenticated", "true");
-      }
-      toast.success("Welcome back, Admin!");
-    } else {
-      toast.error("Incorrect Admin Access Key. Access Denied.");
-    }
-  };
 
   const loadState = async () => {
     let supabaseApps: Application[] = [];
@@ -579,36 +560,32 @@ export default function AffiliateAdminPage() {
         </header>
 
         <main className="flex-grow flex items-center justify-center py-20 px-7">
-          <div className="max-w-[420px] w-full bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-10 shadow-xl text-left">
-            <div className="flex items-center gap-2 mb-3 font-mono text-[10px] uppercase tracking-widest text-primary font-bold">
+          <div className="max-w-[440px] w-full bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-10 shadow-xl text-left">
+            <div className="flex items-center gap-2 mb-3 font-mono text-[10px] uppercase tracking-widest text-red-500 font-bold">
               <Shield className="w-3.5 h-3.5" />
-              <span>Admin Verification</span>
+              <span>Access Restricted</span>
             </div>
-            <h2 className="text-2xl font-black mb-4">Control Panel Access</h2>
+            <h2 className="text-2xl font-black mb-4">Administrator Only</h2>
             <p className="text-xs text-[var(--muted)] mb-6 leading-relaxed">
-              This panel is restricted to administrators. Enter the Admin Access Key to authenticate.
+              This administrative interface is strictly limited to authorized administrator accounts. 
+              To manage applications and payouts, you must be signed in as <strong className="text-[var(--ink)]">info@solospider.ai</strong>.
             </p>
 
-            <form onSubmit={handlePasscodeSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Access Key</label>
-                <input
-                  type="password"
-                  required
-                  value={adminPasscode}
-                  onChange={(e) => setAdminPasscode(e.target.value)}
-                  className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors font-mono"
-                  placeholder="••••••••••••••••"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full btn btn-grad py-3 text-xs font-bold shadow-lg shadow-primary/25 cursor-pointer"
+            <div className="space-y-3">
+              <Link
+                href="/login"
+                className="w-full btn btn-grad py-3 text-xs font-bold shadow-lg shadow-primary/25 cursor-pointer block text-center"
               >
-                Authenticate Key
-              </button>
-            </form>
+                Sign In to Admin Account
+              </Link>
+              
+              <Link
+                href="/affiliate"
+                className="w-full bg-[var(--bg-2)] hover:bg-[var(--line)] border border-[var(--line)] text-center py-3 rounded-xl text-xs font-bold transition-all block text-[var(--ink)]"
+              >
+                Return to Affiliate Portal
+              </Link>
+            </div>
           </div>
         </main>
         
