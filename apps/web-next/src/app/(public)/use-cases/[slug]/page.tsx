@@ -1,81 +1,138 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useState, useEffect } from "react";
+import { notFound, useParams } from "next/navigation";
 import Link from "next/link";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
+import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
+import { Sparkles, CheckCircle2, ChevronRight } from "lucide-react";
 
 const useCaseContent = {
-  solo: {
-    tag: "Personal Brand Scale",
-    title: "For Solo Creators",
-    description: "Scale your personal brand, blog publishing, and social media channels without marketing overhead.",
-    benefits: [
-      "Autopilot Publishing: Keep your social channels active while you focus on creating.",
-      "Tone-Matched Drafts: Ensure every AI post sounds exactly like you wrote it.",
-      "SEO Audit Tracking: Know what subjects rank without complicated keyword tools."
-    ]
-  },
-  "marketing-teams": {
-    tag: "Team Productivity",
-    title: "For Marketing Teams",
-    description: "Centralize content ops, automate approvals, and align digital assets with brand guidelines.",
-    benefits: [
-      "Collaboration Workspaces: Isolate projects, campaigns, and distinct assets.",
-      "Bulk Content Ops: Scale drafting and scheduling across multiple brand identities.",
-      "AEO Citation Insights: Audit where search engines cite your product and competitor shares."
-    ]
-  },
   agencies: {
-    tag: "Agency Operations",
+    tag: "Agency Scale",
     title: "For Digital Agencies",
-    description: "Manage multiple client workspaces under a single dashboard with white-labeled PDF reporting.",
-    benefits: [
-      "Isolated Client Workspaces: Keep client settings, voices, and calendars separate.",
-      "White-Label Delivery: Present professional SEO and citation dashboards under your agency logo.",
-      "Bulk Social Threads: Schedule months of automated threads across 25+ accounts."
-    ]
+    subtitle: "Scale Client Success with AI-Powered Website Intelligence",
+    description: "Managing multiple clients requires speed, consistency, and measurable results. SoloSpider helps digital agencies streamline website analysis, optimize SEO and AEO, generate high-quality content, and automate repetitive tasks—all from a single platform.",
+    intro: "Whether you're auditing client websites, creating optimized content, improving search visibility, or delivering actionable insights, SoloSpider enables your team to work more efficiently while maintaining quality across every project.",
+    useCasesTitle: "How Digital Agencies Use SoloSpider",
+    bullets: [
+      "Analyze client websites with AI-powered crawling and intelligent insights.",
+      "Identify SEO and AEO opportunities to improve online visibility.",
+      "Generate blogs, website copy, and social media content faster.",
+      "Create professional brand summaries and marketing assets.",
+      "Optimize existing content for better readability and search performance.",
+      "Streamline repetitive workflows through AI automation.",
+      "Monitor performance and deliver data-driven recommendations.",
+      "Manage multiple digital projects more efficiently from one platform.",
+    ],
+    conclusion: "With SoloSpider, agencies can reduce manual effort, accelerate project delivery, and focus more on strategy, creativity, and client growth."
+  },
+  solo: {
+    tag: "Solo Creators",
+    title: "For Solo Creators",
+    subtitle: "Create More, Grow Faster with AI",
+    description: "Building your online presence takes time, but SoloSpider helps you focus on creating while AI handles the heavy lifting. From generating engaging content to optimizing your website for search and AI-powered discovery, SoloSpider gives solo creators the tools to grow their audience with less effort.",
+    intro: "SoloSpider provides a full-featured workspace that acts as your personal digital assistant. You get access to everything you need to audit websites, customize brand summary settings, draft contents and optimize visibility in one place.",
+    useCasesTitle: "How Solo Creators Use SoloSpider",
+    bullets: [
+      "Generate SEO-friendly blog articles.",
+      "Create engaging social media content.",
+      "Optimize website content for better visibility.",
+      "Generate professional brand summaries.",
+      "Improve content quality with AI recommendations.",
+      "Save time by automating repetitive content tasks.",
+    ],
+    conclusion: "SoloSpider lets you run content and search marketing operations autonomously, freeing up hours of manual work."
   },
   freelancers: {
-    tag: "Freelancer Efficiency",
+    tag: "Freelancer Speed",
     title: "For Freelancers",
-    description: "Deliver high-value SEO and content schedules to clients in half the execution time.",
-    benefits: [
-      "Zero Context Switching: Access all accounts under one logged-in dashboard.",
-      "AI-Assisted Drafting: Generate outline draft structures in under 2 minutes.",
-      "SEO Auto-Fixes: Clear link structure and formatting issues instantly."
-    ]
+    subtitle: "Deliver Better Results in Less Time",
+    description: "Whether you're a marketer, developer, designer, SEO specialist, or consultant, SoloSpider helps you complete projects faster without compromising quality. Analyze client websites, generate optimized content, and provide actionable insights from one intelligent platform.",
+    intro: "Provide professional-grade recommendations and deliverables to your clients under shorter timelines. SoloSpider keeps all client analytics under a single logged-in view for friction-free operations.",
+    useCasesTitle: "How Freelancers Use SoloSpider",
+    bullets: [
+      "Perform AI-powered website audits.",
+      "Improve client SEO and AEO performance.",
+      "Generate blogs, website copy, and marketing content.",
+      "Optimize existing content with AI.",
+      "Create brand summaries and business profiles.",
+      "Deliver faster, data-driven recommendations to clients.",
+    ],
+    conclusion: "Delight your clients with rapid turnarounds, structured content plans, and automated optimization workflows."
   },
   d2c: {
-    tag: "E-Commerce Citation Growth",
+    tag: "D2C Brands",
     title: "For D2C Brands",
-    description: "Boost product citations in shopping answers engines like Perplexity and Google Shopping.",
-    benefits: [
-      "Shopping Search Optimization: Audit citation shares inside AI shopping overviews.",
-      "Social-First Campaigns: Sync product collections with daily scheduled threads.",
-      "Voice Customization: Ensure D2C copy sounds engaging and brand-perfect."
-    ]
+    subtitle: "Grow Your Brand with Smarter AI",
+    description: "In a competitive e-commerce landscape, visibility and quality content matter more than ever. SoloSpider helps D2C brands strengthen their online presence with AI-powered website analysis, optimized content, and intelligent search recommendations that drive engagement and support business growth.",
+    intro: "Accelerate your shopping visibility. SoloSpider audits and tracks how search engines and generative models read and describe your products online.",
+    useCasesTitle: "How D2C Brands Use SoloSpider",
+    bullets: [
+      "Optimize product and landing page content.",
+      "Improve SEO and AI search visibility.",
+      "Generate blogs and marketing content.",
+      "Create social media campaigns faster.",
+      "Analyze website performance and identify improvements.",
+      "Build a stronger and more consistent brand presence.",
+    ],
+    conclusion: "Scale customer acquisition by optimizing your store copy for modern AI-driven shopping platforms."
   },
   saas: {
-    tag: "Technical Search Optimization",
+    tag: "SaaS Acceleration",
     title: "For SaaS Startups",
-    description: "Optimize search engines for technical keywords and grow authoritative citations in developer overviews.",
-    benefits: [
-      "Developer SEO Audits: Analyze technical developer term search scores.",
-      "Answer Engine Visibility: Benchmark developer tool recommendations on ChatGPT.",
-      "Unified Content Pipelines: Keep changelogs, blogs, and social updates coordinated."
-    ]
+    subtitle: "Accelerate Growth with AI-Powered Website Intelligence",
+    description: "Growing a SaaS business requires clear messaging, strong search visibility, and continuous content creation. SoloSpider helps startups optimize their websites, create high-quality content, and improve discoverability so teams can spend less time on manual work and more time building great products.",
+    intro: "Equip your growth team with powerful insights. Standardize content schedules and verify indexing rates to capture technical search traffic.",
+    useCasesTitle: "How SaaS Startups Use SoloSpider",
+    bullets: [
+      "Analyze and optimize marketing websites.",
+      "Improve SEO and Answer Engine Optimization (AEO).",
+      "Generate educational blogs and product content.",
+      "Create compelling social media posts.",
+      "Produce clear brand summaries and messaging.",
+      "Use AI insights to strengthen digital growth strategies.",
+    ],
+    conclusion: "Accelerate organic pipelines and capture developers' attention through clear, optimized, and authoritative content plans."
   }
 } as const;
 
-export function generateStaticParams() {
-  return Object.keys(useCaseContent).map((slug) => ({ slug }));
-}
+export default function UseCasePage() {
+  const { slug } = useParams() as { slug: string };
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardDomain, setWizardDomain] = useState("");
+  const [isDark, setIsDark] = useState(false);
 
-export default async function UseCasePage({ params }: PageProps) {
-  const { slug } = await params;
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("solospider_theme");
+      const nextDark = saved === "dark";
+      setIsDark(nextDark);
+      if (nextDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
+  const triggerWizard = () => {
+    setWizardDomain("");
+    setIsWizardOpen(true);
+  };
+
   const content = useCaseContent[slug as keyof typeof useCaseContent];
 
   if (!content) {
@@ -83,105 +140,105 @@ export default async function UseCasePage({ params }: PageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-ink selection:bg-primary/20 selection:text-ink overflow-x-hidden font-sans">
-      <MarketingNavbar />
+    <div
+      className="min-h-screen bg-[var(--bg)] text-[var(--ink)] flex flex-col font-sans transition-colors duration-300"
+      style={
+        {
+          "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
+          "--bg-2": isDark ? "#141226" : "#f3f2eb",
+          "--panel": isDark ? "#1c1a35" : "#ffffff",
+          "--line": isDark ? "#252340" : "#e2e1da",
+          "--ink": isDark ? "#ffffff" : "#000000",
+          "--ink-2": isDark ? "#e2e8f0" : "#0f172a",
+          "--muted": isDark ? "#94a3b8" : "#475569",
+        } as React.CSSProperties
+      }
+    >
+      <MarketingNavbar isDark={isDark} onToggleTheme={toggleTheme} onOpenWizard={triggerWizard} />
 
-      <main>
-        {/* HERO */}
-        <section className="relative pt-[140px] pb-[100px] bg-gradient-to-b from-white to-primary-tint text-center overflow-hidden">
-          <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute left-[-10%] top-[10%] w-[560px] h-[560px] rounded-full bg-[radial-gradient(circle,rgba(144,37,242,0.18)_0,transparent_65%)] blur-[20px]"></div>
-            <div className="absolute right-[-10%] top-[20%] w-[620px] h-[620px] rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.14)_0,transparent_65%)] blur-[20px]"></div>
-            <svg className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[1700px] h-[1700px] opacity-[0.06]" viewBox="-400 -400 800 800" fill="none" stroke="#9025F2" strokeWidth="0.6">
-              <g id="spokes">
-                <line x1="0" y1="0" x2="0" y2="-380" />
-                <line x1="0" y1="0" x2="98" y2="-367" />
-                <line x1="0" y1="0" x2="190" y2="-329" />
-                <line x1="0" y1="0" x2="269" y2="-269" />
-                <line x1="0" y1="0" x2="329" y2="-190" />
-                <line x1="0" y1="0" x2="367" y2="-98" />
-                <line x1="0" y1="0" x2="380" y2="0" />
-                <line x1="0" y1="0" x2="367" y2="98" />
-                <line x1="0" y1="0" x2="329" y2="190" />
-                <line x1="0" y1="0" x2="269" y2="269" />
-                <line x1="0" y1="0" x2="190" y2="329" />
-                <line x1="0" y1="0" x2="98" y2="367" />
-                <line x1="0" y1="0" x2="0" y2="380" />
-                <line x1="0" y1="0" x2="-98" y2="367" />
-                <line x1="0" y1="0" x2="-190" y2="329" />
-                <line x1="0" y1="0" x2="-269" y2="269" />
-                <line x1="0" y1="0" x2="-329" y2="190" />
-                <line x1="0" y1="0" x2="-367" y2="98" />
-                <line x1="0" y1="0" x2="-380" y2="0" />
-                <line x1="0" y1="0" x2="-367" y2="-98" />
-                <line x1="0" y1="0" x2="-329" y2="-190" />
-                <line x1="0" y1="0" x2="-269" y2="-269" />
-                <line x1="0" y1="0" x2="-190" y2="-329" />
-                <line x1="0" y1="0" x2="-98" y2="-367" />
-              </g>
-              <circle cx="0" cy="0" r="60" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="110" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="170" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="240" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="310" strokeWidth="0.5" />
-              <circle cx="0" cy="0" r="380" strokeWidth="0.5" />
-            </svg>
-          </div>
-
-          <div className="max-w-[820px] mx-auto px-7 relative z-10">
-            <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold px-3 py-1 bg-primary-soft rounded-full border border-primary/10">
-              {content.tag}
-            </span>
-            <h1 className="text-5xl md:text-[72px] leading-[1.05] mt-6 mb-6 font-display font-black tracking-tight text-ink uppercase">
-              {content.title}
-            </h1>
-            <p className="text-[20px] text-ink-2 max-w-[660px] mx-auto leading-relaxed">
-              {content.description}
-            </p>
-          </div>
-        </section>
-
-        {/* CORE BENEFITS */}
-        <section className="relative py-20 bg-white">
-          <div className="max-w-[1000px] mx-auto px-7">
-            <h2 className="font-display font-black text-3xl md:text-[38px] text-center text-ink mb-12 uppercase">
-              Why Teams Choose Solo Spider
-            </h2>
-            <div className="flex flex-col gap-6">
-              {content.benefits.map((benefit, i) => {
-                const [title, desc] = benefit.split(": ");
-                return (
-                  <div key={i} className="bg-white border border-line rounded-[20px] p-6 flex gap-5 items-start shadow-sm hover:border-primary/20 transition-all duration-200">
-                    <div className="shrink-0 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-[14px]">
-                      ✓
-                    </div>
-                    <div>
-                      <h4 className="text-[17px] font-bold text-ink mb-1">{title}</h4>
-                      <p className="text-[14.5px] text-muted leading-relaxed">{desc}</p>
-                    </div>
-                  </div>
-                );
-              })}
+      <main className="flex-grow pt-24 pb-20">
+        {/* Hero Section */}
+        <section className="relative py-16 md:py-24 text-center overflow-hidden">
+          {/* Subtle concentric circles background */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 z-0">
+            <div className="w-[800px] h-[800px] rounded-full border border-primary/20 flex items-center justify-center">
+              <div className="w-[600px] h-[600px] rounded-full border border-primary/20 flex items-center justify-center">
+                <div className="w-[400px] h-[400px] rounded-full border border-primary/20"></div>
+              </div>
             </div>
           </div>
+
+          <div className="max-w-[1240px] mx-auto px-7 relative z-10 text-center flex flex-col items-center justify-center">
+            <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-primary/10 text-primary text-[12px] font-mono font-bold uppercase tracking-wider mb-5">
+              ● {content.tag}
+            </span>
+            <h1 className="text-4xl md:text-[60px] font-black tracking-tight leading-[1.1] mb-5 max-w-[850px] mx-auto animate-fade-in text-center">
+              {content.title}
+            </h1>
+            <p className="text-[19px] text-[var(--muted)] max-w-[700px] mx-auto leading-relaxed mb-6 font-semibold text-center">
+              {content.subtitle}
+            </p>
+          </div>
         </section>
 
-        {/* CTA */}
-        <section className="relative py-20 bg-gradient-to-b from-white to-primary-tint">
-          <div className="max-w-[1240px] mx-auto px-7 text-center">
-            <h2 className="text-3xl md:text-5xl font-display font-black mb-6 text-ink">Ready to Scale Your Marketing?</h2>
-            <p className="text-[18px] text-muted mb-8 max-w-[560px] mx-auto">
-              Get started with Solo Spider for free. Set up your workspace in under 5 minutes.
-            </p>
-            <div className="flex justify-center gap-4">
-              <Link href="/signup" className="btn btn-grad">Start Free →</Link>
-              <Link href="/pricing" className="btn btn-ghost">View Pricing</Link>
+        {/* Details and Grid Content */}
+        <section className="py-8 relative z-10">
+          <div className="max-w-[960px] mx-auto px-7 space-y-12">
+            {/* Overview Box */}
+            <div className="bg-[var(--panel)] border border-[var(--line)] p-6 md:p-8 rounded-2xl shadow-sm text-[var(--ink-2)] text-left space-y-4">
+              <p className="text-base font-semibold leading-relaxed">
+                {content.description}
+              </p>
+              <p className="opacity-95 text-[15px] leading-relaxed">
+                {content.intro}
+              </p>
+            </div>
+
+            {/* Bullets Grid */}
+            <div className="space-y-6 text-left">
+              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-primary font-bold">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Capabilities</span>
+              </div>
+              <h3 className="font-display text-2xl font-black tracking-tight text-[var(--ink)] mb-4">
+                {content.useCasesTitle}
+              </h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {content.bullets.map((bullet, idx) => (
+                  <div key={idx} className="flex gap-3.5 p-5 bg-[var(--panel)] border border-[var(--line)] rounded-xl shadow-sm hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-200">
+                    <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                    <span className="text-[14.5px] font-semibold text-[var(--ink-2)] leading-relaxed">{bullet}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Conclusion */}
+            <div className="bg-[var(--bg-2)] p-6 md:p-8 rounded-2xl border border-[var(--line)] text-left">
+              <p className="text-[15px] font-semibold text-[var(--ink-2)] leading-relaxed">
+                {content.conclusion}
+              </p>
+            </div>
+
+            {/* Call To Action */}
+            <div className="text-center pt-8">
+              <div className="inline-flex flex-col sm:flex-row justify-center items-center gap-4">
+                <Link href="/signup" className="btn btn-grad px-8 py-4 text-sm font-bold shadow-lg shadow-primary/25 hover:scale-[1.02] transition-transform w-full sm:w-auto flex items-center justify-center gap-1.5">
+                  Start Free Trial <ChevronRight className="w-4 h-4" />
+                </Link>
+                <Link href="/pricing" className="btn btn-ghost border-[var(--line)] px-8 py-4 text-sm font-semibold hover:bg-[var(--bg-2)] w-full sm:w-auto">
+                  View Pricing Plans
+                </Link>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
       <MarketingFooter />
+
+      <AeoWizardModal isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} initialDomain={wizardDomain} />
     </div>
   );
 }
