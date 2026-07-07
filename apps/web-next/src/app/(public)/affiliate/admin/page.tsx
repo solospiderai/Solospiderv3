@@ -52,6 +52,8 @@ interface PayoutRequest {
 export default function AffiliateAdminPage() {
   const [isDark, setIsDark] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean | null>(null);
+  const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   
   // Tabs
   const [activeTab, setActiveTab] = useState<"applications" | "affiliates" | "payouts" | "settings">("applications");
@@ -73,22 +75,40 @@ export default function AffiliateAdminPage() {
         document.documentElement.classList.remove("dark");
       }
       
-      const checkUser = async () => {
-        try {
-          const supabase = getSupabaseBrowserClient();
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user && user.email === "info@solospider.ai") {
-            setIsAdminAuthenticated(true);
-          } else {
+      const isAuth = window.sessionStorage.getItem("solospider_admin_authenticated") === "true";
+      if (isAuth) {
+        setIsAdminAuthenticated(true);
+      } else {
+        const checkUser = async () => {
+          try {
+            const supabase = getSupabaseBrowserClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && user.email === "info@solospider.ai") {
+              setIsAdminAuthenticated(true);
+            } else {
+              setIsAdminAuthenticated(false);
+            }
+          } catch {
             setIsAdminAuthenticated(false);
           }
-        } catch {
-          setIsAdminAuthenticated(false);
-        }
-      };
-      checkUser();
+        };
+        checkUser();
+      }
     }
   }, []);
+
+  const handleAdminSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminEmail === "info@solospider.ai" && adminPassword === "123456") {
+      setIsAdminAuthenticated(true);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("solospider_admin_authenticated", "true");
+      }
+      toast.success("Welcome back, Admin!");
+    } else {
+      toast.error("Invalid administrator email or password.");
+    }
+  };
 
   const loadState = async () => {
     let supabaseApps: Application[] = [];
@@ -571,13 +591,37 @@ export default function AffiliateAdminPage() {
               To manage applications and payouts, you must be signed in as <strong className="text-[var(--ink)]">info@solospider.ai</strong>.
             </p>
 
-            <div className="space-y-3">
-              <Link
-                href="/login"
+            <form onSubmit={handleAdminSignIn} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Admin Email</label>
+                <input 
+                  type="email" 
+                  required 
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
+                  placeholder="info@solospider.ai"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Password</label>
+                <input 
+                  type="password" 
+                  required 
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
+                  placeholder="••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
                 className="w-full btn btn-grad py-3 text-xs font-bold shadow-lg shadow-primary/25 cursor-pointer block text-center"
               >
-                Sign In to Admin Account
-              </Link>
+                Access Admin Panel
+              </button>
               
               <Link
                 href="/affiliate"
@@ -585,7 +629,7 @@ export default function AffiliateAdminPage() {
               >
                 Return to Affiliate Portal
               </Link>
-            </div>
+            </form>
           </div>
         </main>
         
