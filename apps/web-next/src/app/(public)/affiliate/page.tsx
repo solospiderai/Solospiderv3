@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
-import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { 
   Award, ArrowRight, ShieldCheck, DollarSign, Users, 
   Target, BarChart3, HelpCircle, ChevronDown, Sparkles 
 } from "lucide-react";
 
 export default function AffiliateLandingPage() {
-  const [isWizardOpen, setIsWizardOpen] = useState(false);
-  const [wizardDomain, setWizardDomain] = useState("");
   const [isDark, setIsDark] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
@@ -40,10 +36,7 @@ export default function AffiliateLandingPage() {
     }
   };
 
-  const triggerWizard = () => {
-    setWizardDomain("");
-    setIsWizardOpen(true);
-  };
+
 
   const faqs = [
     {
@@ -79,7 +72,46 @@ export default function AffiliateLandingPage() {
         } as React.CSSProperties
       }
     >
-      <MarketingNavbar isDark={isDark} onToggleTheme={toggleTheme} onOpenWizard={triggerWizard} />
+      {/* Custom Clean Affiliate Navbar */}
+      <header className="sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/80 backdrop-blur-md">
+        <div className="max-w-[1240px] mx-auto px-7 h-16 flex items-center justify-between">
+          <Link href="/affiliate" className="flex items-center gap-2.5">
+            <span className="font-display font-black text-lg tracking-tight">
+              SoloSpider <span className="grad-text text-xs font-bold uppercase ml-1 px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
+            </span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-8 text-xs font-bold text-[var(--muted)]">
+            <a href="#benefits" className="hover:text-primary transition-colors">Program Benefits</a>
+            <a href="#commissions" className="hover:text-primary transition-colors">Commission Matrix</a>
+            <a href="#faq" className="hover:text-primary transition-colors">FAQ</a>
+            <Link href="/affiliate/admin" className="text-red-500 hover:text-red-600 transition-colors flex items-center gap-1 font-bold">
+              <span>Admin Control</span>
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={toggleTheme}
+              className="p-2 rounded-full hover:bg-[var(--bg-2)] text-[var(--ink)] cursor-pointer text-xs font-bold mr-1"
+            >
+              {isDark ? "☀️" : "🌙"}
+            </button>
+            <Link 
+              href="/affiliate/dashboard" 
+              className="bg-[var(--bg-2)] hover:bg-[var(--line)] border border-[var(--line)] px-4 py-2 rounded-xl text-xs font-bold transition-all block text-[var(--ink)]"
+            >
+              Partner Dashboard
+            </Link>
+            <Link 
+              href="/affiliate/apply" 
+              className="btn btn-grad px-4 py-2 rounded-xl text-xs font-bold block shadow-md shadow-primary/25"
+            >
+              Apply Now
+            </Link>
+          </div>
+        </div>
+      </header>
 
       <main className="flex-grow pt-24">
         {/* Hero Section */}
@@ -303,8 +335,6 @@ export default function AffiliateLandingPage() {
       </main>
 
       <MarketingFooter />
-
-      <AeoWizardModal isOpen={isWizardOpen} onClose={() => setIsWizardOpen(false)} initialDomain={wizardDomain} />
     </div>
   );
 }
