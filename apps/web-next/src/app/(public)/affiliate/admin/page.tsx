@@ -51,6 +51,8 @@ interface PayoutRequest {
 
 export default function AffiliateAdminPage() {
   const [isDark, setIsDark] = useState(false);
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean | null>(null);
+  const [adminPasscode, setAdminPasscode] = useState("");
   
   // Tabs
   const [activeTab, setActiveTab] = useState<"applications" | "affiliates" | "payouts" | "settings">("applications");
@@ -71,8 +73,41 @@ export default function AffiliateAdminPage() {
       } else {
         document.documentElement.classList.remove("dark");
       }
+      
+      const isAuth = window.sessionStorage.getItem("solospider_admin_authenticated") === "true";
+      if (isAuth) {
+        setIsAdminAuthenticated(true);
+      } else {
+        const checkUser = async () => {
+          try {
+            const supabase = getSupabaseBrowserClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user && (user.email === "info@solospider.ai" || user.email?.endsWith("@solospider.ai"))) {
+              setIsAdminAuthenticated(true);
+            } else {
+              setIsAdminAuthenticated(false);
+            }
+          } catch {
+            setIsAdminAuthenticated(false);
+          }
+        };
+        checkUser();
+      }
     }
   }, []);
+
+  const handlePasscodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminPasscode === "solospider-admin-2026") {
+      setIsAdminAuthenticated(true);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("solospider_admin_authenticated", "true");
+      }
+      toast.success("Welcome back, Admin!");
+    } else {
+      toast.error("Incorrect Admin Access Key. Access Denied.");
+    }
+  };
 
   const loadState = async () => {
     let supabaseApps: Application[] = [];
@@ -511,6 +546,76 @@ export default function AffiliateAdminPage() {
     saveState(applications, affiliates, payouts, commissionRate);
     toast.success("Affiliate settings saved successfully!");
   };
+
+  if (isAdminAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-[#0e0c1a] flex items-center justify-center text-white">
+        <div className="text-sm font-mono tracking-widest animate-pulse">CHECKING ACCESS PRIVILEGES...</div>
+      </div>
+    );
+  }
+
+  if (isAdminAuthenticated === false) {
+    return (
+      <div
+        className="min-h-screen bg-[var(--bg)] text-[var(--ink)] flex flex-col font-sans transition-colors duration-300"
+        style={
+          {
+            "--bg": isDark ? "#0e0c1a" : "#fbfaf7",
+            "--bg-2": isDark ? "#141226" : "#f3f2eb",
+            "--panel": isDark ? "#1c1a35" : "#ffffff",
+            "--line": isDark ? "#252340" : "#e2e1da",
+            "--ink": isDark ? "#ffffff" : "#000000",
+            "--muted": isDark ? "#94a3b8" : "#475569",
+          } as React.CSSProperties
+        }
+      >
+        <header className="sticky top-0 z-40 w-full border-b border-[var(--line)] bg-[var(--bg)]/80 backdrop-blur-md">
+          <div className="max-w-[1240px] mx-auto px-7 h-16 flex items-center justify-between">
+            <Link href="/" className="font-display font-black text-lg tracking-tight">
+              SoloSpider <span className="grad-text text-xs font-bold uppercase ml-1 px-2 py-0.5 rounded-md bg-primary/10 tracking-widest border border-primary/20">Partners</span>
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-grow flex items-center justify-center py-20 px-7">
+          <div className="max-w-[420px] w-full bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-10 shadow-xl text-left">
+            <div className="flex items-center gap-2 mb-3 font-mono text-[10px] uppercase tracking-widest text-primary font-bold">
+              <Shield className="w-3.5 h-3.5" />
+              <span>Admin Verification</span>
+            </div>
+            <h2 className="text-2xl font-black mb-4">Control Panel Access</h2>
+            <p className="text-xs text-[var(--muted)] mb-6 leading-relaxed">
+              This panel is restricted to administrators. Enter the Admin Access Key to authenticate.
+            </p>
+
+            <form onSubmit={handlePasscodeSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Access Key</label>
+                <input
+                  type="password"
+                  required
+                  value={adminPasscode}
+                  onChange={(e) => setAdminPasscode(e.target.value)}
+                  className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors font-mono"
+                  placeholder="••••••••••••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full btn btn-grad py-3 text-xs font-bold shadow-lg shadow-primary/25 cursor-pointer"
+              >
+                Authenticate Key
+              </button>
+            </form>
+          </div>
+        </main>
+        
+        <MarketingFooter />
+      </div>
+    );
+  }
 
   return (
     <div

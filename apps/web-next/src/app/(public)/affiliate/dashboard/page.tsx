@@ -593,46 +593,66 @@ export default function AffiliateDashboardPage() {
                       ))}
                     </div>
 
-                    {/* Performance Visual Chart (SVG Bar-graph simulation) */}
-                    <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 md:p-8">
-                      <h3 className="font-display text-lg font-black mb-6">Referrals Performance (Last 6 Months)</h3>
-                      <div className="h-[220px] w-full flex items-end justify-between gap-2 border-b border-[var(--line)] pb-2 relative z-10">
-                        {/* Simulated Bars */}
-                        {[
-                          { month: "Jan", clicks: 120, sales: 8 },
-                          { month: "Feb", clicks: 210, sales: 12 },
-                          { month: "Mar", clicks: 180, sales: 9 },
-                          { month: "Apr", clicks: 280, sales: 16 },
-                          { month: "May", clicks: 310, sales: 22 },
-                          { month: "Jun", clicks: 320, sales: 22 }
-                        ].map((b, idx) => {
-                          const clickHeight = (b.clicks / 350) * 100;
-                          const salesHeight = (b.sales / 30) * 100;
-                          return (
-                            <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
-                              <div className="w-full max-w-[28px] flex items-end gap-1 h-full">
-                                <div 
-                                  className="flex-1 bg-primary/20 rounded-t-sm" 
-                                  style={{ height: `${clickHeight}%` }}
-                                  title={`Clicks: ${b.clicks}`}
-                                ></div>
-                                <div 
-                                  className="flex-1 bg-primary rounded-t-sm" 
-                                  style={{ height: `${salesHeight}%` }}
-                                  title={`Sales: ${b.sales}`}
-                                ></div>
-                              </div>
-                              <span className="text-[10px] font-mono uppercase font-bold text-[var(--muted)]">{b.month}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      <div className="flex gap-6 mt-4 justify-start text-[11px] font-bold">
-                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-primary/20 rounded-sm"></span> Clicks</span>
-                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-primary rounded-sm"></span> Referrals</span>
-                      </div>
-                    </div>
+                    {/* Performance Visual Chart (Real 30-Day referrals count) */}
+                    {(() => {
+                      const now = new Date();
+                      const weeks = [
+                        { label: "Days 22-30", count: 0 },
+                        { label: "Days 15-21", count: 0 },
+                        { label: "Days 8-14", count: 0 },
+                        { label: "Days 1-7 (Recent)", count: 0 }
+                      ];
+
+                      activeRefs.forEach((ref) => {
+                        const signupDate = new Date(ref.signupDate);
+                        const diffTime = Math.abs(now.getTime() - signupDate.getTime());
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                        if (diffDays <= 7) {
+                          weeks[3].count += 1;
+                        } else if (diffDays <= 14) {
+                          weeks[2].count += 1;
+                        } else if (diffDays <= 21) {
+                          weeks[1].count += 1;
+                        } else if (diffDays <= 30) {
+                          weeks[0].count += 1;
+                        }
+                      });
+
+                      const maxVal = Math.max(...weeks.map((w) => w.count), 1);
+
+                      return (
+                        <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 md:p-8">
+                          <h3 className="font-display text-lg font-black mb-6 text-left">Referrals Performance (Last 30 Days)</h3>
+                          <div className="h-[220px] w-full flex items-end justify-around gap-2 border-b border-[var(--line)] pb-2 relative z-10">
+                            {weeks.map((w, idx) => {
+                              const barHeight = (w.count / maxVal) * 100;
+                              return (
+                                <div key={idx} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end max-w-[120px]">
+                                  <div className="w-full max-w-[40px] flex items-end justify-center h-full relative">
+                                    {w.count > 0 && (
+                                      <div className="absolute -top-6 text-[10px] font-mono font-bold text-primary">
+                                        {w.count} refs
+                                      </div>
+                                    )}
+                                    <div 
+                                      className="w-full bg-primary rounded-t-lg transition-all duration-500 hover:opacity-85" 
+                                      style={{ height: `${Math.max(5, barHeight)}%` }}
+                                      title={`Referrals: ${w.count}`}
+                                    ></div>
+                                  </div>
+                                  <span className="text-[10px] font-mono uppercase font-bold text-[var(--muted)]">{w.label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          
+                          <div className="flex gap-6 mt-4 justify-start text-[11px] font-bold">
+                            <span className="flex items-center gap-1.5"><span className="w-3 h-3 bg-primary rounded-sm"></span> Real Referrals</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
