@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
                 user: smtpUser,
                 password: smtpPass,
               },
-            });
+            } as any);
             await transporter.sendMail({
               from: `SoloSpider <${smtpUser}>`,
               to: u.email,
