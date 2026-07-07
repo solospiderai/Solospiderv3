@@ -442,8 +442,8 @@ export default function PricingPage() {
         {/* FINAL CTA SECTION */}
         <section className="relative bg-[var(--bg)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)]">
-              <div className="absolute inset-0 rounded-[32px] p-[1.5px] bg-grad [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
+            <div className="bg-gradient-to-b from-primary to-transparent rounded-[32px] p-[1.5px] shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)]">
+              <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[30.5px] overflow-hidden">
               
               <div className="mono text-[#22d3ee] mb-3.5">— Ready to switch?</div>
               <h2 className="text-4xl md:text-[64px] leading-[1.05] mb-6 font-display font-black">
@@ -466,7 +466,8 @@ export default function PricingPage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
       </main>
 
       <MarketingFooter />

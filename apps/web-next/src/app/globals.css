@@ -71,6 +71,7 @@
   --color-border: var(--line);
   --font-sans: 'Inter', sans-serif;
   --font-tight: 'Inter Tight', sans-serif;
+  --font-display: 'Inter Tight', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
 

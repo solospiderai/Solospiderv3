@@ -101,24 +101,29 @@ export default function HomePage() {
 
       <main>
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 1: HERO                                               */}
+        {/* HERO SECTION                                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative pt-[120px] pb-[90px]">
           <div className="relative text-center max-w-[980px] mx-auto px-7">
+            {/* Badge */}
             <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 mb-7">
               <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse-gentle"></span>
               Now live — The AI marketing OS for agencies &amp; creators
             </span>
+
+            {/* Heading */}
             <h1 className="text-5xl md:text-[80px] leading-[1.05] my-7 font-black tracking-tight text-[var(--ink)]">
               Replace Your Entire<br />
               <span className="grad-text">Marketing Workflow</span><br />
               With One Tool
             </h1>
+
+            {/* Sub text */}
             <p className="text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-9 leading-relaxed">
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
 
-            {/* URL Scan Form */}
+            {/* URL Input Bar */}
             <div className="max-w-[640px] mx-auto mb-8 relative z-20">
               <form onSubmit={handleStartAnalysis} className="p-1.5 rounded-full bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex items-center gap-2">
                 <div className="flex-1 flex items-center pl-4">
@@ -149,12 +154,12 @@ export default function HomePage() {
                   )}
                 </button>
               </form>
-              <p className="text-[12px] text-[var(--ink-2)] opacity-60 mt-3.5 font-bold flex items-center justify-center gap-1.5">
-                <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
+              <p className="text-[12px] text-[var(--muted)] opacity-60 mt-3.5 font-semibold flex items-center justify-center gap-1.5">
+                <span>● SEO &amp; AEO scans start instantly in the background</span>
               </p>
             </div>
 
-            {/* Sub CTAs */}
+            {/* Sub CTA Buttons */}
             <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
               <button onClick={() => router.push("/signup")} className="btn btn-grad px-8 py-3.5 rounded-full text-[14.5px] font-bold cursor-pointer">
                 Start free trial →
@@ -164,7 +169,7 @@ export default function HomePage() {
               </a>
             </div>
 
-            {/* Promos */}
+            {/* Promo Items */}
             <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3.5 text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-14">
               {["No credit card required", "Free plan available", "Set up in 5 minutes"].map((p, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -175,28 +180,27 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Trusted Brand Logos */}
+          {/* Trust Bar */}
           <div className="pt-12 pb-7 border-t border-[var(--line)] mt-20">
             <div className="max-w-[1240px] mx-auto px-7">
               <div className="text-center text-[13px] text-[var(--muted)] mb-6 tracking-wide uppercase font-semibold">
                 Trusted by 2,000+ agencies, freelancers, and solo founders
               </div>
               <div className="flex justify-center items-center gap-12 flex-wrap text-[var(--ink-2)] font-display font-semibold text-lg opacity-60">
-                <span>Intercom</span>
-                <span>Buffer</span>
-                <span className="font-extrabold">HubSpot</span>
-                <span>Zendesk</span>
-                <span className="italic">Mailchimp</span>
-                <span className="font-bold">salesforce</span>
+                <span>Loomstack</span>
+                <span>NORTHWIND</span>
+                <span className="font-extrabold">PEAK CO</span>
+                <span>Lattice</span>
+                <span>CIVIC</span>
+                <span className="flex items-center gap-1.5">● Pulse</span>
+                <span className="font-bold">Modern</span>
               </div>
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 2: PROBLEM – "You're paying for 6 tools…"             */}
-        {/* Layout: Text left, Diagram right                              */}
-        {/* Diagram: 6 dark rounded-square cards → center purple squircle → 5 dark capsules */}
+        {/* PROBLEM SECTION – "You're paying for 6 tools…"               */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="problem">
           <div className="max-w-[1240px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-14 items-center">
@@ -217,36 +221,30 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right: Diagram (matching screenshot exactly) */}
+            {/* Right: Diagram */}
             <div className="relative w-full max-w-[680px] mx-auto" style={{ minHeight: 420 }}>
               {/* SVG connection lines */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 680 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Left tools → left node */}
                 <path d="M 110,55 C 160,55 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 150,105 C 180,105 180,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 80,175 C 130,175 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 155,195 C 175,195 185,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 80,280 C 130,280 170,210 195,210" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 155,345 C 175,345 185,230 195,210" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                {/* Left node → center */}
                 <line x1="210" y1="205" x2="265" y2="205" stroke={isDark ? "#ffffff15" : "#00000010"} strokeWidth="1.5" strokeDasharray="4 4" />
-                {/* Center → right node */}
                 <line x1="415" y1="205" x2="470" y2="205" stroke={isDark ? "#ffffff15" : "#00000010"} strokeWidth="1.5" strokeDasharray="4 4" />
-                {/* Right node → right capsules */}
                 <path d="M 485,195 C 510,195 520,65 535,65" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 485,195 C 510,195 520,140 535,140" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 485,205 C 510,205 520,215 535,215" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 485,210 C 510,210 520,290 535,290" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
                 <path d="M 485,215 C 510,215 520,360 535,360" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
-                {/* Left connection node */}
                 <circle cx="200" cy="205" r="6" fill={isDark ? "#1c1a35" : "#ffffff"} stroke={isDark ? "#ffffff30" : "#00000020"} strokeWidth="1.5" />
                 <circle cx="200" cy="205" r="2.5" fill={isDark ? "#ffffff" : "#000000"} />
-                {/* Right connection node */}
                 <circle cx="480" cy="205" r="6" fill={isDark ? "#1c1a35" : "#ffffff"} stroke={isDark ? "#ffffff30" : "#00000020"} strokeWidth="1.5" />
                 <circle cx="480" cy="205" r="2.5" fill={isDark ? "#ffffff" : "#000000"} />
               </svg>
 
-              {/* Left: 6 tool cards (rounded squares, scattered layout) */}
+              {/* Left: 6 tool cards */}
               {[
                 { icon: "📊", name: "Surfer", sub: "", top: 20, left: 0 },
                 { icon: "☰", name: "Buffer", sub: "Social", top: 70, left: 90 },
@@ -305,9 +303,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 3: DASHBOARD PREVIEW                                  */}
-        {/* "Built for agencies. Priced for solo creators."               */}
-        {/* Shows two overlapping browser mockups                         */}
+        {/* DASHBOARD PREVIEW                                             */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -321,10 +317,9 @@ export default function HomePage() {
               <p className="text-[18px] text-[var(--ink-2)] max-w-[760px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
             </div>
 
-            {/* Clean browser window mockup showing the actual dashboard mockup image */}
             <div className="relative w-full max-w-[1100px] mx-auto rounded-2xl overflow-hidden border border-[var(--line)] shadow-[0_32px_64px_-24px_rgba(14,12,26,0.22)]">
               <img
-                src={isDark ? "/assets/dashboard-dark.png" : "/assets/dashboard-light.png"}
+                src="/assets/Frame-57.png"
                 alt="Solo Spider Dashboard Preview"
                 className="w-full h-auto block"
               />
@@ -333,8 +328,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 4: WHO IT'S FOR – Two cards side by side              */}
-        {/* "Built for agencies. Priced for solo creators."               */}
+        {/* WHO IT'S FOR – Two cards side by side                         */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="audience">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -350,9 +344,8 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
               {/* Agency Card */}
-              <div className="relative bg-[var(--panel)] border border-primary/25 rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] group">
-                <div className="absolute inset-0 rounded-3xl p-[1.5px] bg-gradient-to-b from-primary via-[#b260ff] to-transparent [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>
-                <div className="relative z-10">
+              <div className="relative p-[1.5px] bg-gradient-to-b from-primary via-[#b260ff] to-transparent rounded-3xl overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group">
+                <div className="bg-[var(--panel)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[22px] p-10 lg:p-11 flex flex-col gap-4.5 relative z-10 h-full">
                   <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary text-white text-[12px] font-semibold border border-primary tracking-wide self-start mb-4">
                     For Agencies
                   </span>
@@ -374,7 +367,7 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-grad self-start cursor-pointer">Explore Agency Plan →</button>
+                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn bg-primary text-white hover:bg-primary-2 self-start mt-auto cursor-pointer">Explore Agency Plan →</button>
                 </div>
               </div>
 
@@ -409,9 +402,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 5: AI SEARCH METRICS                                  */}
-        {/* "Discover how AI interprets your brand"                       */}
-        {/* Left: SEO/AEO/GEO text blocks. Right: Search results mockup   */}
+        {/* AI SEARCH METRICS                                             */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -423,25 +414,25 @@ export default function HomePage() {
                 Discover how AI<br />interprets your brand
               </h2>
               <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">
-                Track the most important performance indicators across AI search engines.
+                Track the most important performance indicators across AI search.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-12 items-stretch">
-              {/* Left Column: Static Cards Stack */}
+              {/* Left Column: SEO/AEO/GEO Cards */}
               <div className="flex flex-col gap-5 justify-between">
                 {[
                   {
                     title: "SEO",
-                    desc: "Monitor traditional search query performance and ensure all classic technical indexing signals are optimized for maximum visibility."
+                    desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
                   },
                   {
                     title: "AEO",
-                    desc: "Identify brand footprint citation indexes within large language model conversational answers (ChatGPT, Claude, Gemini)."
+                    desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
                   },
                   {
                     title: "GEO",
-                    desc: "Optimize semantic data structure context maps so geographic and contextual results identify your brand details reliably."
+                    desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
                   }
                 ].map((item, idx) => (
                   <div
@@ -452,7 +443,7 @@ export default function HomePage() {
                         : "bg-[#F4F3EE] dark:bg-[var(--panel-soft)] border-transparent"
                     }`}
                   >
-                    <h3 className={`text-2xl font-black mb-2.5 font-display ${idx === 0 ? "text-[var(--ink)]" : "text-[var(--ink)]"}`}>
+                    <h3 className="text-2xl font-black mb-2.5 font-display text-[var(--ink)]">
                       {item.title}
                     </h3>
                     <p className="text-[14px] text-[var(--ink-2)] leading-relaxed opacity-90">
@@ -462,9 +453,8 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Right Column: Search Mockup Card */}
+              {/* Right Column: Search Mockup */}
               <div className="bg-[#F4F3EE] dark:bg-[var(--panel-soft)] rounded-[32px] p-6 lg:p-8 flex flex-col gap-6 text-left border border-[var(--line)]">
-                {/* Search Bar Input */}
                 <div className="flex items-center justify-between bg-white dark:bg-[var(--panel)] rounded-full pl-5 pr-1.5 py-1.5 shadow-[0_4px_15px_rgba(0,0,0,0.02)] border border-[var(--line)]">
                   <span className="text-[13.5px] text-[var(--ink-2)] opacity-70 font-medium">Digital Marketing Company...</span>
                   <button type="button" className="w-9 h-9 rounded-full bg-[#9025F2] hover:bg-[#7c1ed4] text-white flex items-center justify-center transition-colors">
@@ -474,7 +464,6 @@ export default function HomePage() {
                   </button>
                 </div>
                 
-                {/* Search Result Items — static */}
                 <div className="flex flex-col gap-6">
                   {[1, 2, 3, 4].map((num) => (
                     <div key={num} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
@@ -496,9 +485,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 6: SIX SUPERPOWERS – 2×2 feature card grid            */}
-        {/* "Six superpowers. One subscription."                           */}
-        {/* 2-col header: title left, description right                   */}
+        {/* SIX SUPERPOWERS – 2×2 feature card grid                      */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="features">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -518,7 +505,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* 2×2 Feature Cards Grid (matching screenshot layout) */}
+            {/* 2×2 Feature Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
                 {
@@ -648,7 +635,9 @@ export default function HomePage() {
                         <div className="flex flex-col gap-1 text-[8.5px]">
                           <div className="flex items-center gap-1.5 text-rose-500 font-semibold">⚠️ 16 pages are missing title tags</div>
                           <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 2 pages have duplicate title tags</div>
-                          <div className="flex items-center gap-1.5 text-gray-500">ℹ️ 1 sitemap.xml bot issue</div>
+                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 18 pages are missing descriptions</div>
+                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 17 pages are missing H1 tags</div>
+                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 16 pages have thin content (&lt;200 wo...</div>
                         </div>
                       </div>
                     </div>
@@ -722,8 +711,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 7: HOW IT WORKS – 4 step cards                        */}
-        {/* "From setup to running on autopilot in one day."              */}
+        {/* HOW IT WORKS – 4 step cards                                   */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="how">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -757,7 +745,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 8: NUMBERS – "Real Results. Not Marketing Fluff."     */}
+        {/* NUMBERS – "Real Results. Not Marketing Fluff."                */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
@@ -789,8 +777,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 9: COMPARISON TABLE                                   */}
-        {/* "Stop Paying for a Stack. Start Using a System."              */}
+        {/* COMPARISON TABLE                                              */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -804,6 +791,7 @@ export default function HomePage() {
               <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Here&apos;s what Solo Spider replaces — and what none of those tools can do together.</p>
             </div>
 
+            {/* Desktop Table */}
             <div className="hidden lg:block bg-[var(--panel)] border border-[var(--line)] rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.08)]">
               <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-gradient-to-b from-[var(--bg-2)] to-[var(--bg)] border-b border-[var(--line)]">
                 <div className="py-4.5 px-6 font-display font-bold text-[13px] text-[var(--ink)] text-left border-r border-[var(--line)]">Capability</div>
@@ -839,7 +827,7 @@ export default function HomePage() {
               
               <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-[var(--bg-2)] font-semibold" role="row">
                 <div className="py-4.5 px-6 text-[13.5px] text-[var(--ink)] border-r border-[var(--line)] text-left">Typical monthly cost</div>
-                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 text-primary text-[13.5px]">₹X,XXX</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 text-primary text-[13.5px]">₹20,000</div>
                 <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹8,000+</div>
                 <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹3,500+</div>
                 <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">₹2,000+</div>
@@ -885,8 +873,7 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 10: PRICING                                           */}
-        {/* "One Price. Everything included."                              */}
+        {/* PRICING                                                       */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="pricing">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -900,78 +887,140 @@ export default function HomePage() {
               <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">No feature gating. No per-seat pricing surprises. Pick the plan that fits your volume and get access to every single Solo Spider capability.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-[1080px] mx-auto text-left">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-[1240px] mx-auto text-left">
               {/* Starter Plan */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-7 lg:p-8 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 relative">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Starter</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For creators just getting started</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
-                  <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary">₹0</span>
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-primary">₹0</span>
                   <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[13.5px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
-                  {["5 blog posts / month", "20 social posts / month", "Basic SEO audit (1 website)", "AEO insights (limited)", "1 connected social account"].map((f, i) => (
+                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                  {[
+                    "1 project",
+                    "1 AI model (+$50/extra)",
+                    "5 blog posts/month",
+                    "30 social posts (schedule only)",
+                    "1 SEO audit (total)",
+                    "SEO recommendations only",
+                    "5 social media connections",
+                    "SoloSpider branding on reports",
+                  ].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
                       <span className="text-primary text-[14px] font-bold">✓</span>
                       <span className="leading-tight text-[var(--ink-2)]">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3.5 text-[13px] font-bold border-[var(--line)] hover:border-primary">Get started free →</button>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3 text-xs border-[var(--line)] hover:border-primary">Get started free →</button>
               </div>
 
-              {/* Solo Plan (internal: growth) */}
-              <div className="relative border-2 border-primary bg-[var(--panel)] shadow-[0_24px_60px_-15px_rgba(144,37,242,0.22)] rounded-3xl p-7 lg:p-8 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 overflow-visible">
+              {/* Growth Plan */}
+              <div className="relative border-2 border-primary bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Most popular for creators</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Solo</h3>
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] -mt-1 uppercase">Growth</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For founders, freelancers &amp; creators</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
-                  <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary">$149</span>
+                  <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary">$199</span>
                   <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[13.5px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
-                  {["Unlimited blog posts", "Unlimited social content", "Full SEO audit + auto-fix", "AEO & GRO dashboard", "5 social accounts", "Priority support"].map((f, i) => (
+                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                  {[
+                    "5 projects (+$50/extra)",
+                    "4 AI models (+$50/extra)",
+                    "Unlimited blog posts",
+                    "Unlimited social scheduling",
+                    "30 AI media studio posts/mo",
+                    "Weekly SEO audit + AI fix",
+                    "Unlimited AEO/GEO",
+                    "5 social media connections",
+                    "Priority support",
+                  ].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
                       <span className="text-primary text-[14px] font-bold">✓</span>
                       <span className="leading-tight text-[var(--ink-2)] font-semibold">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-3.5 text-[13px] font-bold relative overflow-hidden transition-all duration-200">Start Solo plan →</button>
+                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-3 text-xs relative overflow-hidden transition-all duration-200">Start Growth plan →</button>
               </div>
 
-              {/* Agency Plan (internal: scale) */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-7 lg:p-8 flex flex-col gap-5 transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 relative">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for teams &amp; client work</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Agency</h3>
-                <div className="text-[12px] text-[var(--muted)] -mt-2">For agencies running 10+ clients</div>
+              {/* Scale Plan */}
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Scale</h3>
+                <div className="text-[12px] text-[var(--muted)] -mt-2">For growing teams &amp; agencies</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
-                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">Custom</span>
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">$699</span>
+                  <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[13.5px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
-                  {["Everything in SOLO", "25+ client workspaces", "White-label reports", "Bulk content scheduling", "Team collaboration tools", "Dedicated onboarding call"].map((f, i) => (
+                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                  {[
+                    "10 projects (+$50/extra)",
+                    "7 AI models (+$50/extra)",
+                    "Unlimited blog posts",
+                    "Unlimited social scheduling",
+                    "30 AI media studio posts/mo",
+                    "Weekly SEO audit + AI fix",
+                    "Unlimited AEO/GEO",
+                    "5 social media connections",
+                    "Your brand logo on reports",
+                    "API access (coming soon)",
+                    "24/7 dedicated support",
+                  ].map((f, i) => (
                     <div key={i} className="flex gap-2.5 items-start">
                       <span className="text-primary text-[14px] font-bold">✓</span>
                       <span className="leading-tight text-[var(--ink-2)]">{f}</span>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3.5 text-[13px] font-bold border-[var(--line)] hover:border-primary">Talk to us →</button>
+                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3 text-xs border-[var(--line)] hover:border-primary">Start Scale plan →</button>
+              </div>
+
+              {/* Custom Plan */}
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Custom</h3>
+                <div className="text-[12px] text-[var(--muted)] -mt-2">For large teams &amp; custom volume</div>
+                <div className="flex items-baseline justify-start gap-1 mt-1">
+                  <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">Custom</span>
+                </div>
+                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-7">
+                  {[
+                    "Custom projects",
+                    "Custom AI models",
+                    "Custom blog generation",
+                    "Custom social & media studio",
+                    "Custom SEO audit + AI fix",
+                    "Custom AEO/GEO",
+                    "Custom social connections",
+                    "Your brand on reports",
+                    "Full API access",
+                    "Custom SLA & support",
+                    "Dedicated onboarding call",
+                  ].map((f, i) => (
+                    <div key={i} className="flex gap-2.5 items-start">
+                      <span className="text-primary text-[14px] font-bold">✓</span>
+                      <span className="leading-tight text-[var(--ink-2)]">{f}</span>
+                    </div>
+                  ))}
+                </div>
+                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3 text-xs border-[var(--line)] hover:border-primary">Talk to us →</button>
               </div>
             </div>
 
             <div className="text-center mt-12 text-[var(--muted)] text-[14px] leading-relaxed">
-              All plans include a <strong className="text-[var(--ink)]">14-day free trial</strong>. No credit card required.
+              All plans include a <strong className="text-[var(--ink)]">7-day free trial</strong>. Credit card required.
             </div>
           </div>
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 11: FAQs                                              */}
-        {/* "Everything you want to know before you sign up."             */}
+        {/* FAQs                                                          */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
@@ -1016,17 +1065,18 @@ export default function HomePage() {
         </section>
 
         {/* ═══════════════════════════════════════════════════════════════ */}
-        {/* SECTION 12: FINAL CTA                                         */}
-        {/* "Simplify your marketing. Amplify your results."              */}
+        {/* FINAL CTA                                                     */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative bg-[var(--bg-2)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className={`relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
-              isDark 
-                ? "bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] border border-[var(--line)]" 
-                : "bg-primary text-white"
+            <div className={`rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] p-[1.5px] transition-all duration-300 ${
+              isDark ? "bg-gradient-to-b from-primary to-transparent" : "bg-transparent"
             }`}>
-              {isDark && <div className="absolute inset-0 rounded-[32px] p-[1.5px] bg-gradient-to-b from-primary to-transparent [mask-image:linear-gradient(#fff_0_0)] [mask-composite:exclude] pointer-events-none"></div>}
+              <div className={`relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[30.5px] overflow-hidden transition-all duration-300 ${
+                isDark 
+                  ? "bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)]" 
+                  : "bg-primary text-white"
+              }`}>
               
               <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] font-mono font-bold uppercase tracking-wider mb-6 ${
                 isDark 
@@ -1049,14 +1099,14 @@ export default function HomePage() {
                     ? "btn-grad" 
                     : "bg-white text-primary hover:bg-purple-100 hover:scale-[1.02] shadow-lg shadow-black/10"
                 }`}>
-                  Start Free — No Card Needed
+                  Start Free
                 </button>
                 <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className={`btn px-8 py-4 rounded-full font-bold cursor-pointer transition-all ${
                   isDark 
                     ? "btn-ghost" 
                     : "bg-transparent border border-white/40 text-white hover:bg-white/10"
                 }`}>
-                  Book a 20-Minute Demo
+                  Book a Demo
                 </button>
               </div>
               
@@ -1070,7 +1120,8 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
       </main>
 
       <MarketingFooter />
