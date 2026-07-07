@@ -103,7 +103,7 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* HERO SECTION                                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative pt-[90px] pb-[60px] md:pt-[130px] md:pb-[95px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero">
+        <section className="relative w-full md:h-[769px] pt-[60px] pb-[40px] md:pt-[90.5px] md:pb-0 overflow-hidden border-b border-[var(--line)] bg-[var(--bg)] flex flex-col justify-between" id="hero">
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <svg
@@ -148,29 +148,29 @@ export default function HomePage() {
             </svg>
           </div>
 
-          <div className="relative text-center max-w-[980px] mx-auto px-7 z-10">
+          <div className="relative text-center max-w-[980px] mx-auto px-7 z-10 flex-grow flex flex-col justify-center items-center">
             {/* Badge */}
-            <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[12px] font-semibold text-[var(--ink)] mb-7 shadow-sm">
+            <span className="inline-flex items-center gap-2 h-[39px] px-5 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[12px] font-semibold text-[var(--ink)] mb-[25.5px] shadow-sm shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-[#9025F2]"></span>
               Now live — The AI marketing OS for agencies &amp; creators
             </span>
 
             {/* Heading */}
-            <h1 className="text-[34px] sm:text-[52px] md:text-[80px] leading-[1.05] my-7 font-black tracking-tight text-[var(--ink)]">
+            <h1 className="text-[34px] sm:text-[52px] md:text-[80px] leading-[1.05] mb-[20px] font-black tracking-tight text-[var(--ink)]">
               Replace Your Entire<br />
               <span className="grad-text">Marketing Workflow</span><br />
               With One Tool
             </h1>
 
             {/* Sub text */}
-            <p className="text-[15px] sm:text-[18px] md:text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-9 leading-relaxed opacity-90">
+            <p className="text-[15px] sm:text-[18px] md:text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-[32px] leading-[1.6] opacity-90">
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
 
-            {/* URL Input Bar - Fully Mobile Responsive & Rectangular Shape Radius */}
-            <div className="max-w-[640px] mx-auto mb-5 relative z-20">
-              <form onSubmit={handleStartAnalysis} className="p-2 sm:p-1.5 rounded-[12px] bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <div className="flex-grow flex items-center pl-3">
+            {/* URL Input Bar - Fully Mobile Responsive & Precise Figma Sizing */}
+            <div className="w-full max-w-[640px] mx-auto mb-[20px]">
+              <form onSubmit={handleStartAnalysis} className="h-auto sm:h-[62.5px] w-full p-2 sm:p-[9px] rounded-[16px] bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex-grow flex items-center pl-2">
                   <Globe className="w-4.5 h-4.5 text-[var(--muted)] shrink-0" />
                   <input
                     type="text"
@@ -178,13 +178,13 @@ export default function HomePage() {
                     placeholder="Enter your website URL (e.g., example.com)"
                     value={analysisUrl}
                     onChange={(e) => setAnalysisUrl(e.target.value)}
-                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-[14px] md:text-[15px] py-2.5 sm:py-3.5 px-2 placeholder-[var(--muted)]"
+                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-[14px] md:text-[15px] py-2 sm:py-0 px-2 placeholder-[var(--muted)]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={analyzing}
-                  className="btn btn-grad px-6 sm:px-7 py-3 h-[46px] text-[13px] sm:text-[13.5px] font-black tracking-wide rounded-[8px] shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-[180.14px] h-[44.5px] bg-primary hover:bg-primary-2 text-white font-extrabold text-[13.5px] rounded-[14px] shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {analyzing ? (
                     <>
@@ -198,23 +198,25 @@ export default function HomePage() {
                   )}
                 </button>
               </form>
-              <p className="text-[11.5px] text-[var(--muted)] mt-4 font-semibold flex items-center justify-center gap-1.5">
-                <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
-              </p>
             </div>
 
-            {/* Sub CTA Buttons with rx=5 Shape Radius */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-9">
-              <button onClick={() => router.push("/signup")} className="btn btn-primary bg-primary hover:bg-primary-2 text-white px-8 py-3.5 rounded-[6px] text-[14px] sm:text-[14.5px] font-bold cursor-pointer w-full sm:w-auto shadow-md">
+            {/* Under-Input Text */}
+            <p className="text-[11.5px] text-[var(--muted)] font-semibold mb-[36px] flex items-center justify-center gap-1.5">
+              <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
+            </p>
+
+            {/* Sub CTA Buttons with Exact Figma Sizing */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-[20px] mb-[32px]">
+              <button onClick={() => router.push("/signup")} className="w-[173px] h-[50px] bg-[#9025F2] hover:bg-primary-2 text-white rounded-[5px] text-[14.5px] font-bold cursor-pointer shadow-md flex items-center justify-center">
                 Start free trial →
               </button>
-              <a href="#problem" className="px-8 py-3.5 rounded-[6px] text-[14px] sm:text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center w-full sm:w-auto">
+              <a href="#problem" className="w-[187px] h-[49px] rounded-[9.5px] text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center">
                 See How It Works
               </a>
             </div>
 
             {/* Promo Items */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-5">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-[var(--ink-2)] opacity-85">
               {["No credit card required", "Free plan available", "Set up in 5 minutes"].map((p, i) => (
                 <div key={i} className="flex items-center gap-1.5">
                   <span className="text-emerald-500 text-[14px] font-extrabold">✓</span>
