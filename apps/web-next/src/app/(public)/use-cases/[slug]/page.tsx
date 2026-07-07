@@ -195,12 +195,12 @@ export default function UseCasePage() {
             </div>
 
             {/* Bullets Grid */}
-            <div className="space-y-6 text-left">
-              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-primary font-bold">
+            <div className="space-y-6 text-center flex flex-col items-center justify-center">
+              <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-primary font-bold justify-center">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Capabilities</span>
               </div>
-              <h3 className="font-display text-2xl font-black tracking-tight text-[var(--ink)] mb-4">
+              <h3 className="font-display text-2xl md:text-3xl font-black tracking-tight text-[var(--ink)] mb-8 text-center">
                 {content.useCasesTitle}
               </h3>
               

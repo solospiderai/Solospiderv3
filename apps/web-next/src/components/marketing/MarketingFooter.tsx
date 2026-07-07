@@ -41,11 +41,11 @@ export const MarketingFooter = () => {
           <div>
             <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '24px' }}>Resources</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
-              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Blog</Link>
-              <Link href="/#faq" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Help Center</Link>
-              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">API Docs</Link>
-              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Case Studies</Link>
-              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Glossary</Link>
+              <Link href="/blog" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Blog</Link>
+              <Link href="/help-center" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Help Center</Link>
+              <Link href="/api-docs" className="text-white/65 hover:text-[#c5a3ff] transition-colors">API Docs</Link>
+              <Link href="/case-studies" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Case Studies</Link>
+              <Link href="/glossary" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Glossary</Link>
             </div>
           </div>
 
