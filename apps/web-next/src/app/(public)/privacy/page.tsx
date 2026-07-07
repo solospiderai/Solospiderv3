@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
 
   return (
     <div
-      className="min-h-screen bg-[var(--bg)] text-[var(--ink)] selection:bg-primary/20 selection:text-[var(--ink)] overflow-x-hidden font-sans"
+      className="min-h-screen bg-[var(--bg)] text-[var(--ink)] selection:bg-primary/20 selection:text-[var(--ink)] font-sans"
       style={
         {
           "--bg": isDark ? "#0e0c1a" : "#fbfaf7",

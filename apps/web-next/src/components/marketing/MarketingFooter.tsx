@@ -52,7 +52,7 @@ export const MarketingFooter = () => {
           <div>
             <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Company</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
-              <Link href="/" className="text-white/65 hover:text-[#c5a3ff] transition-colors">About Us</Link>
+              <Link href="/about" className="text-white/65 hover:text-[#c5a3ff] transition-colors">About Us</Link>
               <a href="mailto:support@solospider.co" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Contact</a>
               <Link href="/affiliate" className="text-white/65 hover:text-[#c5a3ff] transition-colors font-medium">Become Affiliate</Link>
               <Link href="/privacy" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Privacy Policy</Link>
