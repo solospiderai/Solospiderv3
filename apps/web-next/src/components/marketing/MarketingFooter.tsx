@@ -17,7 +17,7 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[13px] font-bold text-white mb-[18px] tracking-[.02em] uppercase">Product</h6>
+            <h6 className="font-display text-[15px] font-extrabold !text-white mb-[22px] tracking-[.02em] uppercase">Product</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Features</Link>
               <Link href="/pricing" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Pricing</Link>
@@ -28,7 +28,7 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[13px] font-bold text-white mb-[18px] tracking-[.02em] uppercase">Use Cases</h6>
+            <h6 className="font-display text-[15px] font-extrabold !text-white mb-[22px] tracking-[.02em] uppercase">Use Cases</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/use-cases/agencies" className="text-white/65 hover:text-[#c5a3ff] transition-colors">For Digital Agencies</Link>
               <Link href="/use-cases/solo" className="text-white/65 hover:text-[#c5a3ff] transition-colors">For Solo Creators</Link>
@@ -39,7 +39,7 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[13px] font-bold text-white mb-[18px] tracking-[.02em] uppercase">Resources</h6>
+            <h6 className="font-display text-[15px] font-extrabold !text-white mb-[22px] tracking-[.02em] uppercase">Resources</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/blog" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Blog</Link>
               <Link href="/help" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Help Center</Link>
@@ -50,10 +50,11 @@ export const MarketingFooter = () => {
           </div>
 
           <div>
-            <h6 className="font-display text-[13px] font-bold text-white mb-[18px] tracking-[.02em] uppercase">Company</h6>
+            <h6 className="font-display text-[15px] font-extrabold !text-white mb-[22px] tracking-[.02em] uppercase">Company</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/about" className="text-white/65 hover:text-[#c5a3ff] transition-colors">About Us</Link>
               <Link href="/contact" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Contact</Link>
+              <Link href="/affiliate" className="text-white/65 hover:text-[#c5a3ff] transition-colors font-medium">Become Affiliate</Link>
               <Link href="/privacy" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Privacy Policy</Link>
               <Link href="/terms" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Terms of Service</Link>
               <Link href="/careers" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Careers</Link>

@@ -99,101 +99,145 @@ export default function HomePage() {
         onOpenWizard={() => { setWizardDomain(""); setIsWizardOpen(true); }} 
       />
 
-      <main>
+      <main className="relative overflow-hidden">
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* HERO SECTION                                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative pt-[120px] pb-[90px]">
-          <div className="relative text-center max-w-[980px] mx-auto px-7">
+        <section className="relative pt-[100px] pb-[70px] md:pt-[130px] md:pb-[90px] border-b border-[var(--line)]">
+          {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            <svg
+              className="absolute left-1/2 -translate-x-1/2 top-[-100px] md:top-[-50px] w-[1920px] h-[1800px] opacity-[0.09] dark:opacity-[0.14]"
+              viewBox="0 0 1920 1800"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Radiating Lines from center (960, 859) */}
+              <line x1="960" y1="859" x2="960" y2="-53" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1195.2" y2="-21.8" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1416" y2="69.4" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1605.6" y2="213.4" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1749.6" y2="403" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1840.8" y2="623.8" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1872" y2="859" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1840.8" y2="1094.2" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1749.6" y2="1315" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1605.6" y2="1504.6" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1416" y2="1648.6" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="1195.2" y2="1739.8" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="724.8" y2="1739.8" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="504" y2="1648.6" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="314.4" y2="1504.6" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="170.4" y2="1315" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="79.2" y2="1094.2" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="48" y2="859" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="79.2" y2="623.8" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="170.4" y2="403" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="314.4" y2="213.4" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="504" y2="69.4" stroke="#9025F2" strokeWidth="1.275" />
+              <line x1="960" y1="859" x2="724.8" y2="-21.8" stroke="#9025F2" strokeWidth="1.275" />
+
+              {/* Concentric Circles centered at (960, 859) */}
+              <circle cx="960" cy="859" r="144" stroke="#9025F2" strokeWidth="1.0625" />
+              <circle cx="960" cy="859" r="264" stroke="#9025F2" strokeWidth="1.0625" />
+              <circle cx="960" cy="859" r="408" stroke="#9025F2" strokeWidth="1.0625" />
+              <circle cx="960" cy="859" r="576" stroke="#9025F2" strokeWidth="1.0625" />
+              <circle cx="960" cy="859" r="744" stroke="#9025F2" strokeWidth="1.0625" />
+              <circle cx="960" cy="859" r="912" stroke="#9025F2" strokeWidth="1.0625" />
+              <circle cx="960" cy="859" r="1080" stroke="#9025F2" strokeWidth="1.0625" />
+            </svg>
+          </div>
+
+          <div className="relative text-center max-w-[980px] mx-auto px-7 z-10">
             {/* Badge */}
-            <span className="inline-flex items-center gap-2.5 py-1.5 px-4 rounded-full bg-primary/5 border border-primary/20 text-[13px] font-medium text-primary-2 mb-7">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse-gentle"></span>
+            <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[12px] font-semibold text-[var(--ink)] mb-7 shadow-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#9025F2]"></span>
               Now live — The AI marketing OS for agencies &amp; creators
             </span>
 
             {/* Heading */}
-            <h1 className="text-5xl md:text-[80px] leading-[1.05] my-7 font-black tracking-tight text-[var(--ink)]">
+            <h1 className="text-[34px] sm:text-[52px] md:text-[80px] leading-[1.05] my-7 font-black tracking-tight text-[var(--ink)]">
               Replace Your Entire<br />
               <span className="grad-text">Marketing Workflow</span><br />
               With One Tool
             </h1>
 
             {/* Sub text */}
-            <p className="text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-9 leading-relaxed">
+            <p className="text-[15px] sm:text-[18px] md:text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-9 leading-relaxed opacity-90">
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
 
-            {/* URL Input Bar */}
-            <div className="max-w-[640px] mx-auto mb-8 relative z-20">
-              <form onSubmit={handleStartAnalysis} className="p-1.5 rounded-full bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex items-center gap-2">
-                <div className="flex-1 flex items-center pl-4">
-                  <Globe className="w-5 h-5 text-[var(--muted)] shrink-0" />
+            {/* URL Input Bar - Fully Mobile Responsive */}
+            <div className="max-w-[640px] mx-auto mb-5 relative z-20">
+              <form onSubmit={handleStartAnalysis} className="p-2 sm:p-1.5 rounded-2xl sm:rounded-full bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex-grow flex items-center pl-3">
+                  <Globe className="w-4.5 h-4.5 text-[var(--muted)] shrink-0" />
                   <input
                     type="text"
                     required
                     placeholder="Enter your website URL (e.g., example.com)"
                     value={analysisUrl}
                     onChange={(e) => setAnalysisUrl(e.target.value)}
-                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-[15px] py-3.5 px-3 placeholder-[var(--muted)]"
+                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-[14px] md:text-[15px] py-2.5 sm:py-3.5 px-2 placeholder-[var(--muted)]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={analyzing}
-                  className="btn btn-grad px-7 py-3 h-[46px] text-[13.5px] font-black tracking-wide rounded-full shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="btn btn-grad px-6 sm:px-7 py-3 h-[46px] text-[13px] sm:text-[13.5px] font-black tracking-wide rounded-xl sm:rounded-full shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {analyzing ? (
                     <>
-                      <Loader2 className="h-4.5 w-4.5 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Analyzing...
                     </>
                   ) : (
                     <>
-                      Start Analysis <span className="text-[14px]">⚡</span>
+                      Start Analysis <span className="text-[13px] sm:text-[14px]">⚡</span>
                     </>
                   )}
                 </button>
               </form>
-              <p className="text-[12px] text-[var(--muted)] opacity-60 mt-3.5 font-semibold flex items-center justify-center gap-1.5">
-                <span>● SEO &amp; AEO scans start instantly in the background</span>
+              <p className="text-[11.5px] text-[var(--muted)] mt-4 font-semibold flex items-center justify-center gap-1.5">
+                <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
               </p>
             </div>
 
             {/* Sub CTA Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-8">
-              <button onClick={() => router.push("/signup")} className="btn btn-grad px-8 py-3.5 rounded-full text-[14.5px] font-bold cursor-pointer">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-9">
+              <button onClick={() => router.push("/signup")} className="btn btn-primary bg-primary hover:bg-primary-2 text-white px-8 py-3.5 rounded-full text-[14px] sm:text-[14.5px] font-bold cursor-pointer w-full sm:w-auto shadow-md">
                 Start free trial →
               </button>
-              <a href="#problem" className="px-8 py-3.5 rounded-full text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-primary-soft/50 hover:text-primary transition-all cursor-pointer flex items-center justify-center">
+              <a href="#problem" className="px-8 py-3.5 rounded-full text-[14px] sm:text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center w-full sm:w-auto">
                 See How It Works
               </a>
             </div>
 
             {/* Promo Items */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3.5 text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-14">
+            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-[var(--ink-2)] opacity-85 mb-10">
               {["No credit card required", "Free plan available", "Set up in 5 minutes"].map((p, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-[10px] font-black">✓</span>
+                <div key={i} className="flex items-center gap-1.5">
+                  <span className="text-emerald-500 text-[14px] font-extrabold">✓</span>
                   <span>{p}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Trust Bar */}
-          <div className="pt-12 pb-7 border-t border-[var(--line)] mt-20">
+          {/* Trust Bar (Standardized logos and responsive layout) */}
+          <div className="pt-10 pb-2 mt-12">
             <div className="max-w-[1240px] mx-auto px-7">
-              <div className="text-center text-[13px] text-[var(--muted)] mb-6 tracking-wide uppercase font-semibold">
+              <div className="text-center text-[12px] sm:text-[13px] text-[var(--muted)] mb-7 tracking-wider uppercase font-bold">
                 Trusted by 2,000+ agencies, freelancers, and solo founders
               </div>
-              <div className="flex justify-center items-center gap-12 flex-wrap text-[var(--ink-2)] font-display font-semibold text-lg opacity-60">
-                <span>Loomstack</span>
-                <span>NORTHWIND</span>
-                <span className="font-extrabold">PEAK CO</span>
-                <span>Lattice</span>
-                <span>CIVIC</span>
-                <span className="flex items-center gap-1.5">● Pulse</span>
-                <span className="font-bold">Modern</span>
+              <div className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] font-display font-bold text-base sm:text-lg opacity-70">
+                <span className="tracking-tight">Loomstack</span>
+                <span className="tracking-wider uppercase">NORTHWIND</span>
+                <span className="font-extrabold uppercase">PEAK CO</span>
+                <span className="flex items-center gap-1">◇ Lattice</span>
+                <span className="uppercase tracking-widest font-extrabold">CIVIC</span>
+                <span className="flex items-center gap-1.5 font-bold"><span className="text-xs">●</span> Pulse</span>
+                <span className="font-serif italic font-medium">Modern</span>
               </div>
             </div>
           </div>
