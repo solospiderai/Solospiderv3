@@ -19,11 +19,11 @@ export const MarketingFooter = () => {
           <div>
             <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Product</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
-              <Link href="/features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Features</Link>
+              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Features</Link>
               <Link href="/pricing" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Pricing</Link>
-              <Link href="/changelog" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Changelog</Link>
-              <Link href="/roadmap" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Roadmap</Link>
-              <Link href="/seo-audit" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Free SEO Audit Tool</Link>
+              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Changelog</Link>
+              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Roadmap</Link>
+              <Link href="/#hero" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Free SEO Audit Tool</Link>
             </div>
           </div>
 
@@ -41,23 +41,23 @@ export const MarketingFooter = () => {
           <div>
             <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Resources</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
-              <Link href="/blog" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Blog</Link>
-              <Link href="/help" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Help Center</Link>
-              <Link href="/docs" className="text-white/65 hover:text-[#c5a3ff] transition-colors">API Docs</Link>
-              <Link href="/case-studies" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Case Studies</Link>
-              <Link href="/glossary" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Glossary</Link>
+              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Blog</Link>
+              <Link href="/#faq" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Help Center</Link>
+              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">API Docs</Link>
+              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Case Studies</Link>
+              <Link href="/#features" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Glossary</Link>
             </div>
           </div>
 
           <div>
             <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase mb-[26px] pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Company</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
-              <Link href="/about" className="text-white/65 hover:text-[#c5a3ff] transition-colors">About Us</Link>
-              <Link href="/contact" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Contact</Link>
+              <Link href="/" className="text-white/65 hover:text-[#c5a3ff] transition-colors">About Us</Link>
+              <a href="mailto:support@solospider.co" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Contact</a>
               <Link href="/affiliate" className="text-white/65 hover:text-[#c5a3ff] transition-colors font-medium">Become Affiliate</Link>
-              <Link href="/privacy" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Terms of Service</Link>
-              <Link href="/careers" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Careers</Link>
+              <Link href="/#" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Privacy Policy</Link>
+              <Link href="/#" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Terms of Service</Link>
+              <Link href="/#" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Careers</Link>
             </div>
           </div>
         </div>

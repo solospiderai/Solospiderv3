@@ -172,15 +172,15 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-ghost {
-  background: #fff;
-  border-color: var(--line-2);
+  background: var(--panel);
+  border-color: var(--line);
   color: var(--ink);
 }
 
 .btn-ghost:hover {
   border-color: var(--primary);
   color: var(--primary);
-  background: var(--primary-tint);
+  background: var(--bg-2);
 }
 
 /* REVEAL UTILITY */

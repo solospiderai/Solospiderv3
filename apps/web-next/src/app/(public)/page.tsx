@@ -268,7 +268,8 @@ export default function HomePage() {
             </div>
 
             {/* Right: Diagram */}
-            <div className="relative w-full max-w-[680px] mx-auto" style={{ minHeight: 420 }}>
+            <div className="relative w-full overflow-hidden flex items-center justify-center h-[235px] sm:h-[315px] md:h-[420px]" style={{ minHeight: 'auto' }}>
+              <div className="origin-center scale-[0.52] sm:scale-75 md:scale-100 shrink-0 w-[680px] h-[420px] relative transition-all duration-300">
               {/* SVG connection lines */}
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 680 420" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M 110,55 C 160,55 170,195 195,195" stroke={isDark ? "#ffffff20" : "#00000015"} strokeWidth="1.5" fill="none" />
@@ -344,6 +345,7 @@ export default function HomePage() {
                   </div>
                 </div>
               ))}
+              </div>
             </div>
           </div>
         </section>
@@ -483,10 +485,14 @@ export default function HomePage() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className={`p-6 md:p-8 rounded-2xl text-left flex flex-col justify-center border ${
+                    className={`p-6 md:p-8 rounded-2xl text-left flex flex-col justify-center border transition-all duration-300 ${
                       idx === 0
-                        ? "bg-white dark:bg-[var(--panel)] border-[var(--line)] shadow-[0_12px_36px_rgba(144,37,242,0.06)]"
-                        : "bg-[#F4F3EE] dark:bg-[var(--panel-soft)] border-transparent"
+                        ? isDark
+                          ? "bg-[var(--panel)] border-[var(--line)] shadow-[0_12px_36px_rgba(0,0,0,0.3)]"
+                          : "bg-white border-[var(--line)] shadow-[0_12px_36px_rgba(144,37,242,0.06)]"
+                        : isDark
+                          ? "bg-[var(--bg-2)] border-[var(--line)]"
+                          : "bg-[#F4F3EE] border-transparent"
                     }`}
                   >
                     <h3 className="text-2xl font-black mb-2.5 font-display text-[var(--ink)]">
@@ -499,9 +505,16 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Right Column: Search Mockup */}
-              <div className="bg-[#F4F3EE] dark:bg-[var(--panel-soft)] rounded-[32px] p-6 lg:p-8 flex flex-col gap-6 text-left border border-[var(--line)]">
-                <div className="flex items-center justify-between bg-white dark:bg-[var(--panel)] rounded-full pl-5 pr-1.5 py-1.5 shadow-[0_4px_15px_rgba(0,0,0,0.02)] border border-[var(--line)]">
+              <div className={`rounded-[32px] p-6 lg:p-8 flex flex-col gap-6 text-left border transition-all duration-300 ${
+                isDark 
+                  ? "bg-[var(--bg-2)] border-[var(--line)]" 
+                  : "bg-[#F4F3EE] border-[var(--line)]"
+              }`}>
+                <div className={`flex items-center justify-between rounded-full pl-5 pr-1.5 py-1.5 shadow-[0_4px_15px_rgba(0,0,0,0.02)] border transition-all duration-300 ${
+                  isDark 
+                    ? "bg-[var(--panel)] border-[var(--line)]" 
+                    : "bg-white border-[var(--line)]"
+                }`}>
                   <span className="text-[13.5px] text-[var(--ink-2)] opacity-70 font-medium">Digital Marketing Company...</span>
                   <button type="button" className="w-9 h-9 rounded-full bg-[#9025F2] hover:bg-[#7c1ed4] text-white flex items-center justify-center transition-colors">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -519,8 +532,8 @@ export default function HomePage() {
                       </div>
                       <span className="text-[11px] text-[var(--muted)] pl-[26px] font-mono leading-none">www.website.com</span>
                       <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
-                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[70%]"></div>
-                        <div className="h-[6px] bg-[#e5e4de] dark:bg-[var(--line)] rounded-full w-[50%]"></div>
+                        <div className={`h-[6px] rounded-full w-[70%] ${isDark ? "bg-white/10" : "bg-[#e5e4de]"}`}></div>
+                        <div className={`h-[6px] rounded-full w-[50%] ${isDark ? "bg-white/10" : "bg-[#e5e4de]"}`}></div>
                       </div>
                     </div>
                   ))}
@@ -873,7 +886,7 @@ export default function HomePage() {
               
               <div className="grid grid-cols-[1.6fr_repeat(6,1fr)] items-center bg-[var(--bg-2)] font-semibold" role="row">
                 <div className="py-4.5 px-6 text-[13.5px] text-[var(--ink)] border-r border-[var(--line)] text-left">Typical monthly cost</div>
-                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 text-primary text-[13.5px]">$240</div>
+                <div className="py-4.5 px-4 text-center border-r border-[var(--line)] bg-primary/5 text-primary text-[13.5px]">$199</div>
                 <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">$99+</div>
                 <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">$42+</div>
                 <div className="py-4.5 px-4 text-center border-r border-[var(--line)] text-[var(--ink-2)] text-[13.5px]">$24+</div>
@@ -1115,8 +1128,8 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative bg-[var(--bg-2)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className={`rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] p-[1.5px] transition-all duration-300 ${
-              isDark ? "bg-gradient-to-b from-primary to-transparent" : "bg-transparent"
+            <div className={`rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
+              isDark ? "border border-[var(--line)]" : "border-0"
             }`}>
               <div className={`relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[30.5px] overflow-hidden transition-all duration-300 ${
                 isDark 
