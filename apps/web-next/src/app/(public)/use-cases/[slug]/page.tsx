@@ -200,7 +200,7 @@ export default function UseCasePage() {
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>Capabilities</span>
               </div>
-              <h3 className="font-display text-2xl md:text-3xl font-black tracking-tight text-[var(--ink)] mb-8 text-center">
+              <h3 className="font-display text-2xl md:text-3xl font-black tracking-tight text-[var(--ink)] pb-8 mb-4 text-center">
                 {content.useCasesTitle}
               </h3>
               
