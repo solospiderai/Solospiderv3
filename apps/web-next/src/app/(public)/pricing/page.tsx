@@ -131,10 +131,10 @@ export default function PricingPage() {
             {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
               
-              {/* Starter Plan */}
+              {/* Free Plan */}
               <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">STARTER</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">FREE</h3>
                 <div className="text-[12px] text-muted -mt-2">For creators just getting started</div>
                 <div className="flex items-baseline justify-center gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">₹0</span>
@@ -164,12 +164,12 @@ export default function PricingPage() {
                 <button onClick={triggerWizard} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Get started free →</button>
               </div>
 
-              {/* Growth Plan */}
+              {/* Starter Plan */}
               <div className="relative border-2 border-[#9025F2] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#9025F2] text-white font-display font-extrabold text-[11px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink -mt-1 uppercase">GROWTH</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink -mt-1 uppercase">STARTER</h3>
                 <div className="text-[12px] text-muted -mt-2">For founders, freelancers & creators</div>
                 <div className="mt-1 flex flex-col items-center justify-center gap-1">
                   <div className="flex items-baseline justify-center gap-1">
@@ -201,13 +201,13 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Growth plan →</button>
+                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-2 text-xs relative overflow-hidden transition-all duration-200 hover:scale-[1.02]">Start Starter plan →</button>
               </div>
 
-              {/* Scale Plan */}
+              {/* Growth Plan */}
               <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">SCALE</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">GROWTH</h3>
                 <div className="text-[12px] text-muted -mt-2">For growing teams & agencies</div>
                 <div className="flex items-baseline justify-center gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">$699</span>
@@ -237,13 +237,13 @@ export default function PricingPage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Scale plan →</button>
+                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-2 text-xs">Start Growth plan →</button>
               </div>
 
-              {/* Custom Plan */}
+              {/* Enterprise Plan */}
               <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">CUSTOM</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">ENTERPRISE</h3>
                 <div className="text-[12px] text-muted -mt-2">For large teams & custom volume</div>
                 <div className="flex items-baseline justify-center gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-ink">Custom</span>

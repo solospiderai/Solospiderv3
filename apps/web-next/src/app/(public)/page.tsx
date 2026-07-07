@@ -888,10 +888,10 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-[1240px] mx-auto text-left">
-              {/* Starter Plan */}
+              {/* Free Plan */}
               <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Starter</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Free</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For creators just getting started</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-primary">₹0</span>
@@ -917,12 +917,12 @@ export default function HomePage() {
                 <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3 text-xs border-[var(--line)] hover:border-primary">Get started free →</button>
               </div>
 
-              {/* Growth Plan */}
+              {/* Starter Plan */}
               <div className="relative border-2 border-primary bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] -mt-1 uppercase">Growth</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] -mt-1 uppercase">Starter</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For founders, freelancers &amp; creators</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
                   <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary">$199</span>
@@ -946,13 +946,13 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-3 text-xs relative overflow-hidden transition-all duration-200">Start Growth plan →</button>
+                <button onClick={() => handlePlanClick("growth")} className="btn btn-grad w-full justify-center mt-auto cursor-pointer py-3 text-xs relative overflow-hidden transition-all duration-200">Start Starter plan →</button>
               </div>
 
-              {/* Scale Plan */}
+              {/* Growth Plan */}
               <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Scale</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Growth</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For growing teams &amp; agencies</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">$699</span>
@@ -978,13 +978,13 @@ export default function HomePage() {
                     </div>
                   ))}
                 </div>
-                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3 text-xs border-[var(--line)] hover:border-primary">Start Scale plan →</button>
+                <button onClick={() => handlePlanClick("scale")} className="btn btn-ghost w-full justify-center mt-auto cursor-pointer py-3 text-xs border-[var(--line)] hover:border-primary">Start Growth plan →</button>
               </div>
 
-              {/* Custom Plan */}
+              {/* Enterprise Plan */}
               <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
-                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Custom</h3>
+                <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Enterprise</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For large teams &amp; custom volume</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">Custom</span>
