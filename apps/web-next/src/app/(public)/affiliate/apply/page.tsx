@@ -5,7 +5,9 @@ import Link from "next/link";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
-import { ShieldCheck, Mail, CheckCircle2, ChevronRight, Users, Sparkles, Building2 } from "lucide-react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+import { CheckCircle2, Sparkles, ChevronRight } from "lucide-react";
 
 export default function AffiliateApplyPage() {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -56,39 +58,64 @@ export default function AffiliateApplyPage() {
     setIsWizardOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!termsAccepted) return;
 
     setIsSubmitting(true);
 
-    // Simulate database insertion and state save
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        const stored = window.localStorage.getItem("solospider_affiliate_state");
-        let state = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], commissionRate: 25 };
-        
-        const newApp = {
-          id: "app-" + Date.now(),
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("affiliate_applications")
+        .insert({
           name,
           email,
           country,
-          website,
-          linkedin,
-          social,
+          website: website || null,
+          linkedin: linkedin || null,
+          social: social || null,
           strategy,
-          audienceSize,
+          audience_size: audienceSize,
           experience,
-          status: "pending",
-          appliedDate: new Date().toISOString().split("T")[0]
-        };
+          status: "pending"
+        });
 
-        state.applications = [newApp, ...(state.applications || [])];
-        window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(state));
+      if (error) {
+        throw error;
       }
+
+      toast.success("Successfully registered application in live database!");
       setIsSubmitting(false);
       setIsSubmitted(true);
-    }, 1200);
+    } catch (dbError) {
+      console.warn("Supabase database insert failed, fallback to local storage:", dbError);
+      
+      // Fallback to local storage if tables are not created or connection error
+      const stored = window.localStorage.getItem("solospider_affiliate_state");
+      let state = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], commissionRate: 25 };
+      
+      const newApp = {
+        id: "app-" + Date.now(),
+        name,
+        email,
+        country,
+        website,
+        linkedin,
+        social,
+        strategy,
+        audienceSize,
+        experience,
+        status: "pending",
+        appliedDate: new Date().toISOString().split("T")[0]
+      };
+
+      state.applications = [newApp, ...(state.applications || [])];
+      window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(state));
+      
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    }
   };
 
   return (

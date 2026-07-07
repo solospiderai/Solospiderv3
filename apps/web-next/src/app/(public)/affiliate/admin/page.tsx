@@ -5,6 +5,7 @@ import Link from "next/link";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { 
   Users, CheckCircle2, XCircle, ArrowRight, Shield, 
   DollarSign, BarChart3, Settings, Percent, Layers, Trash2 
@@ -77,9 +78,90 @@ export default function AffiliateAdminPage() {
     }
   }, []);
 
-  // Initialize state from local storage or populate seed data
-  useEffect(() => {
-    if (typeof window !== "undefined") {
+  const loadState = async () => {
+    let supabaseApps: Application[] = [];
+    let supabaseAffiliates: Affiliate[] = [];
+    let supabasePayouts: PayoutRequest[] = [];
+    let usingSupabase = false;
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      
+      // Fetch applications
+      const { data: appData, error: appError } = await supabase
+        .from("affiliate_applications")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (appError) throw appError;
+
+      supabaseApps = (appData || []).map((app: any) => ({
+        id: app.id,
+        name: app.name,
+        email: app.email,
+        country: app.country,
+        website: app.website || "",
+        strategy: app.strategy,
+        audienceSize: app.audience_size,
+        experience: app.experience,
+        status: app.status,
+        appliedDate: new Date(app.created_at).toISOString().split("T")[0]
+      }));
+
+      // Fetch affiliates
+      const { data: affData, error: affError } = await supabase
+        .from("affiliates")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (affError) throw affError;
+
+      supabaseAffiliates = (affData || []).map((aff: any) => ({
+        id: aff.id,
+        name: aff.name,
+        email: aff.email,
+        refId: aff.ref_id,
+        clicks: aff.clicks,
+        signups: aff.signups,
+        activeCustomers: aff.active_customers,
+        pendingCommission: Number(aff.pending_commission),
+        paidCommission: Number(aff.paid_commission),
+        totalEarnings: Number(aff.total_earnings),
+        balance: Number(aff.balance),
+        status: aff.status as "active" | "suspended"
+      }));
+
+      // Fetch payouts
+      const { data: payData, error: payError } = await supabase
+        .from("affiliate_payouts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (payError) throw payError;
+
+      supabasePayouts = (payData || []).map((pay: any) => {
+        const associatedAff = supabaseAffiliates.find((a) => a.id === pay.affiliate_id);
+        return {
+          id: pay.id,
+          affiliateId: pay.affiliate_id,
+          email: associatedAff ? associatedAff.email : "unknown@affiliate.com",
+          amount: Number(pay.amount),
+          date: pay.date,
+          method: pay.method,
+          status: pay.status as "pending" | "paid" | "rejected",
+          reference: pay.reference || undefined
+        };
+      });
+
+      usingSupabase = true;
+      setApplications(supabaseApps);
+      setAffiliates(supabaseAffiliates);
+      setPayouts(supabasePayouts);
+    } catch (err) {
+      console.warn("Supabase fetch failed in admin, fallback to localStorage:", err);
+    }
+
+    if (!usingSupabase && typeof window !== "undefined") {
       const stored = window.localStorage.getItem("solospider_affiliate_state");
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -187,6 +269,10 @@ export default function AffiliateAdminPage() {
         saveState(seedApps, seedAffiliates, seedPayouts, 25);
       }
     }
+  };
+
+  useEffect(() => {
+    loadState();
   }, []);
 
   const saveState = (
@@ -223,99 +309,208 @@ export default function AffiliateAdminPage() {
   };
 
   // Admin Actions
-  const handleApprove = (app: Application) => {
-    // 1. Remove from applications list
-    const updatedApps = applications.filter((a) => a.id !== app.id);
-    
-    // 2. Generate referral ID
-    const refId = app.name.toLowerCase().replace(/\s+/g, "");
+  const handleApprove = async (app: Application) => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const refId = app.name.toLowerCase().replace(/\s+/g, "");
 
-    // 3. Add to approved affiliates
-    const newAffiliate: Affiliate = {
-      id: "aff-" + Date.now(),
-      name: app.name,
-      email: app.email,
-      refId,
-      clicks: 0,
-      signups: 0,
-      activeCustomers: 0,
-      pendingCommission: 0.00,
-      paidCommission: 0.00,
-      totalEarnings: 0.00,
-      balance: 0.00,
-      status: "active"
-    };
+      // 1. Insert into affiliates
+      const { data: affData, error: affErr } = await supabase
+        .from("affiliates")
+        .insert({
+          name: app.name,
+          email: app.email,
+          ref_id: refId,
+          clicks: 0,
+          signups: 0,
+          active_customers: 0,
+          pending_commission: 0.00,
+          paid_commission: 0.00,
+          total_earnings: 0.00,
+          balance: 0.00,
+          status: "active"
+        })
+        .select()
+        .single();
 
-    const updatedAffiliates = [newAffiliate, ...affiliates];
+      if (affErr) throw affErr;
 
-    setApplications(updatedApps);
-    setAffiliates(updatedAffiliates);
-    saveState(updatedApps, updatedAffiliates, payouts, commissionRate);
-    
-    toast.success(`🎉 Approved ${app.name}! Link ref is ${refId}`);
+      // 2. Update application status
+      const { error: appErr } = await supabase
+        .from("affiliate_applications")
+        .update({ status: "approved" })
+        .eq("id", app.id);
+
+      if (appErr) throw appErr;
+
+      toast.success(`🎉 Approved ${app.name} in live database!`);
+      loadState();
+    } catch (dbError) {
+      console.warn("Supabase approval failed, falling back to localStorage:", dbError);
+      
+      // Local fallback
+      const updatedApps = applications.filter((a) => a.id !== app.id);
+      const refId = app.name.toLowerCase().replace(/\s+/g, "");
+      const newAffiliate: Affiliate = {
+        id: "aff-" + Date.now(),
+        name: app.name,
+        email: app.email,
+        refId,
+        clicks: 0,
+        signups: 0,
+        activeCustomers: 0,
+        pendingCommission: 0.00,
+        paidCommission: 0.00,
+        totalEarnings: 0.00,
+        balance: 0.00,
+        status: "active"
+      };
+
+      const updatedAffiliates = [newAffiliate, ...affiliates];
+      setApplications(updatedApps);
+      setAffiliates(updatedAffiliates);
+      saveState(updatedApps, updatedAffiliates, payouts, commissionRate);
+      toast.success(`🎉 Approved ${app.name}! Link ref is ${refId}`);
+    }
   };
 
-  const handleReject = (appId: string) => {
-    const updatedApps = applications.filter((a) => a.id !== appId);
-    setApplications(updatedApps);
-    saveState(updatedApps, affiliates, payouts, commissionRate);
-    toast.error("Application rejected successfully.");
+  const handleReject = async (appId: string) => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("affiliate_applications")
+        .update({ status: "rejected" })
+        .eq("id", appId);
+
+      if (error) throw error;
+      toast.info("Rejected in live database.");
+      loadState();
+    } catch (dbError) {
+      console.warn("Supabase rejection failed, falling back to localStorage:", dbError);
+      const updatedApps = applications.filter((a) => a.id !== appId);
+      setApplications(updatedApps);
+      saveState(updatedApps, affiliates, payouts, commissionRate);
+      toast.error("Application rejected successfully.");
+    }
   };
 
-  const handleToggleSuspend = (affId: string) => {
-    const updatedAffiliates = affiliates.map((a) => {
-      if (a.id === affId) {
-        const nextStatus = (a.status === "active" ? "suspended" : "active") as "active" | "suspended";
-        toast.info(`Affiliate status updated to ${nextStatus}.`);
-        return { ...a, status: nextStatus };
-      }
-      return a;
-    });
-    setAffiliates(updatedAffiliates);
-    saveState(applications, updatedAffiliates, payouts, commissionRate);
+  const handleToggleSuspend = async (affId: string) => {
+    const aff = affiliates.find((a) => a.id === affId);
+    if (!aff) return;
+    const nextStatus = (aff.status === "active" ? "suspended" : "active") as "active" | "suspended";
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("affiliates")
+        .update({ status: nextStatus })
+        .eq("id", affId);
+
+      if (error) throw error;
+      toast.info(`Affiliate status updated to ${nextStatus} in database.`);
+      loadState();
+    } catch (dbError) {
+      console.warn("Supabase suspend failed, falling back to localStorage:", dbError);
+      const updatedAffiliates = affiliates.map((a) => {
+        if (a.id === affId) {
+          toast.info(`Affiliate status updated to ${nextStatus}.`);
+          return { ...a, status: nextStatus };
+        }
+        return a;
+      });
+      setAffiliates(updatedAffiliates);
+      saveState(applications, updatedAffiliates, payouts, commissionRate);
+    }
   };
 
-  const handleApprovePayout = (payId: string) => {
+  const handleApprovePayout = async (payId: string) => {
     const targetPayout = payouts.find((p) => p.id === payId);
     if (!targetPayout) return;
-
     const refNumber = "TXN" + Math.floor(10000000 + Math.random() * 90000000);
 
-    const updatedPayouts = payouts.map((p) => {
-      if (p.id === payId) {
-        return { ...p, status: "paid" as const, reference: refNumber };
-      }
-      return p;
-    });
+    try {
+      const supabase = getSupabaseBrowserClient();
+      
+      // 1. Update payout status
+      const { error: payErr } = await supabase
+        .from("affiliate_payouts")
+        .update({ status: "paid", reference: refNumber })
+        .eq("id", payId);
 
-    // Deduct from affiliate's balance & add to paidCommission
-    const updatedAffiliates = affiliates.map((a) => {
-      if (a.email === targetPayout.email) {
-        return {
-          ...a,
-          balance: Math.max(0, a.balance - targetPayout.amount),
-          paidCommission: a.paidCommission + targetPayout.amount
-        };
-      }
-      return a;
-    });
+      if (payErr) throw payErr;
 
-    setPayouts(updatedPayouts);
-    setAffiliates(updatedAffiliates);
-    saveState(applications, updatedAffiliates, updatedPayouts, commissionRate);
-    toast.success(`Payout of $${targetPayout.amount} approved! Txn: ${refNumber}`);
+      // 2. Fetch current balance
+      const { data: affData, error: fetchErr } = await supabase
+        .from("affiliates")
+        .select("balance, paid_commission")
+        .eq("id", targetPayout.affiliateId)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      // 3. Update affiliate balance
+      const newBalance = Math.max(0, Number(affData.balance) - targetPayout.amount);
+      const newPaid = Number(affData.paid_commission) + targetPayout.amount;
+
+      const { error: affErr } = await supabase
+        .from("affiliates")
+        .update({ balance: newBalance, paid_commission: newPaid })
+        .eq("id", targetPayout.affiliateId);
+
+      if (affErr) throw affErr;
+
+      toast.success(`Payout of $${targetPayout.amount} approved! Txn: ${refNumber}`);
+      loadState();
+    } catch (dbError) {
+      console.warn("Supabase payout approval failed, falling back to localStorage:", dbError);
+      const updatedPayouts = payouts.map((p) => {
+        if (p.id === payId) {
+          return { ...p, status: "paid" as const, reference: refNumber };
+        }
+        return p;
+      });
+
+      const updatedAffiliates = affiliates.map((a) => {
+        if (a.email === targetPayout.email) {
+          return {
+            ...a,
+            balance: Math.max(0, a.balance - targetPayout.amount),
+            paidCommission: a.paidCommission + targetPayout.amount
+          };
+        }
+        return a;
+      });
+
+      setPayouts(updatedPayouts);
+      setAffiliates(updatedAffiliates);
+      saveState(applications, updatedAffiliates, updatedPayouts, commissionRate);
+      toast.success(`Payout of $${targetPayout.amount} approved! Txn: ${refNumber}`);
+    }
   };
 
-  const handleRejectPayout = (payId: string) => {
-    const updatedPayouts = payouts.map((p) => {
-      if (p.id === payId) {
-        return { ...p, status: "rejected" as const };
-      }
-      return p;
-    });
-    setPayouts(updatedPayouts);
-    saveState(applications, affiliates, updatedPayouts, commissionRate);
-    toast.error("Payout request rejected.");
+  const handleRejectPayout = async (payId: string) => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("affiliate_payouts")
+        .update({ status: "rejected" })
+        .eq("id", payId);
+
+      if (error) throw error;
+      toast.info("Payout rejected in live database.");
+      loadState();
+    } catch (dbError) {
+      console.warn("Supabase payout reject failed, falling back to localStorage:", dbError);
+      const updatedPayouts = payouts.map((p) => {
+        if (p.id === payId) {
+          return { ...p, status: "rejected" as const };
+        }
+        return p;
+      });
+      setPayouts(updatedPayouts);
+      saveState(applications, affiliates, updatedPayouts, commissionRate);
+      toast.error("Payout request rejected.");
+    }
   };
 
   const handleSaveSettings = (e: React.FormEvent) => {

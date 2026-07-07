@@ -10,6 +10,7 @@ import {
   Percent, Link2, Copy, Eye, Award, LogOut, ShieldAlert,
   ArrowRight, Download, Mail, Building2, User, Key, Check 
 } from "lucide-react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 interface Affiliate {
@@ -106,8 +107,93 @@ export default function AffiliateDashboardPage() {
   };
 
   // Sync data from localStorage
-  const loadState = () => {
-    if (typeof window !== "undefined") {
+  const loadState = async () => {
+    let usingSupabase = false;
+    let supabaseAffiliates: Affiliate[] = [];
+    let supabasePayouts: PayoutRequest[] = [];
+    let supabaseRefs: Referral[] = [];
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      
+      // Fetch affiliates
+      const { data: affData, error: affErr } = await supabase
+        .from("affiliates")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (affErr) throw affErr;
+
+      supabaseAffiliates = (affData || []).map((aff: any) => ({
+        id: aff.id,
+        name: aff.name,
+        email: aff.email,
+        refId: aff.ref_id,
+        clicks: aff.clicks,
+        signups: aff.signups,
+        activeCustomers: aff.active_customers,
+        pendingCommission: Number(aff.pending_commission),
+        paidCommission: Number(aff.paid_commission),
+        totalEarnings: Number(aff.total_earnings),
+        balance: Number(aff.balance),
+        status: aff.status as "active" | "suspended"
+      }));
+
+      // Fetch referrals
+      const { data: refData, error: refErr } = await supabase
+        .from("affiliate_referrals")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (refErr) throw refErr;
+
+      supabaseRefs = (refData || []).map((ref: any) => ({
+        id: ref.id,
+        affiliateId: ref.affiliate_id,
+        customerName: ref.customer_name,
+        plan: ref.plan,
+        signupDate: ref.signup_date,
+        purchaseDate: ref.purchase_date || "",
+        status: ref.status,
+        commission: Number(ref.commission)
+      }));
+
+      // Fetch payouts
+      const { data: payData, error: payErr } = await supabase
+        .from("affiliate_payouts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (payErr) throw payErr;
+
+      supabasePayouts = (payData || []).map((pay: any) => {
+        const associatedAff = supabaseAffiliates.find((a) => a.id === pay.affiliate_id);
+        return {
+          id: pay.id,
+          affiliateId: pay.affiliate_id,
+          email: associatedAff ? associatedAff.email : "unknown@affiliate.com",
+          amount: Number(pay.amount),
+          date: pay.date,
+          method: pay.method,
+          status: pay.status as "pending" | "paid" | "rejected",
+          reference: pay.reference || undefined
+        };
+      });
+
+      usingSupabase = true;
+      setAvailableAffiliates(supabaseAffiliates);
+      setStatePayouts(supabasePayouts);
+      setStateReferrals(supabaseRefs);
+
+      if (currentAffiliate) {
+        const fresh = supabaseAffiliates.find((a) => a.id === currentAffiliate.id);
+        if (fresh) setCurrentAffiliate(fresh);
+      }
+    } catch (err) {
+      console.warn("Supabase fetch failed in dashboard, fallback to localStorage:", err);
+    }
+
+    if (!usingSupabase && typeof window !== "undefined") {
       const stored = window.localStorage.getItem("solospider_affiliate_state");
       if (stored) {
         const parsed = JSON.parse(stored);
@@ -207,7 +293,7 @@ export default function AffiliateDashboardPage() {
     toast.success("Referral link copied to clipboard!");
   };
 
-  const handleRequestPayout = (e: React.FormEvent) => {
+  const handleRequestPayout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentAffiliate) return;
 
@@ -222,37 +308,74 @@ export default function AffiliateDashboardPage() {
       return;
     }
 
-    const newRequest: PayoutRequest = {
-      id: "pay-" + Date.now(),
-      affiliateId: currentAffiliate.id,
-      email: currentAffiliate.email,
-      amount,
-      date: new Date().toISOString().split("T")[0],
-      method: payoutMethod,
-      status: "pending"
-    };
-
-    const stored = window.localStorage.getItem("solospider_affiliate_state");
-    if (stored) {
-      const parsed = JSON.parse(stored);
+    try {
+      const supabase = getSupabaseBrowserClient();
       
-      // Update payouts list
-      parsed.payouts = [newRequest, ...(parsed.payouts || [])];
-      
-      // Deduct affiliate balance temporarily in UI (Admin approval completes transaction)
-      parsed.affiliates = (parsed.affiliates as Affiliate[]).map((a) => {
-        if (a.id === currentAffiliate.id) {
-          return { ...a, balance: a.balance - amount, pendingCommission: a.pendingCommission + amount };
-        }
-        return a;
-      });
+      // 1. Insert payout request
+      const { error: payErr } = await supabase
+        .from("affiliate_payouts")
+        .insert({
+          affiliate_id: currentAffiliate.id,
+          amount,
+          method: payoutMethod,
+          status: "pending"
+        });
 
-      window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(parsed));
-      toast.success("Payout request submitted! Awaiting admin approval.");
+      if (payErr) throw payErr;
+
+      // 2. Fetch current balance
+      const { data: affData, error: fetchErr } = await supabase
+        .from("affiliates")
+        .select("balance, pending_commission")
+        .eq("id", currentAffiliate.id)
+        .single();
+
+      if (fetchErr) throw fetchErr;
+
+      // 3. Deduct balance, add pending commission in affiliates table
+      const nextBalance = Math.max(0, Number(affData.balance) - amount);
+      const nextPending = Number(affData.pending_commission) + amount;
+
+      const { error: affErr } = await supabase
+        .from("affiliates")
+        .update({ balance: nextBalance, pending_commission: nextPending })
+        .eq("id", currentAffiliate.id);
+
+      if (affErr) throw affErr;
+
+      toast.success("Payout request submitted to database! Awaiting admin approval.");
       setPayoutAmount("");
-      
-      // Force reload data
       loadState();
+    } catch (dbError) {
+      console.warn("Supabase payout request failed, fallback to localStorage:", dbError);
+      
+      const newRequest: PayoutRequest = {
+        id: "pay-" + Date.now(),
+        affiliateId: currentAffiliate.id,
+        email: currentAffiliate.email,
+        amount,
+        date: new Date().toISOString().split("T")[0],
+        method: payoutMethod,
+        status: "pending"
+      };
+
+      const stored = window.localStorage.getItem("solospider_affiliate_state");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        parsed.payouts = [newRequest, ...(parsed.payouts || [])];
+        
+        parsed.affiliates = (parsed.affiliates as Affiliate[]).map((a) => {
+          if (a.id === currentAffiliate.id) {
+            return { ...a, balance: a.balance - amount, pendingCommission: a.pendingCommission + amount };
+          }
+          return a;
+        });
+
+        window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(parsed));
+        toast.success("Payout request submitted! Awaiting admin approval.");
+        setPayoutAmount("");
+        loadState();
+      }
     }
   };
 

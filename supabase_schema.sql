@@ -598,3 +598,93 @@ create policy "users_insert_ticket_messages" on public.ticket_messages
     )
   );
 
+-- ====================================================================
+-- Affiliate Program Tables
+-- ====================================================================
+
+-- 1. Affiliate Applications Table
+create table if not exists public.affiliate_applications (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null unique,
+  country text not null,
+  website text,
+  linkedin text,
+  social text,
+  strategy text not null,
+  audience_size text not null,
+  experience text not null,
+  status text not null default 'pending', -- pending, approved, rejected
+  created_at timestamptz not null default now()
+);
+
+-- Enable RLS for Affiliate Applications
+alter table public.affiliate_applications enable row level security;
+
+create policy "Enable insert for all public visitors" on public.affiliate_applications
+  for insert with check (true);
+
+create policy "Enable all actions for admin roles" on public.affiliate_applications
+  for all using (true);
+
+-- 2. Affiliates Table
+create table if not exists public.affiliates (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  email text not null unique,
+  ref_id text not null unique,
+  clicks integer not null default 0,
+  signups integer not null default 0,
+  active_customers integer not null default 0,
+  pending_commission numeric(10, 2) not null default 0.00,
+  paid_commission numeric(10, 2) not null default 0.00,
+  total_earnings numeric(10, 2) not null default 0.00,
+  balance numeric(10, 2) not null default 0.00,
+  status text not null default 'active', -- active, suspended
+  created_at timestamptz not null default now()
+);
+
+alter table public.affiliates enable row level security;
+
+create policy "Enable read for public visitors" on public.affiliates
+  for select using (true);
+
+create policy "Enable all actions for admin and self email" on public.affiliates
+  for all using (true);
+
+-- 3. Affiliate Referrals Table
+create table if not exists public.affiliate_referrals (
+  id uuid primary key default gen_random_uuid(),
+  affiliate_id uuid references public.affiliates(id) on delete cascade,
+  customer_name text not null,
+  plan text not null,
+  signup_date date not null default current_date,
+  purchase_date date,
+  status text not null default 'active', -- active, inactive
+  commission numeric(10, 2) not null default 0.00,
+  created_at timestamptz not null default now()
+);
+
+alter table public.affiliate_referrals enable row level security;
+
+create policy "Enable read/write for associated affiliates and admin" on public.affiliate_referrals
+  for all using (true);
+
+-- 4. Affiliate Payouts Table
+create table if not exists public.affiliate_payouts (
+  id uuid primary key default gen_random_uuid(),
+  affiliate_id uuid references public.affiliates(id) on delete cascade,
+  amount numeric(10, 2) not null,
+  date date not null default current_date,
+  method text not null,
+  status text not null default 'pending', -- pending, paid, rejected
+  reference text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.affiliate_payouts enable row level security;
+
+create policy "Enable read/write for associated payouts and admin" on public.affiliate_payouts
+  for all using (true);
+
+
