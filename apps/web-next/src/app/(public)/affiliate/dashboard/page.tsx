@@ -85,43 +85,42 @@ export default function AffiliateDashboardPage() {
         document.documentElement.classList.remove("dark");
       }
 
-      const checkAuth = async () => {
+      const checkAuth = () => {
         try {
-          const supabase = getSupabaseBrowserClient();
-          const { data: { user } } = await supabase.auth.getUser();
           const storedPartner = window.sessionStorage.getItem("solospider_partner_email");
 
-          if (!user && !storedPartner) {
+          if (!storedPartner) {
             toast.error("Please login to access the partner dashboard.");
             router.push("/affiliate/login");
-          } else {
-            const activeEmail = user?.email || storedPartner;
-            const stored = window.localStorage.getItem("solospider_affiliate_state");
-            const stateObj = stored ? JSON.parse(stored) : null;
-            const affiliatesList = stateObj?.affiliates || [];
-            const found = affiliatesList.find((a: any) => a.email.toLowerCase() === activeEmail?.toLowerCase());
+            return;
+          }
+
+          const activeEmail = storedPartner;
+          const stored = window.localStorage.getItem("solospider_affiliate_state");
+          const stateObj = stored ? JSON.parse(stored) : null;
+          const affiliatesList = stateObj?.affiliates || [];
+          const found = affiliatesList.find((a: any) => a.email.toLowerCase() === activeEmail.toLowerCase());
             
-            if (found) {
-              setCurrentAffiliate(found);
-              setProfileName(found.name);
-            } else {
-              const fallbackAff: Affiliate = {
-                id: "aff-session-" + Date.now(),
-                name: activeEmail === "info@solospider.ai" ? "Admin Account" : activeEmail?.split("@")[0] || "Partner",
-                email: activeEmail || "partner@example.com",
-                refId: activeEmail?.split("@")[0] || "partner",
-                clicks: 0,
-                signups: 0,
-                activeCustomers: 0,
-                pendingCommission: 0.00,
-                paidCommission: 0.00,
-                totalEarnings: 0.00,
-                balance: 0.00,
-                status: "active"
-              };
-              setCurrentAffiliate(fallbackAff);
-              setProfileName(fallbackAff.name);
-            }
+          if (found) {
+            setCurrentAffiliate(found);
+            setProfileName(found.name);
+          } else {
+            const fallbackAff: Affiliate = {
+              id: "aff-session-" + Date.now(),
+              name: activeEmail.split("@")[0] || "Partner",
+              email: activeEmail,
+              refId: activeEmail.split("@")[0] || "partner",
+              clicks: 0,
+              signups: 0,
+              activeCustomers: 0,
+              pendingCommission: 0.00,
+              paidCommission: 0.00,
+              totalEarnings: 0.00,
+              balance: 0.00,
+              status: "active"
+            };
+            setCurrentAffiliate(fallbackAff);
+            setProfileName(fallbackAff.name);
           }
         } catch {
           router.push("/affiliate/login");

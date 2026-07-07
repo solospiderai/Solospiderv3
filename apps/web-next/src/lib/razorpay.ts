@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { recordReferralCommission } from "@/lib/affiliate-tracking";
 
 // Dynamically inject Razorpay Checkout SDK Script
 export const loadRazorpayScript = (): Promise<boolean> => {
@@ -85,6 +86,13 @@ export async function triggerRazorpayCheckout({ planId, userEmail, couponCode, o
 
           if (!verifyRes.ok) {
             throw new Error("Signature verification failed");
+          }
+
+          // Record referral commission if referred
+          try {
+            recordReferralCommission(planId, userEmail);
+          } catch (affErr) {
+            console.error("Failed to attribute referral commission:", affErr);
           }
 
           toast.dismiss(verifyId);

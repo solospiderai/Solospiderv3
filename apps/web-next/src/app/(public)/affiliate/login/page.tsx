@@ -14,6 +14,7 @@ export default function AffiliateLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -27,6 +28,78 @@ export default function AffiliateLoginPage() {
       }
     }
   }, []);
+
+  // Handle Google OAuth callback — runs when redirected back with affiliate_google=true
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const isGoogleCallback = params.get("affiliate_google") === "true";
+
+    if (isGoogleCallback) {
+      handleGoogleCallback();
+    }
+  }, []);
+
+  const handleGoogleCallback = async () => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user?.email) {
+        const googleEmail = user.email;
+
+        // Store affiliate session independently in sessionStorage
+        window.sessionStorage.setItem("solospider_partner_email", googleEmail);
+
+        // Check if this email is an approved affiliate
+        const stored = window.localStorage.getItem("solospider_affiliate_state");
+        const stateObj = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], firstTimeRate: 30, recurringRate: 15 };
+        const affiliatesList = stateObj.affiliates || [];
+
+        const found = affiliatesList.find(
+          (a: any) => a.email.toLowerCase() === googleEmail.toLowerCase()
+        );
+
+        if (found) {
+          if (found.status === "suspended") {
+            toast.error("This affiliate account is suspended. Please contact support.");
+            return;
+          }
+          toast.success(`Welcome back, ${found.name}!`);
+          router.push("/affiliate/dashboard");
+        } else {
+          // Auto-register as new affiliate from Google Sign-In
+          const refId = googleEmail.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").slice(0, 15).toLowerCase();
+          const newAffiliate = {
+            id: "aff-google-" + Date.now(),
+            name: user.user_metadata?.full_name || googleEmail.split("@")[0],
+            email: googleEmail,
+            refId: refId,
+            clicks: 0,
+            signups: 0,
+            activeCustomers: 0,
+            pendingCommission: 0.00,
+            paidCommission: 0.00,
+            totalEarnings: 0.00,
+            balance: 0.00,
+            status: "active" as const,
+          };
+
+          stateObj.affiliates.push(newAffiliate);
+          window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(stateObj));
+
+          toast.success(`Welcome, ${newAffiliate.name}! Your partner account has been created.`);
+          router.push("/affiliate/dashboard");
+        }
+      } else {
+        toast.error("Google sign-in failed. Could not retrieve user information.");
+      }
+    } catch (err) {
+      console.error("Google callback error:", err);
+      toast.error("An error occurred during Google sign-in.");
+    }
+  };
 
   const toggleTheme = () => {
     const nextDark = !isDark;
@@ -54,46 +127,26 @@ export default function AffiliateLoginPage() {
         return;
       }
 
-      // 2. Regular affiliate check
-      // Try logging in using Supabase if possible, otherwise simulate log in
-      const supabase = getSupabaseBrowserClient();
-      const { data: { user }, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (!error && user) {
-        toast.success(`Welcome back!`);
+      // 2. Regular affiliate check — validate against local affiliate state only (no Supabase auth)
+      const stored = window.localStorage.getItem("solospider_affiliate_state");
+      const stateObj = stored ? JSON.parse(stored) : null;
+      const affiliatesList = stateObj?.affiliates || [];
+      
+      // Find if this email is a registered affiliate
+      const found = affiliatesList.find((a: any) => a.email.toLowerCase() === email.toLowerCase());
+      
+      if (found) {
+        if (found.status === "suspended") {
+          toast.error("This affiliate account is suspended. Please contact support.");
+          setIsSubmitting(false);
+          return;
+        }
+        // Store logged in partner in sessionStorage (independent of Supabase auth)
+        window.sessionStorage.setItem("solospider_partner_email", found.email);
+        toast.success(`Welcome back, ${found.name}!`);
         router.push("/affiliate/dashboard");
       } else {
-        // Local state validation fallback
-        const stored = window.localStorage.getItem("solospider_affiliate_state");
-        const stateObj = stored ? JSON.parse(stored) : null;
-        const affiliatesList = stateObj?.affiliates || [];
-        
-        // Find if this email is a registered affiliate (either locally or default seed)
-        const found = affiliatesList.find((a: any) => a.email.toLowerCase() === email.toLowerCase());
-        
-        if (found) {
-          if (found.status === "suspended") {
-            toast.error("This affiliate account is suspended. Please contact support.");
-            setIsSubmitting(false);
-            return;
-          }
-          // Store logged in partner in sessionStorage
-          window.sessionStorage.setItem("solospider_partner_email", found.email);
-          toast.success(`Welcome back, ${found.name}!`);
-          router.push("/affiliate/dashboard");
-        } else {
-          // If not found in local state list, check if it's a seed account
-          if (email === "jane@example.com" || email === "marcus@stoicgrowth.com") {
-            window.sessionStorage.setItem("solospider_partner_email", email);
-            toast.success("Logged in successfully!");
-            router.push("/affiliate/dashboard");
-          } else {
-            toast.error("Account not found. Please apply to the program first.");
-          }
-        }
+        toast.error("Account not found. Please apply to the program first.");
       }
     } catch (err) {
       console.error(err);
@@ -103,37 +156,21 @@ export default function AffiliateLoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Simulate Google Login for Affiliate Portal
-    const mockEmail = "partner-google@example.com";
-    if (typeof window !== "undefined") {
-      window.sessionStorage.setItem("solospider_partner_email", mockEmail);
-      
-      // Seed a local affiliate if not already existing
-      const stored = window.localStorage.getItem("solospider_affiliate_state");
-      let state = stored ? JSON.parse(stored) : { applications: [], affiliates: [], referrals: [], payouts: [], firstTimeRate: 30, recurringRate: 15 };
-      
-      const exists = state.affiliates.find((a: any) => a.email === mockEmail);
-      if (!exists) {
-        state.affiliates.push({
-          id: "aff-google-" + Date.now(),
-          name: "Google Partner User",
-          email: mockEmail,
-          refId: "googlepartner",
-          clicks: 0,
-          signups: 0,
-          activeCustomers: 0,
-          pendingCommission: 0.00,
-          paidCommission: 0.00,
-          totalEarnings: 0.00,
-          balance: 0.00,
-          status: "active"
-        });
-        window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(state));
-      }
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent("/affiliate/login?affiliate_google=true")}`,
+        },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      toast.error(err.message || "Failed to initiate Google sign-in.");
+      setIsGoogleLoading(false);
     }
-    toast.success("Signed in with Google successfully!");
-    router.push("/affiliate/dashboard");
   };
 
   return (

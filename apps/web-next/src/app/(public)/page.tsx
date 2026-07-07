@@ -10,6 +10,7 @@ import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { useAuth } from "@/hooks/useAuth";
 import { triggerRazorpayCheckout } from "@/lib/razorpay";
 import { CouponModal } from "@/components/dashboard/coupon-modal";
+import { captureReferralCode } from "@/lib/affiliate-tracking";
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -73,6 +74,8 @@ export default function HomePage() {
 
   useEffect(() => {
     document.documentElement.style.scrollBehavior = "smooth";
+    // Capture affiliate referral code from URL (?ref=xxx)
+    captureReferralCode();
     return () => {
       document.documentElement.style.scrollBehavior = "auto";
     };
