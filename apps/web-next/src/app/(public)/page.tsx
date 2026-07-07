@@ -103,7 +103,7 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* HERO SECTION                                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative w-full md:h-[769px] pt-[60px] pb-[40px] md:pt-[90.5px] md:pb-0 overflow-hidden border-b border-[var(--line)] bg-[var(--bg)] flex flex-col justify-between" id="hero">
+        <section className="relative w-full pt-[60px] pb-[40px] md:pt-[90px] md:pb-[60px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <svg
@@ -148,22 +148,22 @@ export default function HomePage() {
             </svg>
           </div>
 
-          <div className="relative text-center max-w-[980px] mx-auto px-7 z-10 flex-grow flex flex-col justify-center items-center">
+          <div className="relative text-center max-w-[980px] mx-auto px-7 z-10 flex flex-col items-center">
             {/* Badge */}
-            <span className="inline-flex items-center gap-2 h-[39px] px-5 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[12px] font-semibold text-[var(--ink)] mb-[25.5px] shadow-sm shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#9025F2]"></span>
+            <span className="inline-flex items-center gap-2 h-[39px] px-5 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[13px] font-medium text-[var(--ink-2)] mb-[28px] shadow-sm shrink-0">
+              <span className="w-2 h-2 rounded-full bg-[#9025F2]"></span>
               Now live — The AI marketing OS for agencies &amp; creators
             </span>
 
             {/* Heading */}
-            <h1 className="text-[34px] sm:text-[52px] md:text-[80px] leading-[1.05] mb-[20px] font-black tracking-tight text-[var(--ink)]">
+            <h1 className="text-[34px] sm:text-[52px] md:text-[80px] leading-[1.05] mb-[24px] tracking-tight text-[var(--ink)]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800 }}>
               Replace Your Entire<br />
               <span className="grad-text">Marketing Workflow</span><br />
               With One Tool
             </h1>
 
             {/* Sub text */}
-            <p className="text-[15px] sm:text-[18px] md:text-[20px] text-[var(--ink-2)] max-w-[760px] mx-auto mb-[32px] leading-[1.6] opacity-90">
+            <p className="text-[15px] sm:text-[18px] md:text-[20px] text-[var(--ink-2)] max-w-[720px] mx-auto mb-[32px] leading-[1.6] font-normal">
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
 
@@ -178,13 +178,13 @@ export default function HomePage() {
                     placeholder="Enter your website URL (e.g., example.com)"
                     value={analysisUrl}
                     onChange={(e) => setAnalysisUrl(e.target.value)}
-                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-semibold text-[14px] md:text-[15px] py-2 sm:py-0 px-2 placeholder-[var(--muted)]"
+                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-medium text-[14px] md:text-[15px] py-2 sm:py-0 px-2 placeholder-[#9CA3AF]"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={analyzing}
-                  className="w-full sm:w-[180.14px] h-[44.5px] bg-primary hover:bg-primary-2 text-white font-extrabold text-[13.5px] rounded-[14px] shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-[180.14px] h-[44.5px] bg-primary hover:bg-primary-2 text-white font-bold text-[14px] rounded-[14px] shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   {analyzing ? (
                     <>
@@ -201,25 +201,25 @@ export default function HomePage() {
             </div>
 
             {/* Under-Input Text */}
-            <p className="text-[11.5px] text-[var(--muted)] font-semibold mb-[36px] flex items-center justify-center gap-1.5">
-              <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
+            <p className="text-[13px] text-[#9CA3AF] font-medium mb-[28px] flex items-center justify-center gap-1.5">
+              <span>✨ SEO &amp; AEO scans start instantly in the background</span>
             </p>
 
             {/* Sub CTA Buttons with Exact Figma Sizing */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-[20px] mb-[32px]">
-              <button onClick={() => router.push("/signup")} className="w-[173px] h-[50px] bg-[#9025F2] hover:bg-primary-2 text-white rounded-[5px] text-[14.5px] font-bold cursor-pointer shadow-md flex items-center justify-center">
+              <button onClick={() => router.push("/signup")} className="w-[173px] h-[50px] bg-[#9025F2] hover:bg-primary-2 text-white rounded-[5px] text-[15px] font-semibold cursor-pointer shadow-md flex items-center justify-center">
                 Start free trial →
               </button>
-              <a href="#problem" className="w-[187px] h-[49px] rounded-[9.5px] text-[14.5px] font-bold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center">
+              <a href="#problem" className="w-[187px] h-[49px] rounded-[9.5px] text-[15px] font-semibold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center">
                 See How It Works
               </a>
             </div>
 
             {/* Promo Items */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs sm:text-sm font-semibold text-[var(--ink-2)] opacity-85">
+            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-[14px] font-medium text-[var(--ink-2)]">
               {["No credit card required", "Free plan available", "Set up in 5 minutes"].map((p, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <span className="text-emerald-500 text-[14px] font-extrabold">✓</span>
+                <div key={i} className="flex items-center gap-2">
+                  <span className="text-emerald-500 text-[16px]">✓</span>
                   <span>{p}</span>
                 </div>
               ))}
