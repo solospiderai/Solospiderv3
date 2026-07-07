@@ -49,11 +49,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Subject and content are required" }, { status: 400 });
   }
 
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const smtpHost = process.env.SMTP_HOST;
+  const rawResendKey = process.env.RESEND_API_KEY || "";
+  const resendApiKey = rawResendKey.split("#")[0].trim();
+  const isResendConfigured = resendApiKey.length > 0 && !resendApiKey.startsWith("YOUR_");
+
+  const rawSmtpHost = process.env.SMTP_HOST || "";
+  const smtpHost = rawSmtpHost.split("#")[0].trim();
   const smtpPort = parseInt(process.env.SMTP_PORT || "587", 10);
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  const rawSmtpUser = process.env.SMTP_USER || "";
+  const smtpUser = rawSmtpUser.split("#")[0].trim();
+  const rawSmtpPass = process.env.SMTP_PASS || "";
+  const smtpPass = rawSmtpPass.split("#")[0].trim();
+  const isSmtpConfigured = smtpHost.length > 0 && smtpUser.length > 0 && smtpPass.length > 0;
 
   try {
     if (broadcast) {
@@ -80,7 +87,7 @@ export async function POST(req: NextRequest) {
         let status = "sent";
         
         // 1. Try sending via SMTP direct
-        if (smtpHost && smtpUser && smtpPass) {
+        if (isSmtpConfigured) {
           try {
             const transporter = nodemailer.createTransport({
               host: smtpHost,
@@ -88,7 +95,7 @@ export async function POST(req: NextRequest) {
               secure: smtpPort === 465,
               auth: {
                 user: smtpUser,
-                password: smtpPass,
+                pass: smtpPass,
               },
             } as any);
             await transporter.sendMail({
@@ -103,7 +110,7 @@ export async function POST(req: NextRequest) {
           }
         }
         // 2. Try sending via Resend API
-        else if (resendApiKey) {
+        else if (isResendConfigured) {
           try {
             const res = await fetch("https://api.resend.com/emails", {
               method: "POST",
@@ -154,7 +161,7 @@ export async function POST(req: NextRequest) {
         recipient_count: logs.length,
       });
 
-      return NextResponse.json({ success: true, count: logs.length, type: (smtpHost ? "smtp" : (resendApiKey ? "resend" : "simulated")) });
+      return NextResponse.json({ success: true, count: logs.length, type: (isSmtpConfigured ? "smtp" : (isResendConfigured ? "resend" : "simulated")) });
     } else {
       if (!recipientEmail) {
         return NextResponse.json({ error: "Recipient email is required" }, { status: 400 });
@@ -172,7 +179,7 @@ export async function POST(req: NextRequest) {
       let status = "sent";
 
       // 1. Try sending via SMTP direct
-      if (smtpHost && smtpUser && smtpPass) {
+      if (isSmtpConfigured) {
         try {
           const transporter = nodemailer.createTransport({
             host: smtpHost,
@@ -180,7 +187,7 @@ export async function POST(req: NextRequest) {
             secure: smtpPort === 465,
             auth: {
               user: smtpUser,
-              password: smtpPass,
+              pass: smtpPass,
             },
           } as any);
           await transporter.sendMail({
@@ -195,7 +202,7 @@ export async function POST(req: NextRequest) {
         }
       }
       // 2. Try sending via Resend API
-      else if (resendApiKey) {
+      else if (isResendConfigured) {
         try {
           const res = await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -244,7 +251,14 @@ export async function POST(req: NextRequest) {
         subject,
       });
 
-      return NextResponse.json({ success: true, log: newLog, type: (smtpHost ? "smtp" : (resendApiKey ? "resend" : "simulated")) });
+      if (status === "failed") {
+        return NextResponse.json(
+          { error: "Failed to dispatch email. Please check your SMTP credentials and server connection." },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ success: true, log: newLog, type: (isSmtpConfigured ? "smtp" : (isResendConfigured ? "resend" : "simulated")) });
     }
   } catch (err) {
     return NextResponse.json(

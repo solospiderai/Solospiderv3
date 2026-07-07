@@ -74,14 +74,16 @@ export default function AdminProjectsPage() {
       render: (row: any) => (
         <div className="flex flex-col">
           <span className="text-slate-500 font-semibold text-[11px] font-mono">
-            {row.user_id.substring(0, 16)}...
+            {row.user_id ? `${row.user_id.substring(0, 16)}...` : "Anonymous"}
           </span>
-          <Link
-            href={`/app/en/admin/users/${row.user_id}`}
-            className="text-[9px] text-violet-600 hover:underline font-bold mt-0.5"
-          >
-            View Owner
-          </Link>
+          {row.user_id && (
+            <Link
+              href={`/app/en/admin/users/${row.user_id}`}
+              className="text-[9px] text-violet-600 hover:underline font-bold mt-0.5"
+            >
+              View Owner
+            </Link>
+          )}
         </div>
       ),
     },
@@ -126,7 +128,7 @@ export default function AdminProjectsPage() {
       sortable: true,
       render: (row: any) => (
         <span className="text-slate-500 text-[11px] font-semibold">
-          {new Date(row.created_at).toLocaleDateString()}
+          {row.created_at ? new Date(row.created_at).toLocaleDateString() : "—"}
         </span>
       ),
     },

@@ -37,8 +37,12 @@ export default function AdminEmailsPage() {
       if (!res.ok) throw new Error("Failed to send email");
       return res.json();
     },
-    onSuccess: () => {
-      toast.success("Email process finished successfully!");
+    onSuccess: (data: any) => {
+      if (data?.type === "simulated") {
+        toast.warning("Email process simulated! Configure RESEND_API_KEY or SMTP credentials in your .env file to send real emails.");
+      } else {
+        toast.success(`Email sent successfully via ${data?.type || "provider"}!`);
+      }
       setRecipientEmail("");
       setSubject("");
       setContent("");
