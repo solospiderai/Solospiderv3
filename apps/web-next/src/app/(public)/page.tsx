@@ -109,46 +109,11 @@ export default function HomePage() {
         <section className="relative w-full pt-[90px] pb-[40px] md:pt-[110px] md:pb-[60px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <svg
-              className="absolute left-1/2 -translate-x-1/2 bottom-[50px] w-[1920px] h-[859px] opacity-[0.09] dark:opacity-[0.14]"
-              viewBox="0 0 1920 859"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {/* Radiating Lines from bottom-center (960, 859) */}
-              <line x1="960" y1="859" x2="960" y2="-53" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1195.2" y2="-21.8" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1416" y2="69.4" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1605.6" y2="213.4" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1749.6" y2="403" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1840.8" y2="623.8" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1872" y2="859" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1840.8" y2="1094.2" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1749.6" y2="1315" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1605.6" y2="1504.6" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1416" y2="1648.6" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="1195.2" y2="1739.8" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="724.8" y2="1739.8" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="504" y2="1648.6" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="314.4" y2="1504.6" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="170.4" y2="1315" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="79.2" y2="1094.2" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="48" y2="859" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="79.2" y2="623.8" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="170.4" y2="403" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="314.4" y2="213.4" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="504" y2="69.4" stroke="#9025F2" strokeWidth="1.275" />
-              <line x1="960" y1="859" x2="724.8" y2="-21.8" stroke="#9025F2" strokeWidth="1.275" />
-
-              {/* Concentric Circles centered at (960, 859) */}
-              <circle cx="960" cy="859" r="144" stroke="#9025F2" strokeWidth="1.0625" />
-              <circle cx="960" cy="859" r="264" stroke="#9025F2" strokeWidth="1.0625" />
-              <circle cx="960" cy="859" r="408" stroke="#9025F2" strokeWidth="1.0625" />
-              <circle cx="960" cy="859" r="576" stroke="#9025F2" strokeWidth="1.0625" />
-              <circle cx="960" cy="859" r="744" stroke="#9025F2" strokeWidth="1.0625" />
-              <circle cx="960" cy="859" r="912" stroke="#9025F2" strokeWidth="1.0625" />
-              <circle cx="960" cy="859" r="1080" stroke="#9025F2" strokeWidth="1.0625" />
-            </svg>
+            <img
+              src="/assets/bg-web.png"
+              alt=""
+              className="absolute left-1/2 -translate-x-1/2 top-[-101px] w-[1920px] h-[859px] max-w-none select-none pointer-events-none"
+            />
           </div>
 
           <div className="relative text-center max-w-[980px] mx-auto px-7 z-10 flex flex-col items-center">
