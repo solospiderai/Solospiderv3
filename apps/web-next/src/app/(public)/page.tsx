@@ -708,10 +708,10 @@ export default function HomePage() {
               </div>
               {/* #14 Description subtext */}
               <p 
-                className="text-[var(--ink-2)] max-w-[540px] leading-relaxed lg:text-right"
+                className="text-[var(--ink-2)] max-w-[650px] leading-relaxed lg:text-right"
                 style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
               >
-                No integrations to configure. No freelancers to brief. No tool-switching. Everything works together because it lives in one place.
+                No integrations to configure. No freelancers to brief. No tool-switching.<br className="hidden lg:inline" /> Everything works together because it lives in one place.
               </p>
             </div>
 
