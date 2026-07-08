@@ -110,7 +110,7 @@ export default function HomePage() {
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <svg
-              className="absolute left-1/2 -translate-x-1/2 bottom-0 w-[1920px] h-[859px] opacity-[0.09] dark:opacity-[0.14]"
+              className="absolute left-1/2 -translate-x-1/2 bottom-[50px] w-[1920px] h-[859px] opacity-[0.09] dark:opacity-[0.14]"
               viewBox="0 0 1920 859"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
