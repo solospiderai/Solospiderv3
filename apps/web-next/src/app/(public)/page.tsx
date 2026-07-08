@@ -112,7 +112,7 @@ export default function HomePage() {
             <img
               src="/assets/bg-web.png"
               alt=""
-              className="absolute left-1/2 -translate-x-1/2 top-[-101px] w-[1920px] h-[859px] max-w-none select-none pointer-events-none"
+              className="absolute left-1/2 -translate-x-1/2 bottom-[25px] w-[1920px] h-[859px] max-w-none select-none pointer-events-none"
             />
           </div>
 
