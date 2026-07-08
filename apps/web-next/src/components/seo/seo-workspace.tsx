@@ -1640,48 +1640,114 @@ export function SeoWorkspace() {
         </div>
 
         {/* Organic Monthly Traffic */}
-        <div 
-          onClick={() => setShowTrafficModal(true)}
-          className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[140px] hover:scale-[1.02] duration-300 transition-all cursor-pointer hover:border-indigo-200"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Organic Monthly Traffic</h3>
-            <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-          </div>
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-slate-900 tracking-tight">
-                {metrics.organicTraffic.toLocaleString()}
-              </span>
-              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
-                +12.4% ↗
-              </span>
+        {!gsc?.connected ? (
+          <Link 
+            href="/app/en/settings/integrations"
+            className="block h-full cursor-pointer hover:border-violet-300 transition-all duration-300"
+          >
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[140px] relative overflow-hidden">
+              <div className="flex flex-col justify-between h-full filter blur-[4px] select-none pointer-events-none">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Organic Monthly Traffic</h3>
+                  <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-slate-900 tracking-tight">
+                      {metrics.organicTraffic.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
+                      +12.4% ↗
+                    </span>
+                  </div>
+                  <p className="text-[9px] font-bold text-slate-400 mt-2">Click to view traffic details</p>
+                </div>
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/5 p-4 text-center z-10 backdrop-blur-[1px]">
+                <div className="bg-white/95 shadow-md border border-slate-100 rounded-xl px-3 py-2 flex flex-col items-center gap-1.5 max-w-[90%]">
+                  <span className="text-[9px] font-black text-violet-700 uppercase tracking-widest bg-violet-50 px-2 py-0.5 rounded-md">GSC Required</span>
+                  <span className="text-[10px] text-slate-500 font-extrabold leading-normal">Connect to unlock metric</span>
+                </div>
+              </div>
             </div>
-            <p className="text-[9px] font-bold text-slate-400 mt-2">Click to view traffic details</p>
+          </Link>
+        ) : (
+          <div 
+            onClick={() => setShowTrafficModal(true)}
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[140px] hover:scale-[1.02] duration-300 transition-all cursor-pointer hover:border-indigo-200"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Organic Monthly Traffic</h3>
+              <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-slate-900 tracking-tight">
+                  {metrics.organicTraffic.toLocaleString()}
+                </span>
+                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
+                  +12.4% ↗
+                </span>
+              </div>
+              <p className="text-[9px] font-bold text-slate-400 mt-2">Click to view traffic details</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Organic Keywords */}
-        <div 
-          onClick={() => setShowKeywordsModal(true)}
-          className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[140px] hover:scale-[1.02] duration-300 transition-all cursor-pointer hover:border-indigo-200"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Organic Keywords</h3>
-            <TrendingUp className="h-3.5 w-3.5 text-indigo-500" />
-          </div>
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-slate-900 tracking-tight">
-                {metrics.organicKeywords.toLocaleString()}
-              </span>
-              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
-                +8.2% ↗
-              </span>
+        {!gsc?.connected ? (
+          <Link 
+            href="/app/en/settings/integrations"
+            className="block h-full cursor-pointer hover:border-violet-300 transition-all duration-300"
+          >
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[140px] relative overflow-hidden">
+              <div className="flex flex-col justify-between h-full filter blur-[4px] select-none pointer-events-none">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Organic Keywords</h3>
+                  <TrendingUp className="h-3.5 w-3.5 text-indigo-500" />
+                </div>
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-2xl font-black text-slate-900 tracking-tight">
+                      {metrics.organicKeywords.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
+                      +8.2% ↗
+                    </span>
+                  </div>
+                  <p className="text-[9px] font-bold text-slate-400 mt-2">Click to view keyword lists</p>
+                </div>
+              </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/5 p-4 text-center z-10 backdrop-blur-[1px]">
+                <div className="bg-white/95 shadow-md border border-slate-100 rounded-xl px-3 py-2 flex flex-col items-center gap-1.5 max-w-[90%]">
+                  <span className="text-[9px] font-black text-violet-700 uppercase tracking-widest bg-violet-50 px-2 py-0.5 rounded-md">GSC Required</span>
+                  <span className="text-[10px] text-slate-500 font-extrabold leading-normal">Connect to unlock metric</span>
+                </div>
+              </div>
             </div>
-            <p className="text-[9px] font-bold text-slate-400 mt-2">Click to view keyword lists</p>
+          </Link>
+        ) : (
+          <div 
+            onClick={() => setShowKeywordsModal(true)}
+            className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[140px] hover:scale-[1.02] duration-300 transition-all cursor-pointer hover:border-indigo-200"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Organic Keywords</h3>
+              <TrendingUp className="h-3.5 w-3.5 text-indigo-500" />
+            </div>
+            <div>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-2xl font-black text-slate-900 tracking-tight">
+                  {metrics.organicKeywords.toLocaleString()}
+                </span>
+                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
+                  +8.2% ↗
+                </span>
+              </div>
+              <p className="text-[9px] font-bold text-slate-400 mt-2">Click to view keyword lists</p>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Backlinks */}
         <div 

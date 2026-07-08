@@ -7,6 +7,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { HelpCircle } from "lucide-react";
 import { isNonUserPage, estimateDomainMetrics } from "@/lib/seo-utils";
+import Link from "next/link";
 
 interface CrawledPage {
   id: string;
@@ -120,7 +121,9 @@ export function TrendCard({
   color, 
   data, 
   gradientId,
-  tooltipContent
+  tooltipContent,
+  isLocked,
+  redirectTo
 }: { 
   label: string, 
   value: string, 
@@ -129,56 +132,82 @@ export function TrendCard({
   color: string, 
   data: any[], 
   gradientId: string,
-  tooltipContent?: React.ReactNode
+  tooltipContent?: React.ReactNode,
+  isLocked?: boolean,
+  redirectTo?: string
 }) {
   const isPositive = trend === 'up';
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] hover:scale-[1.02] duration-300 transition-all">
-      <div className="group relative flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
-        <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h3>
-        <div className="relative">
-          <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-650 transition-colors" />
-          <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-900 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
-            {tooltipContent}
+
+  const cardContent = (
+    <div className={`bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] duration-300 transition-all relative overflow-hidden ${
+      isLocked ? 'hover:border-violet-300 hover:shadow-md' : 'hover:scale-[1.02]'
+    }`}>
+      <div className={`flex flex-col justify-between h-full ${isLocked ? 'filter blur-[4px] select-none pointer-events-none' : ''}`}>
+        <div className="group relative flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+          <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h3>
+          <div className="relative">
+            <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-650 transition-colors" />
+            <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-950 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
+              {tooltipContent}
+            </div>
           </div>
         </div>
-      </div>
-      <div>
-        <div className="flex items-center gap-3">
-          <span className="text-3xl font-black text-slate-900 tracking-tight">{value}</span>
-          <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5 ${
-            isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-          }`}>
-            {isPositive ? '↑' : '↓'} {trendValue}
-          </span>
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl font-black text-slate-900 tracking-tight">{value}</span>
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5 ${
+              isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+            }`}>
+              {isPositive ? '↑' : '↓'} {trendValue}
+            </span>
+          </div>
+        </div>
+        
+        <div className="h-14 mt-4 -mx-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={color} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke={color} 
+                strokeWidth={2}
+                fillOpacity={1} 
+                fill={`url(#${gradientId})`} 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">vs last 7 days</span>
         </div>
       </div>
-      
-      <div className="h-14 mt-4 -mx-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={color} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={color} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <Area 
-              type="monotone" 
-              dataKey="value" 
-              stroke={color} 
-              strokeWidth={2}
-              fillOpacity={1} 
-              fill={`url(#${gradientId})`} 
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">vs last 7 days</span>
-      </div>
+
+      {isLocked && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/5 p-4 text-center z-10 backdrop-blur-[1px]">
+          <div className="bg-white/95 shadow-lg border border-slate-100 rounded-xl px-4 py-3 flex flex-col items-center gap-1.5 max-w-[90%]">
+            <span className="text-[9px] font-black text-violet-700 uppercase tracking-widest bg-violet-50 px-2 py-0.5 rounded-md">GSC Required</span>
+            <span className="text-[10px] text-slate-500 font-extrabold leading-normal">Connect to unlock metric</span>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+  if (isLocked && redirectTo) {
+    return (
+      <Link href={redirectTo} className="block h-full cursor-pointer">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 interface MetricCardsProps {
   timeRange: string;
@@ -220,6 +249,19 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
       return data;
     },
   });
+
+  // Query Google Search Console connection status
+  const gscQuery = useQuery({
+    queryKey: ["search_analytics", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const res = await fetch(`/api/seo/search-analytics?projectId=${activeProject!.id}`);
+      if (!res.ok) throw new Error("Failed to load search console metrics");
+      return res.json();
+    }
+  });
+
+  const gscConnected = Boolean(gscQuery.data?.connected);
 
   // Filter crawled pages by the selected time range
   const filteredPages = useMemo(() => {
@@ -429,6 +471,8 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           data={sparklineTraffic}
           gradientId="trafficGradient"
           tooltipContent="Estimated monthly organic search visits to your domain. This scales automatically as more pages are crawled."
+          isLocked={!gscConnected}
+          redirectTo="/app/en/settings/integrations"
         />
       </div>
       <div className="md:col-span-1">
@@ -441,6 +485,8 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           data={sparklineImpressions}
           gradientId="impressionsGradient"
           tooltipContent="Estimated monthly views of your site's links in search engine result pages (SERPs)."
+          isLocked={!gscConnected}
+          redirectTo="/app/en/settings/integrations"
         />
       </div>
       <div className="md:col-span-1">
