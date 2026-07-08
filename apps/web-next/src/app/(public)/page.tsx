@@ -718,7 +718,7 @@ export default function HomePage() {
                 {/* Card 1: Content & Blog Automation */}
                 <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
                   <img 
-                    src="/assets/feature-blog.png" 
+                    src={isDark ? "/assets/feature-blog-dark.png" : "/assets/feature-blog-light.png"} 
                     alt="Content & Blog Automation" 
                     className="w-full h-auto block"
                   />
@@ -727,7 +727,7 @@ export default function HomePage() {
                 {/* Card 2: Social Media — End to End */}
                 <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
                   <img 
-                    src="/assets/feature-social.png" 
+                    src={isDark ? "/assets/feature-social-dark.png" : "/assets/feature-social-light.png"} 
                     alt="Social Media — End to End" 
                     className="w-full h-auto block"
                   />
@@ -739,7 +739,7 @@ export default function HomePage() {
                 {/* Card 3: SEO — Audit & Fix */}
                 <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
                   <img 
-                    src="/assets/feature-seo.png" 
+                    src={isDark ? "/assets/feature-seo-dark.png" : "/assets/feature-seo-light.png"} 
                     alt="SEO — Audit & Fix" 
                     className="w-full h-auto block"
                   />
@@ -748,7 +748,7 @@ export default function HomePage() {
                 {/* Card 4: AEO & GEO — Be Found in AI Search */}
                 <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
                   <img 
-                    src="/assets/feature-aeo.png" 
+                    src={isDark ? "/assets/feature-aeo-dark.png" : "/assets/feature-aeo-light.png"} 
                     alt="AEO & GEO — Be Found in AI Search" 
                     className="w-full h-auto block"
                   />
