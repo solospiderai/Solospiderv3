@@ -768,28 +768,70 @@ export default function HomePage() {
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="how">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+              {/* #1 Badge */}
+              <span 
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', textTransform: 'uppercase', letterSpacing: '0%' }}
+              >
                 ● How it works
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
-                From setup to running on<br />autopilot in one day.
+              {/* #2 Title */}
+              <h2 
+                className="mb-[18px] text-[var(--ink)] text-center"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
+              >
+                From setup to running on autopilot in one day.
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Connect your accounts, customize your preferences, and let Solo Spider automate your marketing workflows from one unified platform.</p>
+              {/* #3 Subtext */}
+              <p 
+                className="text-[var(--ink-2)] max-w-[660px] mx-auto text-center font-normal"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
+              >
+                Connect your accounts, customize your preferences, and let Solo Spider automate your marketing workflows from one unified platform.
+              </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
               {[
-                { icon: LinkIcon, title: "Connect your channels", desc: "Link your website, social accounts, and any existing CMS. Solo Spider pulls in your brand voice, existing content, and target audience automatically." },
-                { icon: Target, title: "Set your goals", desc: "Tell Solo Spider what you want to achieve — more blog traffic, stronger social presence, better rankings, or AI search visibility. It builds your content strategy around your goals." },
-                { icon: CheckSquare, title: "Review and approve", desc: "Solo Spider generates your blogs, social posts, and SEO fixes. You review, tweak if you like, and hit approve. Or set it to fully auto — your call." },
-                { icon: Rocket, title: "Watch it run", desc: "Content goes live. Posts publish. SEO improves. AI search visibility grows. You get weekly reports showing exactly what's working — and what Solo Spider is doing about what isn't." }
+                { 
+                  icon: LinkIcon, 
+                  title: "Connect your channels", 
+                  desc: "Link your website, social accounts, and CMS. Solo Spider pulls in your brand voice, content & audience automatically." 
+                },
+                { 
+                  icon: Target, 
+                  title: "Set your goals", 
+                  desc: "Tell Solo Spider what you want — more traffic, stronger social, better rankings, or AI visibility. It builds your strategy." 
+                },
+                { 
+                  icon: CheckSquare, 
+                  title: "Review and approve", 
+                  desc: "It generates blogs, social posts, and SEO fixes. You review, tweak, and approve — or set it to fully auto." 
+                },
+                { 
+                  icon: Rocket, 
+                  title: "Watch it run", 
+                  desc: "Content goes live. Posts publish. SEO improves. You get weekly reports on exactly what's working." 
+                }
               ].map((step, i) => (
                 <div key={i} className="bg-[var(--bg-2)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] text-left">
                   <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-1">
                     <step.icon className="w-6 h-6" />
                   </div>
-                  <h4 className="font-display text-[20px] font-bold tracking-tight text-[var(--ink)]">{step.title}</h4>
-                  <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">{step.desc}</p>
+                  {/* #4 Headings */}
+                  <h4 
+                    className="text-[var(--ink)] font-bold"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 24, lineHeight: '100%', letterSpacing: '0px' }}
+                  >
+                    {step.title}
+                  </h4>
+                  {/* #5 Contents */}
+                  <p 
+                    className="text-[var(--ink-2)] font-normal"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '28px', letterSpacing: '0%' }}
+                  >
+                    {step.desc}
+                  </p>
                 </div>
               ))}
             </div>
@@ -802,26 +844,46 @@ export default function HomePage() {
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+              {/* #6 Badge */}
+              <span 
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', textTransform: 'uppercase', letterSpacing: '0%' }}
+              >
                 ● By the numbers
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
-                Real Results.<br />Not Marketing Fluff.
+              {/* #7 Title */}
+              <h2 
+                className="mb-[18px] text-[var(--ink)] text-center"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
+              >
+                Real Results. Not Marketing Fluff.
               </h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--line)] border border-[var(--line)] rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)]">
               {[
                 { v: "10×", l: "Faster content production vs. doing it manually." },
-                { v: "6 tools", l: "Replaced by a single Solo Spider subscription." },
+                { v: "6 Tools", l: "Replaced by a single Solo Spider subscription." },
                 { v: "80%", l: "Reduction in time spent on repetitive marketing tasks." },
                 { v: "5 mins", l: "Average setup time to publish your first blog." },
-                { v: "$500+", l: "Avg. monthly tool cost replaced by one Solo Spider plan." },
+                { v: "₹40k+", l: "Avg. monthly tool cost replaced by one Solo Spider plan." },
                 { v: "2,000+", l: "Agencies and creators already using Solo Spider." }
               ].map((num, i) => (
                 <div key={i} className="bg-[var(--panel)] p-8 lg:p-12 flex flex-col gap-2.5 text-left">
-                  <div className="font-display font-black text-5xl lg:text-[64px] leading-none tracking-tight text-primary">{num.v}</div>
-                  <div className="text-[14.5px] text-[var(--ink-2)] leading-relaxed">{num.l}</div>
+                  {/* #8 Value */}
+                  <div 
+                    className="text-primary font-extralight"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 200, fontSize: 60, lineHeight: '100%', letterSpacing: '0px' }}
+                  >
+                    {num.v}
+                  </div>
+                  {/* #9 content */}
+                  <div 
+                    className="text-[var(--ink-2)] font-normal"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '28px', letterSpacing: '0%' }}
+                  >
+                    {num.l}
+                  </div>
                 </div>
               ))}
             </div>
@@ -834,13 +896,27 @@ export default function HomePage() {
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+              {/* #10 Badge */}
+              <span 
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', textTransform: 'uppercase', letterSpacing: '0%' }}
+              >
                 ● vs. the old way
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
-                Stop Paying for a Stack.<br />Start Using a System.
+              {/* #11 Title */}
+              <h2 
+                className="mb-[18px] text-[var(--ink)] text-center"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
+              >
+                Stop Paying for a Stack. Start Using a System.
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">Here&apos;s what Solo Spider replaces — and what none of those tools can do together.</p>
+              {/* #12 Subtext */}
+              <p 
+                className="text-[var(--ink-2)] max-w-[660px] mx-auto text-center font-normal"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
+              >
+                Here&apos;s what Solo Spider replaces — and what none of those tools can do together.
+              </p>
             </div>
 
             {/* Desktop Table */}
