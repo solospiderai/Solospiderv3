@@ -856,7 +856,8 @@ export default function HomePage() {
                 className="mb-[18px] text-[var(--ink)] text-center"
                 style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
               >
-                Real Results. Not Marketing Fluff.
+                Real Results.<br />
+                Not Marketing Fluff.
               </h2>
             </div>
             
@@ -908,14 +909,15 @@ export default function HomePage() {
                 className="mb-[18px] text-[var(--ink)] text-center"
                 style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
               >
-                Stop Paying for a Stack. Start Using a System.
+                Stop Paying for a Stack.<br />
+                Start Using a System.
               </h2>
               {/* #12 Subtext */}
               <p 
                 className="text-[var(--ink-2)] max-w-[660px] mx-auto text-center font-normal"
                 style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
               >
-                Here&apos;s what Solo Spider replaces — and what none of those tools can do together.
+                Here&apos;s what Solo Spider replaces — and what none<br className="hidden lg:inline" /> of those tools can do together.
               </p>
             </div>
 
@@ -1012,7 +1014,12 @@ export default function HomePage() {
               <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
                 One Price.<br />Everything included.
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">No feature gating. No per-seat pricing surprises. Pick the plan that fits your volume and get access to every single Solo Spider capability.</p>
+              <p 
+                className="text-[18px] text-[var(--ink-2)] max-w-[720px] mx-auto text-center font-normal animate-fade-in"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
+              >
+                No feature gating. No per-seat pricing surprises. Pick the plan that fits<br className="hidden lg:inline" /> your volume and get access to every single Solo Spider capability.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-[1240px] mx-auto text-left">
