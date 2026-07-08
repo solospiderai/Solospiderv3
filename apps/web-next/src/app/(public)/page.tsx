@@ -124,7 +124,6 @@ export default function HomePage() {
                 <path d="M960 859L1605.6 213.4" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1749.6 403" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1840.8 623.8" stroke="#9025F2" strokeWidth="1.275"/>
-                <path d="M960 859H1872" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1840.8 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1749.6 1315" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1605.6 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
@@ -135,7 +134,6 @@ export default function HomePage() {
                 <path d="M960 859L314.4 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L170.4 1315" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L79.2002 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
-                <path d="M960 859H48" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L79.2002 623.8" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L170.4 403" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L314.4 213.4" stroke="#9025F2" strokeWidth="1.275"/>
