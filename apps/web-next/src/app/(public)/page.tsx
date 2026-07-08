@@ -109,11 +109,51 @@ export default function HomePage() {
         <section className="relative w-full pt-[90px] pb-[40px] md:pt-[110px] md:pb-[60px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            <img
-              src="/assets/bg-web.png"
-              alt=""
-              className="absolute left-1/2 -translate-x-1/2 bottom-[25px] w-[1920px] h-[859px] max-w-none select-none pointer-events-none"
-            />
+            <svg
+              width="1920"
+              height="859"
+              viewBox="0 0 1920 859"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="absolute left-1/2 -translate-x-1/2 bottom-[25px] w-[1920px] h-[859px] pointer-events-none select-none z-0"
+            >
+              <g opacity="0.1" clipPath="url(#clip0_311_886)">
+                <path d="M960 859V-53" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1195.2 -21.8" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1416 69.4" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1605.6 213.4" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1749.6 403" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1840.8 623.8" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859H1872" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1840.8 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1749.6 1315" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1605.6 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1416 1648.6" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L1195.2 1739.8" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L724.8 1739.8" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L504 1648.6" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L314.4 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L170.4 1315" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L79.2002 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859H48" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L79.2002 623.8" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L170.4 403" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L314.4 213.4" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L504 69.4" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859L724.8 -21.8" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 1003C1039.53 1003 1104 938.529 1104 859C1104 779.471 1039.53 715 960 715C880.471 715 816 779.471 816 859C816 938.529 880.471 1003 960 1003Z" stroke="#9025F2" strokeWidth="1.0625"/>
+                <path d="M960 1123C1105.8 1123 1224 1004.8 1224 859C1224 713.197 1105.8 595 960 595C814.197 595 696 713.197 696 859C696 1004.8 814.197 1123 960 1123Z" stroke="#9025F2" strokeWidth="1.0625"/>
+                <path d="M960 1267C1185.33 1267 1368 1084.33 1368 859C1368 633.668 1185.33 451 960 451C734.668 451 552 633.668 552 859C552 1084.33 734.668 1267 960 1267Z" stroke="#9025F2" strokeWidth="1.0625"/>
+                <path d="M960 1435C1278.12 1435 1536 1177.12 1536 859C1536 540.884 1278.12 283 960 283C641.884 283 384 540.884 384 859C384 1177.12 641.884 1435 960 1435Z" stroke="#9025F2" strokeWidth="1.0625"/>
+                <path d="M960 1603C1370.9 1603 1704 1269.9 1704 859C1704 448.1 1370.9 115 960 115C549.1 115 216 448.1 216 859C216 1269.9 549.1 1603 960 1603Z" stroke="#9025F2" strokeWidth="1.0625"/>
+                <path d="M960 1771C1463.68 1771 1872 1362.68 1872 859C1872 355.316 1463.68 -53 960 -53C456.316 -53 48 355.316 48 859C48 1362.68 456.316 1771 960 1771Z" stroke="#9025F2" strokeWidth="1.0625"/>
+              </g>
+              <defs>
+                <clipPath id="clip0_311_886">
+                  <rect width="1920" height="960" fill="white" transform="translate(0 -101)"/>
+                </clipPath>
+              </defs>
+            </svg>
           </div>
 
           <div className="relative text-center max-w-[980px] mx-auto px-7 z-10 flex flex-col items-center">
