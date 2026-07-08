@@ -89,7 +89,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-2 text-[16px] text-[var(--ink)] font-semibold h-full">
+          <div className="hidden lg:flex items-center gap-2 text-[14px] text-[var(--ink)] font-normal h-full" style={{ fontFamily: "'Geist', sans-serif" }}>
             <a 
               href="/#features" 
               onClick={(e) => handleScrollTo(e, "features")} 
@@ -117,14 +117,14 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
 
             <button 
               onClick={onOpenWizard} 
-              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent text-[16px]"
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-normal bg-transparent text-[14px]"
             >
               Blog
             </button>
 
             <button 
               onClick={onOpenWizard} 
-              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent text-[16px]"
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-normal bg-transparent text-[14px]"
             >
               SEO Audit
             </button>
@@ -144,7 +144,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
               </Link>
             ) : (
               <>
-                <Link href="/login" className="px-5 py-2.5 rounded-xl border border-[var(--line)] text-[16px] text-[var(--ink)] font-semibold hover:bg-primary-soft/50 hover:text-primary transition-all flex items-center justify-center">
+                <Link href="/login" className="px-5 py-2.5 rounded-xl border border-[var(--line)] text-[14px] text-[var(--ink)] font-normal hover:bg-primary-soft/50 hover:text-primary transition-all flex items-center justify-center" style={{ fontFamily: "'Geist', sans-serif" }}>
                   Login
                 </Link>
                 <Link href="/signup" className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">

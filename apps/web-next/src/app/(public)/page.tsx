@@ -106,7 +106,7 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* HERO SECTION                                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative w-full pt-[90px] pb-[40px] md:pt-[110px] md:pb-[60px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <section className="relative w-full pt-[90px] pb-[40px] md:pt-[110px] md:pb-[60px] overflow-hidden bg-[var(--bg)]" id="hero" style={{ fontFamily: "'Geist', sans-serif" }}>
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <svg
@@ -124,6 +124,7 @@ export default function HomePage() {
                 <path d="M960 859L1605.6 213.4" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1749.6 403" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1840.8 623.8" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859H1872" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1840.8 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1749.6 1315" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1605.6 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
@@ -134,6 +135,7 @@ export default function HomePage() {
                 <path d="M960 859L314.4 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L170.4 1315" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L79.2002 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M960 859H48" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L79.2002 623.8" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L170.4 403" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L314.4 213.4" stroke="#9025F2" strokeWidth="1.275"/>
@@ -155,42 +157,55 @@ export default function HomePage() {
           </div>
 
           <div className="relative text-center max-w-[980px] mx-auto px-7 z-10 flex flex-col items-center">
-            {/* Badge */}
-            <span className="inline-flex items-center gap-2 h-[39px] px-5 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[13px] font-medium text-[var(--ink-2)] mb-[28px] shadow-sm shrink-0">
+            {/* Badge - #2: Geist 400 14px line-height 100% */}
+            <span
+              className="inline-flex items-center gap-2 h-[39px] px-5 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[var(--ink-2)] mb-[28px] shadow-sm shrink-0"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}
+            >
               <span className="w-2 h-2 rounded-full bg-[#9025F2]"></span>
               Now live — The AI marketing OS for agencies &amp; creators
             </span>
 
-            {/* Heading */}
-            <h1 className="text-[34px] sm:text-[52px] md:text-[80px] leading-[1.05] mb-[24px] tracking-tight text-[var(--ink)]" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 800 }}>
+            {/* Heading - #3: Geist 800 66px line-height 72px */}
+            <h1
+              className="mb-[24px] text-[var(--ink)]"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 800, fontSize: 66, lineHeight: '72px', letterSpacing: 0, textAlign: 'center' }}
+            >
               Replace Your Entire<br />
               <span className="grad-text">Marketing Workflow</span><br />
               With One Tool
             </h1>
 
-            {/* Sub text */}
-            <p className="text-[15px] sm:text-[18px] md:text-[20px] text-[var(--ink-2)] max-w-[720px] mx-auto mb-[32px] leading-[1.6] font-normal">
+            {/* Sub text - #4: Geist 400 18px line-height 32px */}
+            <p
+              className="text-[var(--ink-2)] max-w-[720px] mx-auto mb-[32px]"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+            >
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
 
-            {/* URL Input Bar - Fully Mobile Responsive & Precise Figma Sizing */}
+            {/* URL Input Bar */}
             <div className="w-full max-w-[640px] mx-auto mb-[20px]">
               <form onSubmit={handleStartAnalysis} className="h-auto sm:h-[62.5px] w-full p-2 sm:p-[9px] rounded-[16px] bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <div className="flex-grow flex items-center pl-2">
                   <Globe className="w-4.5 h-4.5 text-[var(--muted)] shrink-0" />
+                  {/* Input placeholder - #5: Geist 400 14px line-height 100% */}
                   <input
                     type="text"
                     required
                     placeholder="Enter your website URL (e.g., example.com)"
                     value={analysisUrl}
                     onChange={(e) => setAnalysisUrl(e.target.value)}
-                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] font-medium text-[14px] md:text-[15px] py-2 sm:py-0 px-2 placeholder-[#9CA3AF]"
+                    className="w-full bg-transparent border-0 outline-none text-[var(--ink)] py-2 sm:py-0 px-2 placeholder-[#9CA3AF]"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%' }}
                   />
                 </div>
+                {/* Button - #6: Geist 700 16px */}
                 <button
                   type="submit"
                   disabled={analyzing}
-                  className="w-full sm:w-[180.14px] h-[44.5px] bg-primary hover:bg-primary-2 text-white font-bold text-[14px] rounded-[14px] shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full sm:w-[180.14px] h-[44.5px] bg-primary hover:bg-primary-2 text-white rounded-[14px] shrink-0 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 16, lineHeight: '100%', letterSpacing: 0, textAlign: 'center', verticalAlign: 'middle' }}
                 >
                   {analyzing ? (
                     <>
@@ -199,36 +214,46 @@ export default function HomePage() {
                     </>
                   ) : (
                     <>
-                      Start Analysis <span className="text-[13px] sm:text-[14px]">⚡</span>
+                      Start Analysis <span className="text-[14px]">⚡</span>
                     </>
                   )}
                 </button>
               </form>
             </div>
 
-            {/* Under-Input Text */}
-            <p className="text-[13px] text-[#9CA3AF] font-medium mb-0 flex items-center justify-center gap-1.5">
+            {/* Under-Input Text - #7: Geist 400 14px line-height 18px */}
+            <p
+              className="text-[#9CA3AF] mb-0 flex items-center justify-center gap-1.5"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '18px', letterSpacing: '0%', textAlign: 'center', verticalAlign: 'middle' }}
+            >
               <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
             </p>
 
             {/* Sub CTA Buttons */}
             <div className="flex justify-center gap-3.5 flex-wrap mt-[24px] mb-[20px] relative z-10">
+              {/* #8: Geist 700 14px */}
               <button
                 onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
-                className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white font-semibold text-[15px] cursor-pointer flex items-center justify-center gap-1 active:scale-[0.98] transition-all"
+                className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white cursor-pointer flex items-center justify-center gap-1 active:scale-[0.98] transition-all"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}
               >
                 Start free trial <span className="text-[14px]">→</span>
               </button>
+              {/* #9: Inter 600 15px */}
               <button
                 onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
-                className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] font-semibold text-[15px] cursor-pointer flex items-center justify-center active:scale-[0.98] transition-all"
+                className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] cursor-pointer flex items-center justify-center active:scale-[0.98] transition-all"
+                style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center', verticalAlign: 'middle' }}
               >
                 See How It Works
               </button>
             </div>
 
-            {/* Checklist Features */}
-            <div className="flex justify-center flex-wrap gap-x-8 gap-y-3 text-[14px] text-[var(--ink-2)] mt-[20px] relative z-10 font-semibold">
+            {/* Checklist Features - #10: Inter 400 16px */}
+            <div
+              className="flex justify-center flex-wrap gap-x-8 gap-y-3 text-[var(--ink-2)] mt-[20px] relative z-10"
+              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center', verticalAlign: 'middle' }}
+            >
               <span className="flex items-center gap-2">
                 <span className="text-[#22c55e] font-black">✓</span>
                 <span>No credit card required</span>
@@ -245,20 +270,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* TRUSTED BY LOGO BAR (Separate Section to prevent grid line overflow) */}
+        {/* TRUSTED BY LOGO BAR */}
         <section className="h-[201px] flex flex-col justify-center border-b border-[var(--line)] bg-[var(--bg)] relative z-10">
           <div className="max-w-[1240px] mx-auto px-7 w-full">
-            <div className="text-center text-[12.5px] sm:text-[13px] text-[var(--muted)] mb-5 tracking-wider uppercase font-bold">
+            {/* #1: Geist 400 18px */}
+            <div
+              className="text-center text-[var(--muted)] mb-5"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center' }}
+            >
               Trusted by 2,000+ agencies, freelancers, and solo founders
             </div>
-            <div className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] font-display font-bold text-base sm:text-lg opacity-70">
-              <span className="tracking-tight">Loomstack</span>
-              <span className="tracking-wider uppercase">NORTHWIND</span>
-              <span className="font-extrabold uppercase">PEAK CO</span>
-              <span className="flex items-center gap-1">◇ Lattice</span>
-              <span className="uppercase tracking-widest font-extrabold">CIVIC</span>
-              <span className="flex items-center gap-1.5 font-bold"><span className="text-xs">●</span> Pulse</span>
-              <span className="font-serif italic font-medium">Modern</span>
+            {/* #2: Geist 600 18px line-height 28px */}
+            <div
+              className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] opacity-70"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 600, fontSize: 18, lineHeight: '28px', letterSpacing: '0%', verticalAlign: 'middle' }}
+            >
+              <span>Loomstack</span>
+              <span>NORTHWIND</span>
+              <span>PEAK CO</span>
+              <span>◇ Lattice</span>
+              <span>CIVIC</span>
+              <span>● Pulse</span>
+              <span>Modern</span>
             </div>
           </div>
         </section>
@@ -268,243 +301,53 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden" id="problem">
           <div className="max-w-[1240px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-14 items-center">
-            {/* Left: Text */}
             <div className="text-left">
-              {/* Custom Pill Badge matching Figma */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--bg)] border border-[var(--line)] text-xs font-bold uppercase tracking-wider text-[var(--ink)] mb-6 shadow-sm">
+              {/* #3: Geist 400 14px uppercase */}
+              <div
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--bg)] border border-[var(--line)] text-[var(--ink)] mb-6 shadow-sm"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle', textTransform: 'uppercase' }}
+              >
                 <span className="w-2 h-2 rounded-full bg-[#9025F2]"></span>
                 The problem
               </div>
               
-              <h2 className="text-4xl md:text-[56px] leading-[1.1] mb-6 font-black tracking-tight text-[var(--ink)]">
+              {/* #4: Geist 700 42px */}
+              <h2
+                className="mb-6 text-[var(--ink)]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: 0 }}
+              >
                 You&apos;re paying for 6 tools<br />
                 that should be one.
               </h2>
               
-              <div className="text-[17px] text-[var(--ink-2)] space-y-5 leading-relaxed">
-                <p>The average digital marketer juggles Surfer SEO, Buffer, Canva, Ahrefs, a blog CMS, and a separate AI writing tool — spending $350–$950 a month on subscriptions that barely talk to each other.</p>
+              {/* #5: Geist 400 16px line-height 28px */}
+              <div
+                className="text-[var(--ink-2)] space-y-5"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '28px', letterSpacing: '0%' }}
+              >
+                <p>The average digital marketer juggles Surfer SEO, Buffer, Canva, Ahrefs, a blog CMS, and a separate AI writing tool — spending ₹30,000–₹80,000 a month on subscriptions that barely talk to each other.</p>
                 <p>That&apos;s before counting the hours lost copy-pasting between tools, briefing freelancers, chasing approvals, and manually posting content.</p>
                 <p>Solo Spider was built to collapse the entire stack into a single, automated workflow — so you spend less time on the tools and more time on the work that actually grows your business.</p>
               </div>
             </div>
 
-            {/* Right: Diagram inside bordered panel card */}
-            <div className={`relative w-full overflow-hidden flex items-center justify-center p-4 border rounded-3xl shadow-xl h-auto min-h-[300px] sm:min-h-[460px] z-10 transition-all duration-300 ${
-              isDark 
-                ? "bg-[#0b0918] border-[rgba(144,37,242,0.25)] shadow-[0_20px_50px_rgba(0,0,0,0.4)]" 
-                : "bg-[#f5f4ed]/60 border-[#e2e1da] shadow-[0_20px_50px_rgba(0,0,0,0.02)]"
-            }`}>
-              <div className="origin-center scale-[0.44] min-[400px]:scale-[0.50] sm:scale-75 md:scale-[0.85] lg:scale-[0.80] xl:scale-100 shrink-0 w-[620px] h-[420px] relative transition-all duration-300">
-                {/* SVG connection lines */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 620 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Glow Filter for Dark Mode */}
-                <defs>
-                  <filter id="glow-lines" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="2.5" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-
-                {/* Left bezier connection lines */}
-                <path d="M 81,61 C 130,61 155,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 171,106 C 195,106 205,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 56,171 C 115,171 155,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 146,206 C 185,206 200,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 81,271 C 130,271 155,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 171,316 C 195,316 205,205 225,205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-
-                {/* Dotted paths connecting center */}
-                <line x1="225" y1="205" x2="255" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
-                <line x1="365" y1="205" x2="395" y2="205" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.5" strokeDasharray="3 3" filter={isDark ? "url(#glow-lines)" : undefined} />
-
-                {/* Right bezier connection lines */}
-                <path d="M 395,205 C 410,205 425,50 450,50" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 395,205 C 410,205 425,130 450,130" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 395,205 C 410,205 425,210 450,210" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 395,205 C 410,205 425,290 450,290" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-                <path d="M 395,205 C 410,205 425,370 450,370" stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="1.75" fill="none" filter={isDark ? "url(#glow-lines)" : undefined} className="opacity-80" />
-
-                {/* Hub node circles */}
-                <circle cx="225" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
-                <circle cx="225" cy="205" r="2.5" fill="#ffffff" />
-                
-                <circle cx="395" cy="205" r="7" fill={isDark ? "#181530" : "#141226"} stroke={isDark ? "#d946ef" : "#8a879a"} strokeWidth="2" filter={isDark ? "url(#glow-lines)" : undefined} />
-                <circle cx="395" cy="205" r="2.5" fill="#ffffff" />
-              </svg>
-
-              {/* Left: 6 squircle tool cards placed precisely per Figma */}
-              {[
-                { 
-                  name: "SFO", 
-                  sub: "SEO", 
-                  top: 30, 
-                  left: 50,
-                  icon: (
-                    <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M18 20V10M12 20V4M6 20v-6" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-                { 
-                  name: "Buffer", 
-                  sub: "Social", 
-                  top: 75, 
-                  left: 140,
-                  icon: (
-                    <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-                { 
-                  name: "Canva", 
-                  sub: "Design", 
-                  top: 140, 
-                  left: 25,
-                  icon: <span className="font-serif italic font-extrabold text-[12px] tracking-tighter text-white leading-none">Canva</span>
-                },
-                { 
-                  name: "ahrefs", 
-                  sub: "SEO", 
-                  top: 175, 
-                  left: 115,
-                  icon: <span className="font-sans font-black text-[11px] tracking-tight text-white leading-none">ahrefs</span>
-                },
-                { 
-                  name: "CMS", 
-                  sub: "CMS", 
-                  top: 240, 
-                  left: 50,
-                  icon: (
-                    <div className="w-6.5 h-6.5 rounded-full border-2 border-white/90 flex items-center justify-center font-serif font-black text-xs text-white">W</div>
-                  )
-                },
-                { 
-                  name: "AI Writing", 
-                  sub: "AI Writing", 
-                  top: 285, 
-                  left: 140,
-                  icon: (
-                    <svg className="w-5.5 h-5.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M12 3v18M3 12h18M12 12m-6 0a6 6 0 1 0 12 0 6 6 0 1 0-12 0" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-              ].map((tool) => (
-                <div
-                  key={tool.name}
-                  className="absolute z-10 flex flex-col items-center select-none"
-                  style={{ top: tool.top, left: tool.left }}
-                >
-                  <div className={`w-[62px] h-[62px] rounded-2xl bg-[#141226] text-white flex flex-col items-center justify-center border shadow-lg transition-all duration-300 ${
-                    isDark 
-                      ? "border-[#d946ef] shadow-[0_0_12px_rgba(217,70,239,0.35)]" 
-                      : "border-white/10"
-                  }`}>
-                    <div className="flex items-center justify-center h-7">{tool.icon}</div>
-                    <span className="text-[7.5px] font-black tracking-wider uppercase leading-none mt-1">{tool.name}</span>
-                  </div>
-                  <span className="text-[7.5px] font-bold text-[var(--muted)] mt-1 uppercase tracking-widest">{tool.sub}</span>
-                </div>
-              ))}
-
-              {/* Center: Purple gradient squircle with spider mask logo */}
-              <div className="absolute z-10" style={{ top: 125, left: 255 }}>
-                <div className={`w-[110px] h-[160px] rounded-[28px] flex flex-col items-center justify-center text-white border transition-all duration-300 ${
-                  isDark 
-                    ? "border-[#ec4899] shadow-[0_0_25px_rgba(236,72,153,0.55)]" 
-                    : "border-white/15"
-                }`} style={{ background: 'linear-gradient(180deg, #a855f7 0%, #9025F2 50%, #c084fc 100%)' }}>
-                  {/* Styled Spider Mask Logo */}
-                  <svg className="w-12 h-12 text-white mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a5 5 0 0 0-5 5v2a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z" fill="currentColor"/>
-                    <path d="M7 11c0 2 1 4 3 5M17 11c0 2-1 4-3 5M5 7c-2 0-3 1-3 3M19 7c2 0 3 1 3 3" strokeLinecap="round"/>
-                    <path d="M4 14c-1.5.5-2 2-2 3.5M20 14c1.5.5 2 2 2 3.5M6 19.5c-1 1-1 2.5-1 3.5M18 19.5c1 1 1 2.5 1 3.5" strokeLinecap="round"/>
-                  </svg>
-                  <span className="font-display font-black text-[13px] tracking-wide mt-1">solospider</span>
-                </div>
-              </div>
-
-              {/* Right: 5 target capsules */}
-              {[
-                { 
-                  title: "SEO", 
-                  sub: "OPTIMIZED", 
-                  top: 25,
-                  icon: (
-                    <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M22 4L12 14.01l-3-3" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-                { 
-                  title: "AEO", 
-                  sub: "ANSWER ENGINE OPTIMIZED", 
-                  top: 105,
-                  icon: (
-                    <svg className="w-4 h-4 text-amber-400 fill-amber-400/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                  )
-                },
-                { 
-                  title: "GEO", 
-                  sub: "GEOGRAPHICALLY OPTIMIZED", 
-                  top: 185,
-                  icon: (
-                    <svg className="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" strokeLinecap="round" strokeLinejoin="round"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                  )
-                },
-                { 
-                  title: "Social", 
-                  sub: "SOCIAL MEDIA OPTIMIZED", 
-                  top: 265,
-                  icon: (
-                    <svg className="w-4 h-4 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-                { 
-                  title: "AI Writing", 
-                  sub: "AI POWERED CONTENT", 
-                  top: 345,
-                  icon: (
-                    <svg className="w-4 h-4 text-purple-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-              ].map((item) => (
-                <div
-                  key={item.title}
-                  className="absolute z-10 select-none"
-                  style={{ top: item.top, right: 25 }}
-                >
-                  <div className={`w-[145px] h-[60px] rounded-xl bg-[#141226] text-white flex items-center gap-2.5 px-3 border shadow-md transition-all duration-300 ${
-                    isDark 
-                      ? "border-[#d946ef] shadow-[0_0_12px_rgba(217,70,239,0.35)]" 
-                      : "border-white/10"
-                  }`}>
-                    <span className="shrink-0">{item.icon}</span>
-                    <div className="flex flex-col text-left">
-                      <span className="font-bold text-[12px] leading-tight text-white">{item.title}</span>
-                      <span className="text-[6px] tracking-wide text-gray-400 font-bold leading-tight mt-0.5 uppercase">{item.sub}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              </div>
+            {/* Right: Diagram Image with #F4F1EA background box (in light mode) or dark background (in dark mode) */}
+            <div 
+              className="relative w-full flex items-center justify-center z-10 p-6 sm:p-10 rounded-[32px] border transition-all duration-300"
+              style={{
+                backgroundColor: isDark ? "#141226" : "#F4F1EA",
+                borderColor: isDark ? "rgba(144,37,242,0.25)" : "#e2e1da",
+              }}
+            >
+              <img
+                src={isDark ? "/assets/problem-diagram-dark.png" : "/assets/problem-diagram-light.png"}
+                alt="Solo Spider replaces 6 tools with one"
+                className="w-full h-auto max-w-[620px]"
+              />
             </div>
           </div>
         </section>
+
 
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* DASHBOARD PREVIEW                                             */}
@@ -512,21 +355,36 @@ export default function HomePage() {
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[960px] mx-auto mb-16">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+              {/* #6: Geist 400 14px uppercase */}
+              <span
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle', textTransform: 'uppercase' }}
+              >
                 ● Dashboard
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[48px] tracking-tight font-black text-[var(--ink)] whitespace-nowrap">
+              {/* #7: Geist 700 42px */}
+              <h2
+                className="mb-[18px] text-[var(--ink)]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: 0, textAlign: 'center' }}
+              >
                 Built for agencies. Priced for solo creators.
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[760px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
+              {/* #8: Geist 400 18px line-height 32px */}
+              <p
+                className="text-[var(--ink-2)] max-w-[760px] mx-auto"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+              >
+                Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.
+              </p>
             </div>
 
-            {/* Mac-like Browser Window Wrapper */}
-            <div className="relative w-full max-w-[1100px] mx-auto rounded-2xl overflow-hidden border border-[var(--line)] shadow-[0_32px_64px_-24px_rgba(14,12,26,0.22)] bg-[var(--panel)]">
+            {/* Dashboard Image - Figma: 1200x760, border-radius 24.62px, border 1px */}
+            <div className="relative mx-auto overflow-hidden border border-[var(--line)] shadow-[0_32px_64px_-24px_rgba(14,12,26,0.22)] bg-[var(--panel)]" style={{ maxWidth: 1200, borderRadius: '24.62px' }}>
               <img
                 src={isDark ? "/assets/dashboard-dark.svg" : "/assets/dashboard-light.svg"}
                 alt="Solo Spider Dashboard Preview"
-                className="w-full h-auto block"
+                className="w-full block"
+                style={{ height: 'auto', maxHeight: 760 }}
               />
             </div>
           </div>
@@ -538,25 +396,49 @@ export default function HomePage() {
         <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="audience">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[960px] mx-auto mb-16">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+              {/* #9: Geist 400 14px uppercase */}
+              <span
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle', textTransform: 'uppercase' }}
+              >
                 ● Who it&apos;s for
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[48px] tracking-tight font-black text-[var(--ink)] whitespace-nowrap">
+              {/* #10: Geist 700 42px */}
+              <h2
+                className="mb-[18px] text-[var(--ink)]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: 0, textAlign: 'center' }}
+              >
                 Built for agencies. Priced for solo creators.
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[760px] mx-auto">Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.</p>
+              {/* #11: Geist 400 18px line-height 32px */}
+              <p
+                className="text-[var(--ink-2)] max-w-[760px] mx-auto"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+              >
+                Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.
+              </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
-              {/* Agency Card */}
-              <div className="relative p-[1.5px] bg-gradient-to-b from-primary via-[#b260ff] to-transparent rounded-3xl overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group">
-                <div className="bg-[var(--panel)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[22px] p-10 lg:p-11 flex flex-col gap-4.5 relative z-10 h-full">
-                  <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary text-white text-[12px] font-semibold border border-primary tracking-wide self-start mb-4">
+              {/* Agency Card - Figma: 705x700, border-radius 10px */}
+              <div className="relative p-[1.5px] bg-gradient-to-b from-primary via-[#b260ff] to-transparent overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group" style={{ borderRadius: 10 }}>
+                <div className="bg-[var(--panel)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] p-10 lg:p-11 flex flex-col gap-4.5 relative z-10 h-full" style={{ borderRadius: 9, minHeight: 700 }}>
+                  {/* #12: Geist 400 14px letter-spacing 3px uppercase */}
+                  <span
+                    className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary text-white border border-primary self-start mb-4"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: 3, textTransform: 'uppercase' }}
+                  >
                     For Agencies
                   </span>
-                  <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-[var(--ink)] mb-4">Scale your agency without increasing operational complexity</h3>
-                  <p className="text-[15px] text-[var(--ink-2)] leading-relaxed mb-6">Growing an agency shouldn&apos;t mean juggling more tools or adding unnecessary overhead. Solo Spider helps you streamline content creation, social media management, SEO, and AI search visibility across every client account—all from one centralized platform.</p>
+                  {/* #13: Geist 400 16px line-height 28px */}
+                  <p
+                    className="text-[var(--ink-2)] mb-6"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '28px', letterSpacing: '0%' }}
+                  >
+                    Growing an agency shouldn&apos;t mean juggling more tools. Solo Spider streamlines content, social, SEO, and AI search visibility across every client account — all from one centralized platform.
+                  </p>
                   
+                  {/* #14: Geist 400 16px line-height 100% */}
                   <div className="flex flex-col gap-3 mb-8">
                     {[
                       "Manage multiple client brands from a single workspace",
@@ -566,25 +448,46 @@ export default function HomePage() {
                       "Show up in AI search results before your competitors do (AEO & GEO)",
                       "Share professional white-label reports with clients"
                     ].map((item, i) => (
-                      <div key={i} className="flex gap-3 items-start text-[14.5px] text-[var(--ink)]">
+                      <div
+                        key={i}
+                        className="flex gap-3 items-start text-[var(--ink)]"
+                        style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '100%', letterSpacing: '0%' }}
+                      >
                         <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
                         <span>{item}</span>
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white font-semibold text-[15px] self-start mt-auto cursor-pointer flex items-center justify-center">Explore Agency Plan</button>
+                  {/* #15: Geist 700 14px */}
+                  <button
+                    onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
+                    className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white self-start mt-auto cursor-pointer flex items-center justify-center"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}
+                  >
+                    Explore Agency Plan
+                  </button>
                 </div>
               </div>
 
-              {/* Individual Card */}
-              <div className="relative bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group">
+              {/* Individual Card - Figma: 705x700, border-radius 10px */}
+              <div className="relative bg-[var(--panel)] border border-[var(--line)] p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group" style={{ borderRadius: 10, minHeight: 700 }}>
                 <div className="relative z-10 flex flex-col h-full">
-                  <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary-soft text-primary-2 text-[12px] font-semibold border border-primary/20 tracking-wide self-start mb-4">
+                  {/* #12: Geist 400 14px letter-spacing 3px uppercase */}
+                  <span
+                    className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary-soft text-primary-2 border border-primary/20 self-start mb-4"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: 3, textTransform: 'uppercase' }}
+                  >
                     For Individuals
                   </span>
-                  <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-tight text-[var(--ink)] mb-4">Grow your marketing without the complexity</h3>
-                  <p className="text-[15px] text-[var(--ink-2)] leading-relaxed mb-6">Running a business means wearing many hats. Solo Spider helps you simplify your marketing by automating content creation, social media, SEO, and AI search visibility—all from one easy-to-use platform.</p>
+                  {/* #13: Geist 400 16px line-height 28px */}
+                  <p
+                    className="text-[var(--ink-2)] mb-6"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '28px', letterSpacing: '0%' }}
+                  >
+                    Running a business means wearing many hats. Solo Spider simplifies your marketing by automating content, social, SEO, and AI search visibility — all from one easy-to-use platform.
+                  </p>
                   
+                  {/* #14: Geist 400 16px line-height 100% */}
                   <div className="flex flex-col gap-3 mb-8">
                     {[
                       "Publish blog posts without managing a complex CMS",
@@ -593,13 +496,24 @@ export default function HomePage() {
                       "Increase your visibility across ChatGPT, Gemini, AI Overviews, and other AI-powered search experiences",
                       "Plan, create, and schedule a month's worth of content in under an hour"
                     ].map((item, i) => (
-                      <div key={i} className="flex gap-3 items-start text-[14.5px] text-[var(--ink)]">
+                      <div
+                        key={i}
+                        className="flex gap-3 items-start text-[var(--ink)]"
+                        style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '100%', letterSpacing: '0%' }}
+                      >
                         <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
                         <span>{item}</span>
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all font-semibold text-[15px] self-start mt-auto cursor-pointer flex items-center justify-center">Explore Solo Plan</button>
+                  {/* #15: Geist 700 14px */}
+                  <button
+                    onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
+                    className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all self-start mt-auto cursor-pointer flex items-center justify-center"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}
+                  >
+                    Explore Solo Plan
+                  </button>
                 </div>
               </div>
             </div>
@@ -612,13 +526,25 @@ export default function HomePage() {
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-16">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+              {/* #1: AI Search Metrics badge */}
+              <span 
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle', textTransform: 'uppercase' }}
+              >
                 ● AI Search Metrics
               </span>
-              <h2 className="mb-4 text-4xl md:text-[54px] tracking-tight font-black text-[var(--ink)] leading-[1.1]">
+              {/* #2: Discover how AI interprets your brand */}
+              <h2 
+                className="mb-4 text-[var(--ink)]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px', textAlign: 'center' }}
+              >
                 Discover how AI<br />interprets your brand
               </h2>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[660px] mx-auto">
+              {/* #3: Track the most important performance indicators across AI search. */}
+              <p 
+                className="text-[var(--ink-2)] max-w-[660px] mx-auto"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+              >
                 Track the most important performance indicators across AI search.
               </p>
             </div>
@@ -629,15 +555,18 @@ export default function HomePage() {
                 {[
                   {
                     title: "SEO",
-                    desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
+                    isBold: true,
+                    desc: "Corem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
                   },
                   {
                     title: "AEO",
-                    desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
+                    isBold: false,
+                    desc: "Corem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
                   },
                   {
                     title: "GEO",
-                    desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
+                    isBold: false,
+                    desc: "Corem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus."
                   }
                 ].map((item, idx) => (
                   <div
@@ -652,44 +581,92 @@ export default function HomePage() {
                           : "bg-[#F4F3EE] border-transparent"
                     }`}
                   >
-                    <h3 className="text-2xl font-black mb-2.5 font-display text-[var(--ink)]">
+                    {/* #4: SEO (Bold 30px), #5: AEO and GEO (Regular 30px) */}
+                    <h3 
+                      className="mb-2.5 text-[var(--ink)]"
+                      style={{ 
+                        fontFamily: "'Geist', sans-serif", 
+                        fontWeight: item.isBold ? 700 : 400, 
+                        fontSize: 30, 
+                        lineHeight: '100%', 
+                        letterSpacing: '0px' 
+                      }}
+                    >
                       {item.title}
                     </h3>
-                    <p className="text-[14px] text-[var(--ink-2)] leading-relaxed opacity-90">
+                    {/* #6: Description text */}
+                    <p 
+                      className="text-[var(--ink-2)]"
+                      style={{ 
+                        fontFamily: "'Geist', sans-serif", 
+                        fontWeight: 400, 
+                        fontSize: 16, 
+                        lineHeight: '28px', 
+                        letterSpacing: '0%' 
+                      }}
+                    >
                       {item.desc}
                     </p>
                   </div>
                 ))}
               </div>
 
-              {/* Right Column: Search Mockup (Hidden on mobile/tablet view to maximize space) */}
-              <div className={`hidden lg:flex rounded-[32px] p-6 lg:p-8 flex-col gap-6 text-left border transition-all duration-300 ${
+              {/* Right Column: Search Mockup */}
+              <div className={`flex rounded-[32px] p-6 lg:p-8 flex-col gap-6 text-left border transition-all duration-300 ${
                 isDark 
                   ? "bg-[var(--bg-2)] border-[var(--line)]" 
                   : "bg-[#F4F3EE] border-[var(--line)]"
               }`}>
-                <div className={`flex items-center justify-between rounded-full pl-5 pr-1.5 py-1.5 shadow-[0_4px_15px_rgba(0,0,0,0.02)] border transition-all duration-300 ${
-                  isDark 
-                    ? "bg-[var(--panel)] border-[var(--line)]" 
-                    : "bg-white border-[var(--line)]"
-                }`}>
-                  <span className="text-[13.5px] text-[var(--ink-2)] opacity-70 font-medium">Digital Marketing Company...</span>
-                  <button type="button" className="w-9 h-9 rounded-full bg-[#9025F2] hover:bg-[#7c1ed4] text-white flex items-center justify-center transition-colors">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                {/* #10 Search Bar Layout */}
+                <div 
+                  className={`flex items-center justify-between rounded-[40px] pl-6 pr-2 py-1 shadow-[0_4px_15px_rgba(0,0,0,0.02)] border transition-all duration-300 w-full max-w-[770px] h-[60px]`}
+                  style={{
+                    backgroundColor: isDark ? "var(--panel)" : "#ffffff",
+                    borderColor: "var(--line)",
+                    borderWidth: "1px"
+                  }}
+                >
+                  {/* #11 Digital Marketing Company... (in search bar) */}
+                  <span 
+                    className="text-[var(--ink-2)] opacity-70"
+                    style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '100%', letterSpacing: '0%' }}
+                  >
+                    Digital Marketing Company...
+                  </span>
+                  <button type="button" className="w-10 h-10 rounded-full bg-[#9025F2] hover:bg-[#7c1ed4] text-white flex items-center justify-center transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                   </button>
                 </div>
                 
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-6 mt-4">
                   {[1, 2, 3, 4].map((num) => (
-                    <div key={num} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-mono text-[13.5px] text-[#9025F2] font-black">0{num}.</span>
-                        <span className="text-[13.5px] font-black text-[var(--ink)]">www.website.com</span>
+                    <div key={num} className="flex flex-col gap-2 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
+                      <div className="flex items-baseline gap-2.5">
+                        {/* #9: numbers 01. , 02. , 03. , 04. */}
+                        <span 
+                          className="text-[#9025F2]"
+                          style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 30, lineHeight: '100%', letterSpacing: '0%' }}
+                        >
+                          0{num}.
+                        </span>
+                        {/* #7: www.website.com */}
+                        <span 
+                          className="text-[var(--ink)]"
+                          style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 16, lineHeight: '100%', letterSpacing: '0%' }}
+                        >
+                          www.website.com
+                        </span>
                       </div>
-                      <span className="text-[11px] text-[var(--muted)] pl-[26px] font-mono leading-none">www.website.com</span>
-                      <div className="pl-[26px] flex flex-col gap-1.5 mt-2">
+                      {/* #8: www.website.com (grey one) */}
+                      <span 
+                        className="text-[var(--muted)] pl-[46px] block"
+                        style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 12, lineHeight: '100%', letterSpacing: '0%' }}
+                      >
+                        www.website.com
+                      </span>
+                      <div className="pl-[46px] flex flex-col gap-1.5 mt-1">
                         <div className={`h-[6px] rounded-full w-[70%] ${isDark ? "bg-white/10" : "bg-[#e5e4de]"}`}></div>
                         <div className={`h-[6px] rounded-full w-[50%] ${isDark ? "bg-white/10" : "bg-[#e5e4de]"}`}></div>
                       </div>
@@ -704,225 +681,79 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* SIX SUPERPOWERS – 2×2 feature card grid                      */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="features">
+        <section className="relative py-20 md:py-[130px] bg-white dark:bg-[var(--bg)]" id="features">
           <div className="max-w-[1240px] mx-auto px-7">
             {/* 2-Column Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6 mb-16 text-left border-b border-[var(--line)] pb-10">
               <div>
-                <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-4">
+                {/* #12 Everything included */}
+                <span 
+                  className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-4"
+                  style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle', textTransform: 'uppercase' }}
+                >
                   ● Everything included
                 </span>
-                <h2 className="text-4xl md:text-[54px] tracking-tight font-black leading-tight text-[var(--ink)]">
+                {/* #13 Six superpowers. One subscription. */}
+                <h2 
+                  className="text-[var(--ink)]"
+                  style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
+                >
                   Six superpowers.<br />
                   One subscription.
                 </h2>
               </div>
-              <p className="text-[18px] text-[var(--ink-2)] max-w-[540px] leading-relaxed lg:text-right">
+              {/* #14 Description subtext */}
+              <p 
+                className="text-[var(--ink-2)] max-w-[540px] leading-relaxed lg:text-right"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
+              >
                 No integrations to configure. No freelancers to brief. No tool-switching. Everything works together because it lives in one place.
               </p>
             </div>
 
-            {/* 2×2 Feature Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                {
-                  num: "01",
-                  category: "CONTENT & BLOG AUTOMATION",
-                  title: "Write less. Publish more.",
-                  desc: "Solo Spider generates long-form, SEO-optimised blog posts in your brand voice — then schedules and publishes them automatically. You approve. It does everything else.",
-                  mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-3.5 text-[11px] text-[var(--ink)]">
-                      <div className="flex gap-2 items-center">
-                        <input type="text" readOnly placeholder="Enter Main Keywords" className="flex-1 bg-[var(--panel)] border border-[var(--line)] px-2.5 py-1.5 rounded text-[10px] placeholder-[var(--muted)]" />
-                        <input type="text" readOnly placeholder="Enter Title" className="flex-1 bg-[var(--panel)] border border-[var(--line)] px-2.5 py-1.5 rounded text-[10px] placeholder-[var(--muted)]" />
-                        <select disabled className="bg-[var(--panel)] border border-[var(--line)] p-1.5 rounded text-[10px]"><option>Eng (US)</option></select>
-                        <button type="button" className="bg-primary text-white px-3 py-1.5 rounded font-bold text-[10px]">Generate</button>
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <div className="text-[9px] uppercase font-mono font-bold text-[var(--muted)]">Core Settings</div>
-                        <div className="grid grid-cols-4 gap-1.5 text-[9px] text-[var(--ink-2)]">
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Language</div>
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Type</div>
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Size</div>
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Level</div>
-                        </div>
-                        <div className="grid grid-cols-4 gap-1.5 text-[9px] text-[var(--ink-2)]">
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Tone</div>
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Point of View</div>
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Readability</div>
-                          <div className="bg-[var(--panel)] border border-[var(--line)] p-1 rounded text-center">Select Target country</div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center pt-2.5 border-t border-[var(--line)]">
-                        <div className="flex items-center gap-1.5 text-[9px] text-[var(--muted)] font-semibold">
-                          <span>📁</span> Upload Image
-                        </div>
-                        <button type="button" className="btn btn-grad py-1.5 px-4 text-[9.5px] font-bold rounded-lg shadow-sm">Generate Blog Post</button>
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  num: "02",
-                  category: "SOCIAL MEDIA — END TO END",
-                  title: "Plan It. Generate It. Post It. Automatically.",
-                  desc: "From on-brand images and short-form videos to captions and hashtags — Solo Spider handles your entire social media presence without you logging into a single platform.",
-                  mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-2.5 text-[10px] text-[var(--ink-2)] overflow-hidden">
-                      <div className="grid grid-cols-7 border-b border-[var(--line)] pb-2 text-[8px] font-mono uppercase font-bold text-[var(--muted)] text-center">
-                        <div>Time</div>
-                        <div>Sun 28</div>
-                        <div>Mon 29</div>
-                        <div>Tue 30</div>
-                        <div>Wed 01</div>
-                        <div>Thu 02</div>
-                        <div>Fri 03</div>
-                      </div>
-                      <div className="relative flex flex-col gap-3.5 h-[130px] overflow-hidden">
-                        {[ "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM" ].map((time, idx) => (
-                          <div key={idx} className="flex items-center border-b border-[var(--line)] pb-1.5 last:border-0 last:pb-0">
-                            <span className="w-10 text-[8px] text-[var(--muted)] font-mono">{time}</span>
-                            <div className="flex-1 grid grid-cols-6 gap-1"></div>
-                          </div>
-                        ))}
-                        <div className="absolute top-[5px] left-[55px] z-10 bg-blue-500/10 border border-blue-500/20 text-blue-500 rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
-                          <div className="flex items-center gap-1">🔷 Facebook</div>
-                          <div>12K Reach</div>
-                          <div className="opacity-80">5% Eng.</div>
-                        </div>
-                        <div className="absolute top-[40px] left-[140px] z-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
-                          <div className="flex items-center gap-1">💼 LinkedIn</div>
-                          <div>8.5K Reach</div>
-                          <div className="opacity-80">3% Eng.</div>
-                        </div>
-                        <div className="absolute top-[8px] right-[65px] z-10 bg-pink-500/10 border border-pink-500/20 text-pink-500 rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
-                          <div className="flex items-center gap-1">📷 Instagram</div>
-                          <div>15K Reach</div>
-                          <div className="opacity-80">4% Eng.</div>
-                        </div>
-                        <div className="absolute top-[45px] right-[2px] z-10 bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/20 text-[var(--ink)] rounded p-1.5 text-[7.5px] flex flex-col gap-0.5 leading-tight font-bold w-[75px] shadow-sm">
-                          <div className="flex items-center gap-1">🐦 X</div>
-                          <div>6K Reach</div>
-                          <div className="opacity-80">4% Eng.</div>
-                        </div>
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  num: "03",
-                  category: "SEO — AUDIT & FIX",
-                  title: "Identify SEO Issues. Fix Them with Ease.",
-                  desc: "Solo Spider scans your entire website for SEO issues — broken tags, slow pages, missing meta descriptions, weak internal linking — then helps you fix them without touching code.",
-                  mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-3.5 text-[10px] text-[var(--ink)]">
-                      <div className="grid grid-cols-4 gap-2 text-center font-mono">
-                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">On-Page Score</div>
-                          <div className="text-xs font-black text-rose-500 mt-0.5">46 ↓</div>
-                        </div>
-                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Organic Traffic</div>
-                          <div className="text-xs font-black text-emerald-500 mt-0.5">164 ↑ 20%</div>
-                        </div>
-                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Keywords</div>
-                          <div className="text-xs font-black text-emerald-500 mt-0.5">251 ↑ 25%</div>
-                        </div>
-                        <div className="p-2 bg-[var(--panel)] border border-[var(--line)] rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Backlinks</div>
-                          <div className="text-xs font-black text-emerald-500 mt-0.5">90 ↑ 15%</div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-1.5 text-[9px] border-t border-[var(--line)] pt-3">
-                        <div className="text-[8px] uppercase font-mono font-bold text-[var(--muted)]">Target Market &amp; Competitors</div>
-                        <div className="flex justify-between items-center gap-2">
-                          <div className="flex items-center gap-1 font-bold">🌐 Market: <span className="text-primary font-bold">United States</span></div>
-                          <div className="flex gap-1">
-                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[8px]">abcompany.com</span>
-                            <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[8px]">xyz.com</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-1.5 border-t border-[var(--line)] pt-3 text-[9px]">
-                        <div className="flex gap-3 text-[8px] uppercase font-mono font-bold text-[var(--muted)]">
-                          <span className="text-primary border-b border-primary pb-0.5">SEO Issues (8)</span>
-                          <span>Audited Pages (27)</span>
-                        </div>
-                        <div className="flex flex-col gap-1 text-[8.5px]">
-                          <div className="flex items-center gap-1.5 text-rose-500 font-semibold">⚠️ 16 pages are missing title tags</div>
-                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 2 pages have duplicate title tags</div>
-                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 18 pages are missing descriptions</div>
-                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 17 pages are missing H1 tags</div>
-                          <div className="flex items-center gap-1.5 text-amber-500 font-semibold">⚠️ 16 pages have thin content (&lt;200 wo...</div>
-                        </div>
-                      </div>
-                    </div>
-                  ),
-                },
-                {
-                  num: "04",
-                  category: "AEO & GEO — BE FOUND IN AI SEARCH",
-                  title: "Google Is Changing. Your Visibility Strategy Should Too.",
-                  desc: "AI-powered search is here. ChatGPT, Gemini, and Google's AI Overviews are now answering questions directly — and most brands are invisible in those answers. Solo Spider helps you show up.",
-                  mockup: (
-                    <div className="bg-[var(--bg-2)] border border-[var(--line)] rounded-xl p-4.5 mt-4 flex flex-col gap-3 text-[10px] text-[var(--ink)]">
-                      <div className="flex justify-between items-center border-b border-[var(--line)] pb-2">
-                        <span className="font-mono text-[9px] uppercase font-bold text-emerald-500 flex items-center gap-1">🟢 Scan Complete</span>
-                        <button type="button" className="px-2 py-0.5 border border-primary/20 text-primary text-[8px] rounded font-bold hover:bg-primary-soft">Re-scan</button>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2 text-center font-mono">
-                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Active Prompts</div>
-                          <div className="text-sm font-black text-primary mt-0.5">30</div>
-                        </div>
-                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Citations</div>
-                          <div className="text-sm font-black text-primary mt-0.5">00</div>
-                        </div>
-                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">Query Fanouts</div>
-                          <div className="text-sm font-black text-primary mt-0.5">00</div>
-                        </div>
-                        <div className="bg-[var(--panel)] border border-[var(--line)] p-2 rounded-lg">
-                          <div className="text-[7px] uppercase text-[var(--muted)] font-bold">AI Referrals</div>
-                          <div className="text-sm font-black text-primary mt-0.5">00</div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2 pt-1">
-                        <div className="flex items-center justify-between text-[9px]">
-                          <span className="font-bold">🤖 Gemini</span>
-                          <div className="w-[180px] bg-[var(--line)] h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-purple-500 h-full rounded-full" style={{ width: '40%' }}></div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between text-[9px]">
-                          <span className="font-bold">🟠 Claude</span>
-                          <div className="w-[180px] bg-[var(--line)] h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-orange-500 h-full rounded-full" style={{ width: '20%' }}></div>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between text-[9px]">
-                          <span className="font-bold">🟢 ChatGPT</span>
-                          <div className="w-[180px] bg-[var(--line)] h-1.5 rounded-full overflow-hidden">
-                            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '65%' }}></div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ),
-                },
-              ].map((card) => (
-                <div key={card.num} className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col text-left transition-all duration-200 hover:border-primary/30 hover:-translate-y-1 shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)]">
-                  <div className="flex justify-between items-center mb-3.5 border-b border-[var(--line)] pb-2.5">
-                    <span className="font-mono text-[12px] text-[var(--muted)] font-bold">{card.num}</span>
-                    <span className="text-[9px] font-bold text-primary font-mono tracking-wider uppercase">{card.category}</span>
-                  </div>
-                  <h4 className="font-display text-[20px] font-bold tracking-tight text-[var(--ink)] mb-2">{card.title}</h4>
-                  <p className="text-[14px] text-[var(--ink-2)] leading-relaxed">{card.desc}</p>
-                  {card.mockup}
+            {/* 2×2 Feature Cards - Asymmetrical Grid matching Figma layout with mathematically equal heights */}
+            <div className="flex flex-col gap-[10px]">
+              {/* Row 1: Blog Automation (900px wide) + Social Media (510px wide) */}
+              <div className="grid grid-cols-1 lg:grid-cols-[900fr_510fr] gap-[10px]">
+                {/* Card 1: Content & Blog Automation */}
+                <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
+                  <img 
+                    src="/assets/feature-blog.png" 
+                    alt="Content & Blog Automation" 
+                    className="w-full h-auto block"
+                  />
                 </div>
-              ))}
+
+                {/* Card 2: Social Media — End to End */}
+                <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
+                  <img 
+                    src="/assets/feature-social.png" 
+                    alt="Social Media — End to End" 
+                    className="w-full h-auto block"
+                  />
+                </div>
+              </div>
+
+              {/* Row 2: SEO (510px wide) + AEO & GEO (900px wide) */}
+              <div className="grid grid-cols-1 lg:grid-cols-[510fr_900fr] gap-[10px]">
+                {/* Card 3: SEO — Audit & Fix */}
+                <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
+                  <img 
+                    src="/assets/feature-seo.png" 
+                    alt="SEO — Audit & Fix" 
+                    className="w-full h-auto block"
+                  />
+                </div>
+
+                {/* Card 4: AEO & GEO — Be Found in AI Search */}
+                <div className="rounded-3xl overflow-hidden shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] transition-all duration-200 hover:-translate-y-1 border border-[var(--line)]">
+                  <img 
+                    src="/assets/feature-aeo.png" 
+                    alt="AEO & GEO — Be Found in AI Search" 
+                    className="w-full h-auto block"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </section>
