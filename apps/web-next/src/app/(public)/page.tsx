@@ -681,7 +681,11 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* SIX SUPERPOWERS – 2×2 feature card grid                      */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-white dark:bg-[var(--bg)]" id="features">
+        <section 
+          className="relative py-20 md:py-[130px]" 
+          id="features"
+          style={{ backgroundColor: isDark ? "var(--bg)" : "#ffffff" }}
+        >
           <div className="max-w-[1240px] mx-auto px-7">
             {/* 2-Column Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-end gap-6 mb-16 text-left border-b border-[var(--line)] pb-10">
