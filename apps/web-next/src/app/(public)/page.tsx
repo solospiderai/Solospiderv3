@@ -791,7 +791,17 @@ export default function HomePage() {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {/* Desktop / Tablet view: show the pixel-perfect theme-swapped image cards */}
+            <div className="hidden md:block w-full mt-16">
+              <img 
+                src={isDark ? "/assets/how-it-works-dark.png" : "/assets/how-it-works-light.png"} 
+                alt="How it works" 
+                className="w-full h-auto block"
+              />
+            </div>
+
+            {/* Mobile view: show the vertical HTML cards list for readability */}
+            <div className="md:hidden grid grid-cols-1 gap-5 mt-10">
               {[
                 { 
                   icon: LinkIcon, 
@@ -814,7 +824,7 @@ export default function HomePage() {
                   desc: "Content goes live. Posts publish. SEO improves. You get weekly reports on exactly what's working." 
                 }
               ].map((step, i) => (
-                <div key={i} className="bg-[var(--bg-2)] border border-[var(--line)] rounded-2xl p-7 lg:p-8 flex flex-col gap-3.5 transition-all duration-250 hover:border-primary/30 hover:-translate-y-1 hover:shadow-[0_22px_44px_-22px_rgba(144,37,242,0.2)] shadow-[0_14px_40px_-28px_rgba(14,12,26,0.1)] text-left">
+                <div key={i} className="bg-[var(--bg-2)] border border-[var(--line)] rounded-2xl p-7 flex flex-col gap-3.5 text-left">
                   <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-1">
                     <step.icon className="w-6 h-6" />
                   </div>
