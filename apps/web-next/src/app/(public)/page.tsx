@@ -106,7 +106,7 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* HERO SECTION                                                  */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative w-full pt-[60px] pb-[40px] md:pt-[90px] md:pb-[60px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <section className="relative w-full pt-[90px] pb-[40px] md:pt-[110px] md:pb-[60px] overflow-hidden border-b border-[var(--line)] bg-[var(--bg)]" id="hero" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           {/* Background Grid (Concentric Circles & Radiating Lines matching Figma SVG layout) */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
             <svg
@@ -204,36 +204,48 @@ export default function HomePage() {
             </div>
 
             {/* Under-Input Text */}
-            <p className="text-[13px] text-[#9CA3AF] font-medium mb-[28px] flex items-center justify-center gap-1.5">
-              <span>✨ SEO &amp; AEO scans start instantly in the background</span>
+            <p className="text-[13px] text-[#9CA3AF] font-medium mb-0 flex items-center justify-center gap-1.5">
+              <span>⚡ SEO &amp; AEO scans start instantly in the background</span>
             </p>
 
-            {/* Sub CTA Buttons with Exact Figma Sizing */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-[20px] mb-[32px]">
-              <button onClick={() => router.push("/signup")} className="w-[173px] h-[50px] bg-[#9025F2] hover:bg-primary-2 text-white rounded-[5px] text-[15px] font-semibold cursor-pointer shadow-md flex items-center justify-center">
-                Start free trial →
+            {/* Sub CTA Buttons */}
+            <div className="flex justify-center gap-3.5 flex-wrap mt-[24px] mb-[20px] relative z-10">
+              <button
+                onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
+                className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white font-semibold text-[15px] cursor-pointer flex items-center justify-center gap-1 active:scale-[0.98] transition-all"
+              >
+                Start free trial <span className="text-[14px]">→</span>
               </button>
-              <a href="#problem" className="w-[187px] h-[49px] rounded-[9.5px] text-[15px] font-semibold border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer flex items-center justify-center">
+              <button
+                onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
+                className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] font-semibold text-[15px] cursor-pointer flex items-center justify-center active:scale-[0.98] transition-all"
+              >
                 See How It Works
-              </a>
+              </button>
             </div>
 
-            {/* Promo Items */}
-            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 text-[14px] font-medium text-[var(--ink-2)]">
-              {["No credit card required", "Free plan available", "Set up in 5 minutes"].map((p, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <span className="text-emerald-500 text-[16px]">✓</span>
-                  <span>{p}</span>
-                </div>
-              ))}
+            {/* Checklist Features */}
+            <div className="flex justify-center flex-wrap gap-x-8 gap-y-3 text-[14px] text-[var(--ink-2)] mt-[20px] relative z-10 font-semibold">
+              <span className="flex items-center gap-2">
+                <span className="text-[#22c55e] font-black">✓</span>
+                <span>No credit card required</span>
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="text-[#22c55e] font-black">✓</span>
+                <span>Free plan available</span>
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="text-[#22c55e] font-black">✓</span>
+                <span>Set up in 5 minutes</span>
+              </span>
             </div>
           </div>
         </section>
 
         {/* TRUSTED BY LOGO BAR (Separate Section to prevent grid line overflow) */}
-        <section className="py-12 border-b border-[var(--line)] bg-[var(--bg)] relative z-10">
-          <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center text-[12.5px] sm:text-[13px] text-[var(--muted)] mb-7 tracking-wider uppercase font-bold">
+        <section className="h-[201px] flex flex-col justify-center border-b border-[var(--line)] bg-[var(--bg)] relative z-10">
+          <div className="max-w-[1240px] mx-auto px-7 w-full">
+            <div className="text-center text-[12.5px] sm:text-[13px] text-[var(--muted)] mb-5 tracking-wider uppercase font-bold">
               Trusted by 2,000+ agencies, freelancers, and solo founders
             </div>
             <div className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] font-display font-bold text-base sm:text-lg opacity-70">
@@ -508,28 +520,8 @@ export default function HomePage() {
 
             {/* Mac-like Browser Window Wrapper */}
             <div className="relative w-full max-w-[1100px] mx-auto rounded-2xl overflow-hidden border border-[var(--line)] shadow-[0_32px_64px_-24px_rgba(14,12,26,0.22)] bg-[var(--panel)]">
-              {/* Browser Header */}
-              <div className="h-[42px] bg-[var(--bg-2)] border-b border-[var(--line)] flex items-center px-4 gap-3">
-                {/* Window Dots */}
-                <div className="flex gap-2">
-                  <span className="w-3 h-3 rounded-full bg-[#ff5f56]"></span>
-                  <span className="w-3 h-3 rounded-full bg-[#ffbd2e]"></span>
-                  <span className="w-3 h-3 rounded-full bg-[#27c93f]"></span>
-                </div>
-                {/* Navigation Controls */}
-                <div className="flex gap-2.5 text-[var(--muted)] text-[13px] font-bold opacity-60 ml-2 select-none">
-                  <span className="cursor-default">←</span>
-                  <span className="cursor-default">→</span>
-                  <span className="cursor-default text-[10px]">↻</span>
-                </div>
-                {/* Address Bar */}
-                <div className="flex-1 max-w-[560px] mx-auto bg-[var(--bg)] border border-[var(--line)] rounded-lg h-[26px] flex items-center justify-center gap-1.5 px-3 text-[11px] text-[var(--muted)] font-semibold select-none">
-                  <span className="text-[10px] text-emerald-500">🔒</span>
-                  <span>solospider.com</span>
-                </div>
-              </div>
               <img
-                src="/assets/Frame-57.png"
+                src={isDark ? "/assets/dashboard-dark.svg" : "/assets/dashboard-light.svg"}
                 alt="Solo Spider Dashboard Preview"
                 className="w-full h-auto block"
               />
@@ -577,13 +569,13 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn bg-primary text-white hover:bg-primary-2 self-start mt-auto cursor-pointer">Explore Agency Plan →</button>
+                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white font-semibold text-[15px] self-start mt-auto cursor-pointer flex items-center justify-center">Explore Agency Plan</button>
                 </div>
               </div>
 
               {/* Individual Card */}
               <div className="relative bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group">
-                <div className="relative z-10">
+                <div className="relative z-10 flex flex-col h-full">
                   <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary-soft text-primary-2 text-[12px] font-semibold border border-primary/20 tracking-wide self-start mb-4">
                     For Individuals
                   </span>
@@ -604,7 +596,7 @@ export default function HomePage() {
                       </div>
                     ))}
                   </div>
-                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="btn btn-ghost self-start mt-auto cursor-pointer">Explore Solo Plan →</button>
+                  <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all font-semibold text-[15px] self-start mt-auto cursor-pointer flex items-center justify-center">Explore Solo Plan</button>
                 </div>
               </div>
             </div>

@@ -77,19 +77,19 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
     <nav
       className={`sticky top-0 w-full z-50 transition-all duration-300 ${
         isScrolled || activeDropdown
-          ? "bg-[var(--panel)]/90 backdrop-blur-md border-b border-line shadow-sm"
+          ? "bg-[var(--panel)]/90 backdrop-blur-[12px] border-b border-line shadow-sm"
           : "bg-transparent border-b border-transparent"
       }`}
       onMouseLeave={handleMouseLeave}
     >
       <div className="max-w-[1240px] mx-auto px-7">
-        <div className="flex items-center justify-between h-[72px]">
+        <div className="flex items-center justify-between h-[90px]">
           <Link href="/" className="flex items-center gap-2.5 font-display font-extrabold text-[20px] tracking-tight shrink-0">
             <img src="/assets/solospider-logo.png" alt="Solo Spider" className={`h-[34px] w-auto block ${isDark ? "brightness-0 invert" : ""}`} />
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-2 text-[14px] text-[var(--ink)] font-semibold h-full">
+          <div className="hidden lg:flex items-center gap-2 text-[16px] text-[var(--ink)] font-semibold h-full">
             <a 
               href="/#features" 
               onClick={(e) => handleScrollTo(e, "features")} 
@@ -117,14 +117,14 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
 
             <button 
               onClick={onOpenWizard} 
-              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent"
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent text-[16px]"
             >
               Blog
             </button>
 
             <button 
               onClick={onOpenWizard} 
-              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent"
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-semibold bg-transparent text-[16px]"
             >
               SEO Audit
             </button>
@@ -144,7 +144,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
               </Link>
             ) : (
               <>
-                <Link href="/login" className="px-5 py-2.5 rounded-xl border border-[var(--line)] text-[14px] text-[var(--ink)] font-semibold hover:bg-primary-soft/50 hover:text-primary transition-all flex items-center justify-center">
+                <Link href="/login" className="px-5 py-2.5 rounded-xl border border-[var(--line)] text-[16px] text-[var(--ink)] font-semibold hover:bg-primary-soft/50 hover:text-primary transition-all flex items-center justify-center">
                   Login
                 </Link>
                 <Link href="/signup" className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">
