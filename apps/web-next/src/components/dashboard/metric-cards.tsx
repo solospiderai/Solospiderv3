@@ -499,6 +499,8 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           data={sparklineBacklinks}
           gradientId="backlinksGradient"
           tooltipContent="Estimated volume of incoming links to your domain from external reference sites."
+          isLocked={!gscConnected}
+          redirectTo="/app/en/settings/integrations"
         />
       </div>
       <div className="md:col-span-1">
