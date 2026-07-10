@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
             value={users.total}
             icon={Users}
             color="purple"
-            trend={{ value: 12, label: "from last week" }}
+            trend={{ value: users.signupsToday, label: "new signups today", isRaw: true }}
           />
         </Link>
         <Link href="/app/en/admin/projects" className="block transition-transform hover:scale-[1.01]">

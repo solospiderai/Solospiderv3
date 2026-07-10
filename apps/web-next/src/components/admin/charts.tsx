@@ -70,6 +70,7 @@ export function AdminAreaChart({
           <Area
             type="monotone"
             dataKey={dataKey}
+            name="Total Users"
             stroke={color}
             strokeWidth={2}
             fillOpacity={1}

@@ -7,7 +7,7 @@ interface StatCardProps {
   label: string;
   value: string | number;
   icon?: React.ElementType;
-  trend?: { value: number; label: string };
+  trend?: { value: number; label: string; isRaw?: boolean };
   color?: "purple" | "blue" | "green" | "amber" | "red" | "slate";
   size?: "sm" | "md";
 }
@@ -87,8 +87,8 @@ export function StatCard({ label, value, icon: Icon, trend, color = "purple", si
               trend.value > 0 ? "text-emerald-500" : trend.value < 0 ? "text-red-500" : "text-slate-400"
             }`}
           >
-            {trend.value > 0 ? "+" : ""}
-            {trend.value}% {trend.label}
+            {trend.isRaw ? "" : (trend.value > 0 ? "+" : "")}
+            {trend.value}{trend.isRaw ? "" : "%"} {trend.label}
           </span>
         </div>
       )}
