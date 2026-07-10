@@ -159,9 +159,9 @@ export function ActivityFeed() {
   const activities = activityQuery.data || [];
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 h-full">
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="font-bold text-slate-900">Recent Activity</h3>
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 md:p-5 h-full">
+      <div className="flex items-center justify-between mb-3.5 md:mb-5">
+        <h3 className="font-bold text-slate-900 text-sm md:text-base">Recent Activity</h3>
         <Link href="/app/en/reports" className="text-xs font-semibold text-blue-600 hover:text-blue-700">View All</Link>
       </div>
       
@@ -174,17 +174,17 @@ export function ActivityFeed() {
           No recent activities found.
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 md:gap-4">
           {activities.map((activity) => (
-            <div key={activity.id} className="flex items-start gap-3.5">
-              <div className={`p-2 rounded-full ${getBgColor(activity.type)} shrink-0 mt-0.5`}>
+            <div key={activity.id} className="flex items-start gap-2.5 md:gap-3.5">
+              <div className={`p-1.5 md:p-2 rounded-full ${getBgColor(activity.type)} shrink-0 mt-0.5`}>
                 {getIcon(activity.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-bold text-slate-800 truncate leading-snug">{activity.title}</h4>
-                <p className="text-xs text-slate-500 font-medium truncate mt-0.5 leading-snug">{activity.desc}</p>
+                <h4 className="text-xs md:text-sm font-bold text-slate-800 truncate leading-snug">{activity.title}</h4>
+                <p className="text-[11px] md:text-xs text-slate-500 font-medium truncate mt-0.5 leading-snug">{activity.desc}</p>
               </div>
-              <span className="text-[10px] font-semibold text-slate-400 shrink-0 mt-1">{timeAgo(activity.created_at)}</span>
+              <span className="text-[9px] md:text-[10px] font-semibold text-slate-400 shrink-0 mt-1">{timeAgo(activity.created_at)}</span>
             </div>
           ))}
         </div>

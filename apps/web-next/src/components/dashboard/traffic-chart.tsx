@@ -75,14 +75,14 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
       !gscConnected ? 'hover:border-violet-300 hover:shadow-md transition-all duration-300' : ''
     }`}>
       <div className={`flex flex-col h-full ${!gscConnected ? 'filter blur-[5px] select-none pointer-events-none' : ''}`}>
-        <div className="p-5 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900">Traffic Overview</h3>
-          <span className="text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-2.5 py-1">
+        <div className="p-4 md:p-5 flex items-center justify-between">
+          <h3 className="font-bold text-slate-900 text-sm md:text-base">Traffic Overview</h3>
+          <span className="text-xs font-semibold text-slate-500 bg-slate-100 rounded-full px-2 md:px-2.5 py-0.5 md:py-1">
             {rangeLabel}
           </span>
         </div>
         
-        <div className="px-5 pb-2 flex items-center gap-6">
+        <div className="px-4 md:px-5 pb-2 flex items-center gap-4 md:gap-6">
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-indigo-600"></div>
             <span className="text-xs font-semibold text-slate-600">Organic Traffic</span>
@@ -93,7 +93,7 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
           </div>
         </div>
 
-        <div className="flex-1 p-5 pt-0 mt-4 min-h-[200px]">
+        <div className="flex-1 p-4 md:p-5 pt-0 mt-2 md:mt-4 min-h-[180px] md:min-h-[200px]">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />

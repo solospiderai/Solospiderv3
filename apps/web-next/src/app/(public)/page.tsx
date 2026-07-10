@@ -23,6 +23,15 @@ export default function HomePage() {
   const [couponModalOpen, setCouponModalOpen] = useState(false);
   const [selectedPlanId, setSelectedPlanId] = useState<"growth" | "scale">("growth");
   const [isDark, setIsDark] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 300);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -975,34 +984,47 @@ export default function HomePage() {
             </div>
 
             {/* Mobile Fallback */}
-            <div className="grid lg:hidden gap-4 text-left">
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
-                <h4 className="font-display font-bold text-[16px] mb-3 grad-text">Solo Spider replaces all five</h4>
-                {[
-                  "Blog writing & publishing", "Blog scheduling", "Social image generation",
-                  "Social video generation", "Social scheduling & posting", "SEO audit & fixes",
-                  "AEO analysis", "GRO / AI search visibility", "All-in-one dashboard"
-                ].map((item, i) => (
-                  <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-[var(--line)] last:border-b-0">
-                    <span className="text-[var(--ink)]">{item}</span>
-                    <span className="text-primary font-bold">✓</span>
-                  </div>
-                ))}
+            <div className="flex lg:hidden overflow-x-auto pb-6 no-scrollbar snap-x snap-mandatory gap-4 text-left">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)] snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] flex flex-col justify-between">
+                <div>
+                  <h4 className="font-display font-bold text-[16px] mb-3 grad-text">Solo Spider replaces all five</h4>
+                  {[
+                    "Blog writing & publishing", "Blog scheduling", "Social image generation",
+                    "Social video generation", "Social scheduling & posting", "SEO audit & fixes",
+                    "AEO analysis", "GRO / AI search visibility", "All-in-one dashboard"
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-[var(--line)] last:border-b-0">
+                      <span className="text-[var(--ink)]">{item}</span>
+                      <span className="text-primary font-bold">✓</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between py-2 text-[13px] border-t border-dashed border-[var(--line)] mt-3 pt-2">
+                  <span className="text-[var(--ink)] font-bold">Typical monthly cost</span>
+                  <span className="text-primary font-black text-sm">$199</span>
+                </div>
               </div>
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)]">
-                <h4 className="font-display font-bold text-[16px] mb-3 text-[var(--ink)]">What you&apos;d pay for the stack</h4>
-                {[
-                  { n: "Surfer SEO", p: "$99+" },
-                  { n: "Buffer", p: "$42+" },
-                  { n: "Canva Pro", p: "$24+" },
-                  { n: "Ahrefs", p: "$180+" },
-                  { n: "ChatGPT", p: "$20+" },
-                ].map((item, i) => (
-                  <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-[var(--line)] last:border-b-0 text-[var(--ink-2)]">
-                    <span className="text-[var(--ink)]">{item.n}</span>
-                    <span>{item.p}</span>
-                  </div>
-                ))}
+              
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 shadow-[0_14px_30px_-22px_rgba(14,12,26,0.08)] snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] flex flex-col justify-between">
+                <div>
+                  <h4 className="font-display font-bold text-[16px] mb-3 text-[var(--ink)]">What you&apos;d pay for the stack</h4>
+                  {[
+                    { n: "Surfer SEO", p: "$99+" },
+                    { n: "Buffer", p: "$42+" },
+                    { n: "Canva Pro", p: "$24+" },
+                    { n: "Ahrefs", p: "$180+" },
+                    { n: "ChatGPT", p: "$20+" },
+                  ].map((item, i) => (
+                    <div key={i} className="flex justify-between py-2 text-[13px] border-b border-dashed border-[var(--line)] last:border-b-0 text-[var(--ink-2)]">
+                      <span className="text-[var(--ink)]">{item.n}</span>
+                      <span>{item.p}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between py-2 text-[13px] border-t border-dashed border-[var(--line)] mt-3 pt-2">
+                  <span className="text-[var(--ink)] font-bold">Total stack cost</span>
+                  <span className="text-red-500 font-black text-sm">$365+</span>
+                </div>
               </div>
             </div>
 
@@ -1032,7 +1054,7 @@ export default function HomePage() {
 
             <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory gap-4 md:gap-6 items-stretch max-w-[1240px] mx-auto text-left">
               {/* Free Plan */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-4.5 md:p-6 lg:p-7 flex flex-col gap-3.5 md:gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Free</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For creators just getting started</div>
@@ -1040,7 +1062,7 @@ export default function HomePage() {
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-primary">$0</span>
                   <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                <div className="flex flex-col gap-2.5 md:gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-3.5 md:pt-5 mt-1">
                   {[
                     "1 project",
                     "1 AI model (+$50/extra)",
@@ -1061,7 +1083,7 @@ export default function HomePage() {
               </div>
 
               {/* Starter Plan */}
-              <div className="relative border-2 border-primary bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
+              <div className="relative border-2 border-primary bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-4.5 md:p-6 lg:p-7 flex flex-col gap-3.5 md:gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
@@ -1071,7 +1093,7 @@ export default function HomePage() {
                   <span className="font-display font-black text-[46px] leading-none tracking-tight text-primary">$199</span>
                   <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                <div className="flex flex-col gap-2.5 md:gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-3.5 md:pt-5 mt-1">
                   {[
                     "5 projects (+$50/extra)",
                     "4 AI models (+$50/extra)",
@@ -1093,7 +1115,7 @@ export default function HomePage() {
               </div>
 
               {/* Growth Plan */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-4.5 md:p-6 lg:p-7 flex flex-col gap-3.5 md:gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Growth</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For growing teams &amp; agencies</div>
@@ -1101,7 +1123,7 @@ export default function HomePage() {
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">$699</span>
                   <span className="text-[13px] font-semibold text-[var(--muted)] font-sans ml-1">/month</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-1">
+                <div className="flex flex-col gap-2.5 md:gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-3.5 md:pt-5 mt-1">
                   {[
                     "10 projects (+$50/extra)",
                     "7 AI models (+$50/extra)",
@@ -1125,14 +1147,14 @@ export default function HomePage() {
               </div>
 
               {/* Enterprise Plan */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-4.5 md:p-6 lg:p-7 flex flex-col gap-3.5 md:gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Enterprise</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For large teams &amp; custom volume</div>
                 <div className="flex items-baseline justify-start gap-1 mt-1">
                   <span className="font-display font-black text-[44px] leading-none tracking-tight text-[var(--ink)]">Custom</span>
                 </div>
-                <div className="flex flex-col gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-5 mt-7">
+                <div className="flex flex-col gap-2.5 md:gap-3.5 text-[13px] text-[var(--ink-2)] border-t border-[var(--line)] pt-3.5 md:pt-5 mt-4">
                   {[
                     "Custom projects",
                     "Custom AI models",
@@ -1165,9 +1187,9 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* FAQs                                                          */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
+        <section className="relative py-10 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-[72px]">
+            <div className="text-center max-w-[820px] mx-auto mb-8 md:mb-[72px]">
               <span 
                 className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
                 style={{
@@ -1183,11 +1205,11 @@ export default function HomePage() {
                 ● Common questions
               </span>
               <h2 
-                className="mb-[18px] text-[var(--ink)] text-3xl sm:text-[42px] leading-tight md:leading-[100%]"
+                className="mb-[18px] text-[var(--ink)] leading-tight md:leading-[100%]"
                 style={{
                   fontFamily: "'Geist', sans-serif",
                   fontWeight: 700,
-                  fontSize: 42,
+                  fontSize: "clamp(24px, 5.5vw, 42px)",
                   lineHeight: '100%',
                   letterSpacing: '0px',
                   textAlign: 'center'
@@ -1210,7 +1232,7 @@ export default function HomePage() {
                 <div key={i} className={`bg-[var(--panel)] border border-[var(--line)] rounded-2xl overflow-hidden transition-all duration-200 ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left text-[var(--ink)]"
+                    className="w-full flex justify-between items-center gap-4.5 p-4 md:p-5 lg:px-6 lg:py-5 text-left text-[var(--ink)]"
                     style={{
                       fontFamily: "'Geist', sans-serif",
                       fontWeight: 600,
@@ -1248,9 +1270,9 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* FINAL CTA                                                     */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative bg-[var(--bg)] overflow-hidden py-20 md:py-[130px]">
+        <section className="relative bg-[var(--bg)] overflow-hidden py-10 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className={`relative text-center max-w-[1240px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
+            <div className={`relative text-center max-w-[1240px] mx-auto py-8 md:py-20 px-5 md:px-10 rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
               isDark 
                 ? "bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] border border-[var(--line)]" 
                 : "bg-[#9025f2] text-white border-0"
@@ -1275,11 +1297,11 @@ export default function HomePage() {
                 ● READY TO SWITCH?
               </span>
               <h2 
-                className="mb-6 text-white text-3xl sm:text-[42px] leading-tight md:leading-[100%]"
+                className="mb-4 md:mb-6 text-white leading-tight md:leading-[100%]"
                 style={{
                   fontFamily: "'Geist', sans-serif",
                   fontWeight: 700,
-                  fontSize: 42,
+                  fontSize: "clamp(24px, 5.5vw, 42px)",
                   lineHeight: '100%',
                   letterSpacing: '0px',
                   textAlign: 'center'
@@ -1289,12 +1311,12 @@ export default function HomePage() {
                 <span className={isDark ? "grad-text" : "text-purple-200"}>Amplify your results.</span>
               </h2>
               <p 
-                className={`mb-9 max-w-[680px] mx-auto ${isDark ? "text-[var(--ink-2)]" : "text-white/85"}`}
+                className={`mb-6 md:mb-9 max-w-[680px] mx-auto ${isDark ? "text-[var(--ink-2)]" : "text-white/85"}`}
                 style={{
                   fontFamily: "'Geist', sans-serif",
                   fontWeight: 400,
-                  fontSize: 18,
-                  lineHeight: '32px',
+                  fontSize: "clamp(14px, 4.2vw, 18px)",
+                  lineHeight: "clamp(22px, 5.5vw, 32px)",
                   letterSpacing: '0%',
                   textAlign: 'center'
                 }}
@@ -1302,7 +1324,7 @@ export default function HomePage() {
                 Join 2,000+ agencies and creators who replaced their entire digital marketing workflow with Solo Spider. Less cost. Less complexity. More output.
               </p>
               
-              <div className="flex justify-center gap-3.5 flex-wrap mb-9">
+              <div className="flex justify-center gap-3.5 flex-wrap mb-6 md:mb-9">
                 <button 
                   onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} 
                   className={`btn px-8 py-4 rounded-full cursor-pointer transition-all ${
@@ -1379,6 +1401,18 @@ export default function HomePage() {
         planId={selectedPlanId}
         isLoggedIn={!!user}
       />
+
+      {showScrollTop && (
+        <button 
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="md:hidden fixed bottom-6 right-6 z-50 bg-[#9025F2] text-white p-3.5 rounded-full shadow-lg border border-white/10 flex items-center justify-center cursor-pointer transition-all hover:scale-105 active:scale-95 animate-fade-in"
+          style={{ boxShadow: "0 10px 25px -5px rgba(144,37,242,0.5)" }}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

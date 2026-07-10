@@ -14,19 +14,19 @@ const actions = [
 
 export function QuickActions() {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col h-full p-5">
-      <h3 className="font-bold text-slate-900 mb-6">Quick Actions</h3>
-      <div className="flex flex-col gap-3">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col h-full p-4 md:p-5">
+      <h3 className="font-bold text-slate-900 text-sm md:text-base mb-4 md:mb-6">Quick Actions</h3>
+      <div className="flex flex-col gap-2 md:gap-3">
         {actions.map((action) => (
           <Link 
             key={action.id}
             href={action.href}
-            className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all text-left bg-white"
+            className="flex items-center gap-2.5 md:gap-3 p-2 md:p-3 rounded-xl border border-slate-100 hover:border-slate-200 hover:shadow-sm transition-all text-left bg-white"
           >
-            <div className={`p-2 rounded-lg ${action.bgColor}`}>
+            <div className={`p-1.5 md:p-2 rounded-lg ${action.bgColor}`}>
               {action.icon}
             </div>
-            <span className="text-sm font-semibold text-slate-700">{action.label}</span>
+            <span className="text-xs md:text-sm font-semibold text-slate-700">{action.label}</span>
           </Link>
         ))}
       </div>

@@ -115,11 +115,11 @@ export function DashboardWorkspace() {
         </div>
       ) : (
         <>
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <MetricCards timeRange={timeRange} />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 mb-4 md:mb-6">
             <div className="lg:col-span-4">
               <IssuesList />
             </div>
@@ -131,7 +131,7 @@ export function DashboardWorkspace() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pb-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 pb-6 md:pb-10">
             <div className="lg:col-span-9">
               <ModulesGrid />
             </div>
