@@ -132,10 +132,10 @@ export default function PricingPage() {
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
 
             {/* Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+            <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory gap-4 md:gap-6 items-stretch">
               
               {/* Free Plan */}
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">FREE</h3>
                 <div className="text-[12px] text-muted -mt-2">For creators just getting started</div>
@@ -168,7 +168,7 @@ export default function PricingPage() {
               </div>
 
               {/* Starter Plan */}
-              <div className="relative border-2 border-[#9025F2] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
+              <div className="relative border-2 border-[#9025F2] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#9025F2] text-white font-display font-extrabold text-[11px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
@@ -208,7 +208,7 @@ export default function PricingPage() {
               </div>
 
               {/* Growth Plan */}
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">GROWTH</h3>
                 <div className="text-[12px] text-muted -mt-2">For growing teams & agencies</div>
@@ -244,7 +244,7 @@ export default function PricingPage() {
               </div>
 
               {/* Enterprise Plan */}
-              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-line rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-ink uppercase">ENTERPRISE</h3>
                 <div className="text-[12px] text-muted -mt-2">For large teams & custom volume</div>
@@ -301,7 +301,7 @@ export default function PricingPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-[1240px] mx-auto">
+            <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory gap-8 max-w-[1240px] mx-auto text-left">
               {[
                 { 
                   q: "We cancelled Surfer, Buffer, and Canva in the same week. Solo Spider does everything they did — faster, cheaper, and without three different logins.", 
@@ -369,7 +369,7 @@ export default function PricingPage() {
               ].map((test, i) => (
                 <div 
                   key={i} 
-                  className="bg-[var(--panel)] border border-line rounded-[24px] p-8 flex flex-col gap-6 transition-all duration-300 hover:border-primary/30 hover:shadow-[0_20px_50px_-15px_rgba(144,37,242,0.08)] hover:-translate-y-1 relative group overflow-hidden shadow-sm"
+                  className="bg-[var(--panel)] border border-line rounded-[24px] p-8 flex flex-col gap-6 transition-all duration-300 hover:border-primary/30 hover:shadow-[0_20px_50px_-15px_rgba(144,37,242,0.08)] hover:-translate-y-1 relative group overflow-hidden shadow-sm snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink"
                 >
                   <div className="absolute -right-4 -top-8 text-[120px] font-serif text-primary/5 select-none pointer-events-none group-hover:text-primary/10 transition-colors duration-300">
                     “
@@ -406,14 +406,39 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ SECTION */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
-              <div className="mono text-primary mb-[18px]">— Common questions</div>
-              <h2 className="mb-[18px] text-3xl md:text-5xl">Everything You Want to Know<br /><span className="grad-text">Before You Sign Up.</span></h2>
+              <span 
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 14,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  verticalAlign: 'middle',
+                  textTransform: 'uppercase'
+                }}
+              >
+                ● Common questions
+              </span>
+              <h2 
+                className="mb-[18px] text-ink text-3xl sm:text-[42px] leading-tight md:leading-[100%]"
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 42,
+                  lineHeight: '100%',
+                  letterSpacing: '0px',
+                  textAlign: 'center'
+                }}
+              >
+                Everything you want to<br />know before you sign up.
+              </h2>
             </div>
             
-            <div className="max-w-[880px] mx-auto flex flex-col gap-3.5">
+            <div className="max-w-[880px] mx-auto flex flex-col gap-3.5 text-left">
               {[
                 { q: "Do I need any technical skills to use Solo Spider?", a: "Not at all. Solo Spider is designed to be used without any coding or technical knowledge. If you can use Gmail, you can use Solo Spider. Setup takes under 5 minutes." },
                 { q: "Will the content actually sound like me?", a: "Yes. Solo Spider learns your brand voice from your existing content, website, and the preferences you set during onboarding. You can always edit and refine drafts before publishing — but most users find they barely need to." },
@@ -423,16 +448,35 @@ export default function PricingPage() {
                 { q: "Can I manage multiple clients or brands?", a: "Yes. The Agency plan supports 25+ separate client workspaces, each with their own brand settings, content calendars, and reports. You can manage everything without ever logging out." },
                 { q: "Is there a free trial?", a: "Yes — every paid plan comes with a 14-day free trial. No credit card required. You can also use the Starter plan for free, forever." },
               ].map((faq, i) => (
-                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl overflow-hidden transition-colors duration-250 hover:border-primary/20 shadow-[0_8px_24px_-18px_rgba(14,12,26,0.08)] ${openFaq === i ? 'border-primary/20' : ''}`}>
+                <div key={i} className={`bg-[var(--panel)] border border-line rounded-2xl overflow-hidden transition-all duration-200 ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left font-display font-semibold text-[18px] text-ink cursor-pointer"
+                    className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left text-ink"
+                    style={{
+                      fontFamily: "'Geist', sans-serif",
+                      fontWeight: 600,
+                      fontSize: 17,
+                      lineHeight: '23.8px',
+                      letterSpacing: '0%',
+                      verticalAlign: 'middle'
+                    }}
                   >
                     <span>{faq.q}</span>
-                    <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[14px] transition-all duration-250 ${openFaq === i ? 'bg-primary text-white rotate-45 border border-transparent' : 'bg-primary-soft text-primary border border-primary/15'}`}>+</span>
+                    <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[14px] transition-all duration-200 ${openFaq === i ? 'bg-primary text-white rotate-45 border border-transparent' : 'bg-primary-soft text-primary border border-primary/15'}`}>
+                      {openFaq === i ? "×" : "+"}
+                    </span>
                   </button>
                   <div className={`overflow-hidden transition-all duration-350 ease-in-out ${openFaq === i ? 'max-h-[340px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-6 pb-6 pt-4 border-t border-line text-[15px] text-ink-2 leading-relaxed">
+                    <div 
+                      className="px-6 pb-6 pt-4 border-t border-line text-ink-2"
+                      style={{
+                        fontFamily: "'Geist', sans-serif",
+                        fontWeight: 400,
+                        fontSize: 16,
+                        lineHeight: '28px',
+                        letterSpacing: '0%'
+                      }}
+                    >
                       {faq.a}
                     </div>
                   </div>
@@ -445,32 +489,118 @@ export default function PricingPage() {
         {/* FINAL CTA SECTION */}
         <section className="relative bg-[var(--bg)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className="bg-gradient-to-b from-primary to-transparent rounded-[32px] p-[1.5px] shadow-[0_40px_80px_-30px_rgba(144,37,242,0.2)]">
-              <div className="relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] rounded-[30.5px] overflow-hidden">
+            <div className={`relative text-center max-w-[1240px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
+              isDark 
+                ? "bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] border border-[var(--line)]" 
+                : "bg-[#9025f2] text-white border-0"
+            }`}>
               
-              <div className="mono text-[#22d3ee] mb-3.5">— Ready to switch?</div>
-              <h2 className="text-4xl md:text-[64px] leading-[1.05] mb-6 font-display font-black">
-                Simplify Your Marketing.<br />
-                <span className="grad-text">Amplify Your Results.</span>
+              <span 
+                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border mb-6 ${
+                  isDark 
+                    ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" 
+                    : "bg-white/10 text-white border-white/20"
+                }`}
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 14,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  verticalAlign: 'middle',
+                  textTransform: 'uppercase'
+                }}
+              >
+                ● READY TO SWITCH?
+              </span>
+              <h2 
+                className="mb-6 text-white text-3xl sm:text-[42px] leading-tight md:leading-[100%]"
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 42,
+                  lineHeight: '100%',
+                  letterSpacing: '0px',
+                  textAlign: 'center'
+                }}
+              >
+                Simplify your marketing.<br />
+                <span className={isDark ? "grad-text" : "text-purple-200"}>Amplify your results.</span>
               </h2>
-              <p className="text-[18px] text-ink-2 mb-9 max-w-[680px] mx-auto">
+              <p 
+                className={`mb-9 max-w-[680px] mx-auto ${isDark ? "text-[var(--ink-2)]" : "text-white/85"}`}
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 18,
+                  lineHeight: '32px',
+                  letterSpacing: '0%',
+                  textAlign: 'center'
+                }}
+              >
                 Join 2,000+ agencies and creators who replaced their entire digital marketing workflow with Solo Spider. Less cost. Less complexity. More output.
               </p>
               
               <div className="flex justify-center gap-3.5 flex-wrap mb-9">
-                <button onClick={triggerWizard} className="btn btn-grad cursor-pointer">Start Free — No Card Needed →</button>
-                <button onClick={triggerWizard} className="btn btn-ghost cursor-pointer">Book a 20-Minute Demo</button>
+                <button 
+                  onClick={triggerWizard} 
+                  className={`btn px-8 py-4 rounded-full cursor-pointer transition-all ${
+                    isDark 
+                      ? "btn-grad" 
+                      : "bg-white text-primary hover:bg-purple-100 hover:scale-[1.02] shadow-lg shadow-black/10"
+                  }`}
+                  style={{
+                    fontFamily: "'Geist', sans-serif",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    verticalAlign: 'middle'
+                  }}
+                >
+                  Start Free — No Card Needed
+                </button>
+                <button 
+                  onClick={triggerWizard} 
+                  className={`btn px-8 py-4 rounded-full cursor-pointer transition-all ${
+                    isDark 
+                      ? "btn-ghost" 
+                      : "bg-transparent border border-white/40 text-white hover:bg-white/10"
+                  }`}
+                  style={{
+                    fontFamily: "'Geist', sans-serif",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    verticalAlign: 'middle'
+                  }}
+                >
+                  Book a 20-Minute Demo
+                </button>
               </div>
               
-              <div className="flex justify-center flex-wrap gap-x-8 gap-y-4 text-[13.5px] text-ink-2">
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Free plan available, always</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>14-day trial of paid plans</span>
-                <span className="flex items-center gap-2"><span className="text-primary font-extrabold">✓</span>Cancel or change plans anytime</span>
+              <div 
+                className={`flex justify-center flex-wrap gap-x-8 gap-y-4 ${isDark ? "text-[var(--ink-2)]" : "text-white/80"}`}
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 15,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  textAlign: 'center'
+                }}
+              >
+                {["Free plan, always", "7-day trial on paid plans", "Cancel anytime", "Setup under 5 minutes"].map((p, idx) => (
+                  <span key={idx} className="flex items-center gap-2">
+                    <span className={isDark ? "text-primary font-extrabold" : "text-purple-200 font-extrabold"}>✓</span>
+                    <span>{p}</span>
+                  </span>
+                ))}
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
       </main>
 
       <MarketingFooter />

@@ -77,7 +77,7 @@ export function DashboardWorkspace() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-6 bg-[#fcfcfd] min-h-screen">
+    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-6 bg-[#fcfcfd] min-h-screen">
       <DashboardHeader timeRange={timeRange} setTimeRange={setTimeRange} />
       
       {hasNoCrawls ? (

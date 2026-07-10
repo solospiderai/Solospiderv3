@@ -487,7 +487,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-h-screen min-w-0 bg-transparent">
         {/* Content Box - direct render, transparent glass header is gone */}
-        <div className="flex-1 p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
+        <div className="flex-1 p-4 md:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
           {activeProject ? children : (
             <div className="max-w-xl mx-auto my-12 md:my-20 p-8 md:p-10 rounded-3xl border border-slate-200 bg-white shadow-xl space-y-6 text-center">
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/20">

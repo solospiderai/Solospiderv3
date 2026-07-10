@@ -115,7 +115,7 @@ export default function HomePage() {
               viewBox="0 0 1920 859"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
-              className="absolute left-1/2 -translate-x-1/2 bottom-[25px] w-[1920px] h-[859px] pointer-events-none select-none z-0"
+              className="absolute left-1/2 -translate-x-1/2 top-[-20px] w-[900px] h-[403px] md:top-auto md:bottom-[25px] md:w-[1920px] md:h-[859px] pointer-events-none select-none z-0"
             >
               <g opacity="0.1" clipPath="url(#clip0_311_886)">
                 <path d="M960 859V-53" stroke="#9025F2" strokeWidth="1.275"/>
@@ -124,7 +124,7 @@ export default function HomePage() {
                 <path d="M960 859L1605.6 213.4" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1749.6 403" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1840.8 623.8" stroke="#9025F2" strokeWidth="1.275"/>
-                <path d="M960 859H1872" stroke="#9025F2" strokeWidth="1.275"/>
+                <path d="M0 858H1920" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1840.8 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1749.6 1315" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L1605.6 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
@@ -135,7 +135,6 @@ export default function HomePage() {
                 <path d="M960 859L314.4 1504.6" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L170.4 1315" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L79.2002 1094.2" stroke="#9025F2" strokeWidth="1.275"/>
-                <path d="M960 859H48" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L79.2002 623.8" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L170.4 403" stroke="#9025F2" strokeWidth="1.275"/>
                 <path d="M960 859L314.4 213.4" stroke="#9025F2" strokeWidth="1.275"/>
@@ -168,8 +167,8 @@ export default function HomePage() {
 
             {/* Heading - #3: Geist 800 66px line-height 72px */}
             <h1
-              className="mb-[24px] text-[var(--ink)]"
-              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 800, fontSize: 66, lineHeight: '72px', letterSpacing: 0, textAlign: 'center' }}
+              className="mb-[24px] text-[var(--ink)] text-3xl sm:text-4xl md:text-5xl lg:text-[66px] leading-[1.1] md:leading-[72px] font-extrabold"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 800, letterSpacing: 0, textAlign: 'center' }}
             >
               Replace Your Entire<br />
               <span className="grad-text">Marketing Workflow</span><br />
@@ -178,8 +177,8 @@ export default function HomePage() {
 
             {/* Sub text - #4: Geist 400 18px line-height 32px */}
             <p
-              className="text-[var(--ink-2)] max-w-[720px] mx-auto mb-[32px]"
-              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+              className="text-[var(--ink-2)] max-w-[720px] mx-auto mb-[32px] text-sm sm:text-base md:text-lg leading-relaxed md:leading-[32px]"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%', textAlign: 'center' }}
             >
               Solo Spider automates time-consuming marketing tasks while giving your team the tools they need to create content faster, improve SEO, and increase online visibility.
             </p>
@@ -187,7 +186,7 @@ export default function HomePage() {
             {/* URL Input Bar */}
             <div className="w-full max-w-[640px] mx-auto mb-[20px]">
               <form onSubmit={handleStartAnalysis} className="h-auto sm:h-[62.5px] w-full p-2 sm:p-[9px] rounded-[16px] bg-[var(--panel)] border border-[var(--line)] shadow-[0_16px_40px_rgba(144,37,242,0.08)] hover:shadow-[0_20px_50px_rgba(144,37,242,0.14)] focus-within:border-primary/45 transition-all duration-300 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <div className="flex-grow flex items-center pl-2">
+                <div className="flex-grow flex items-center px-2 py-1.5 sm:py-0">
                   <Globe className="w-4.5 h-4.5 text-[var(--muted)] shrink-0" />
                   {/* Input placeholder - #5: Geist 400 14px line-height 100% */}
                   <input
@@ -230,11 +229,11 @@ export default function HomePage() {
             </p>
 
             {/* Sub CTA Buttons */}
-            <div className="flex justify-center gap-3.5 flex-wrap mt-[24px] mb-[20px] relative z-10">
+            <div className="flex flex-col sm:flex-row justify-center items-center gap-3.5 mt-[24px] mb-[20px] relative z-10 w-full max-w-[400px] sm:max-w-none mx-auto">
               {/* #8: Geist 700 14px */}
               <button
                 onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
-                className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white cursor-pointer flex items-center justify-center gap-1 active:scale-[0.98] transition-all"
+                className="w-full sm:w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white cursor-pointer flex items-center justify-center gap-1 active:scale-[0.98] transition-all"
                 style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}
               >
                 Start free trial <span className="text-[14px]">→</span>
@@ -242,7 +241,7 @@ export default function HomePage() {
               {/* #9: Inter 600 15px */}
               <button
                 onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
-                className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] cursor-pointer flex items-center justify-center active:scale-[0.98] transition-all"
+                className="w-full sm:w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] cursor-pointer flex items-center justify-center active:scale-[0.98] transition-all"
                 style={{ fontFamily: "'Inter', sans-serif", fontWeight: 600, fontSize: 15, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center', verticalAlign: 'middle' }}
               >
                 See How It Works
@@ -251,8 +250,8 @@ export default function HomePage() {
 
             {/* Checklist Features - #10: Inter 400 16px */}
             <div
-              className="flex justify-center flex-wrap gap-x-8 gap-y-3 text-[var(--ink-2)] mt-[20px] relative z-10"
-              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center', verticalAlign: 'middle' }}
+              className="flex justify-center flex-wrap gap-x-8 gap-y-3 text-[var(--ink-2)] mt-[20px] relative z-10 text-sm sm:text-base leading-none"
+              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 400, letterSpacing: '0%', textAlign: 'center', verticalAlign: 'middle' }}
             >
               <span className="flex items-center gap-2">
                 <span className="text-[#22c55e] font-black">✓</span>
@@ -271,19 +270,19 @@ export default function HomePage() {
         </section>
 
         {/* TRUSTED BY LOGO BAR */}
-        <section className="h-[201px] flex flex-col justify-center border-b border-[var(--line)] bg-[var(--bg)] relative z-10">
+        <section className="h-auto py-12 md:h-[201px] md:py-0 flex flex-col justify-center border-b border-[var(--line)] bg-[var(--bg)] relative z-10">
           <div className="max-w-[1240px] mx-auto px-7 w-full">
             {/* #1: Geist 400 18px */}
             <div
-              className="text-center text-[var(--muted)] mb-5"
-              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '100%', letterSpacing: '0%', textAlign: 'center' }}
+              className="text-center text-[var(--muted)] mb-5 text-base md:text-lg"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%', textAlign: 'center' }}
             >
               Trusted by 2,000+ agencies, freelancers, and solo founders
             </div>
             {/* #2: Geist 600 18px line-height 28px */}
             <div
-              className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] opacity-70"
-              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 600, fontSize: 18, lineHeight: '28px', letterSpacing: '0%', verticalAlign: 'middle' }}
+              className="flex justify-center items-center gap-8 sm:gap-12 flex-wrap text-[var(--ink-2)] opacity-70 text-base md:text-lg leading-relaxed md:leading-[28px]"
+              style={{ fontFamily: "'Geist', sans-serif", fontWeight: 600, letterSpacing: '0%', verticalAlign: 'middle' }}
             >
               <span>Loomstack</span>
               <span>NORTHWIND</span>
@@ -299,13 +298,13 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* PROBLEM SECTION – "You're paying for 6 tools…"               */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden" id="problem">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)] overflow-hidden" id="problem">
           <div className="max-w-[1240px] mx-auto px-7 grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-14 items-center">
             <div className="text-left">
               {/* #3: Geist 400 14px uppercase */}
               <div
-                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--bg)] border border-[var(--line)] text-[var(--ink)] mb-6 shadow-sm"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle', textTransform: 'uppercase' }}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--bg)] border border-[var(--line)] text-[var(--ink)] mb-6 shadow-sm font-normal text-xs uppercase"
+                style={{ fontFamily: "'Geist', sans-serif", letterSpacing: '0%', verticalAlign: 'middle' }}
               >
                 <span className="w-2 h-2 rounded-full bg-[#9025F2]"></span>
                 The problem
@@ -313,8 +312,8 @@ export default function HomePage() {
               
               {/* #4: Geist 700 42px */}
               <h2
-                className="mb-6 text-[var(--ink)]"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: 0 }}
+                className="mb-6 text-[var(--ink)] text-2xl sm:text-3xl md:text-[42px] leading-tight md:leading-[100%]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, letterSpacing: 0 }}
               >
                 You&apos;re paying for 6 tools<br />
                 that should be one.
@@ -322,8 +321,8 @@ export default function HomePage() {
               
               {/* #5: Geist 400 16px line-height 28px */}
               <div
-                className="text-[var(--ink-2)] space-y-5"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '28px', letterSpacing: '0%' }}
+                className="text-[var(--ink-2)] space-y-5 text-sm sm:text-base leading-relaxed md:leading-[28px]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%' }}
               >
                 <p>The average digital marketer juggles Surfer SEO, Buffer, Canva, Ahrefs, a blog CMS, and a separate AI writing tool — spending ₹30,000–₹80,000 a month on subscriptions that barely talk to each other.</p>
                 <p>That&apos;s before counting the hours lost copy-pasting between tools, briefing freelancers, chasing approvals, and manually posting content.</p>
@@ -357,22 +356,22 @@ export default function HomePage() {
             <div className="text-center max-w-[960px] mx-auto mb-16">
               {/* #6: Geist 400 14px uppercase */}
               <span
-                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle', textTransform: 'uppercase' }}
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3 text-xs uppercase"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%', verticalAlign: 'middle' }}
               >
                 ● Dashboard
               </span>
               {/* #7: Geist 700 42px */}
               <h2
-                className="mb-[18px] text-[var(--ink)]"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: 0, textAlign: 'center' }}
+                className="mb-[18px] text-[var(--ink)] text-2xl sm:text-3xl md:text-[42px] leading-tight md:leading-[100%]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, letterSpacing: 0, textAlign: 'center' }}
               >
                 Built for agencies. Priced for solo creators.
               </h2>
               {/* #8: Geist 400 18px line-height 32px */}
               <p
-                className="text-[var(--ink-2)] max-w-[760px] mx-auto"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+                className="text-[var(--ink-2)] max-w-[760px] mx-auto text-sm sm:text-base md:text-lg leading-relaxed md:leading-[32px]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%', textAlign: 'center' }}
               >
                 Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.
               </p>
@@ -393,7 +392,7 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* WHO IT'S FOR – Two cards side by side                         */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="audience">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="audience">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[960px] mx-auto mb-16">
               {/* #9: Geist 400 14px uppercase */}
@@ -405,15 +404,15 @@ export default function HomePage() {
               </span>
               {/* #10: Geist 700 42px */}
               <h2
-                className="mb-[18px] text-[var(--ink)]"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: 0, textAlign: 'center' }}
+                className="mb-[18px] text-[var(--ink)] text-2xl sm:text-3xl md:text-[42px] leading-tight md:leading-[100%]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, letterSpacing: 0, textAlign: 'center' }}
               >
                 Built for agencies. Priced for solo creators.
               </h2>
               {/* #11: Geist 400 18px line-height 32px */}
               <p
-                className="text-[var(--ink-2)] max-w-[760px] mx-auto"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+                className="text-[var(--ink-2)] max-w-[760px] mx-auto text-sm sm:text-base md:text-lg leading-relaxed md:leading-[32px]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%', textAlign: 'center' }}
               >
                 Solo Spider works whether you&apos;re running campaigns for 20 clients or building a brand entirely on your own.
               </p>
@@ -421,8 +420,8 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-left">
               {/* Agency Card - Figma: 705x700, border-radius 10px */}
-              <div className="relative p-[1.5px] bg-gradient-to-b from-primary via-[#b260ff] to-transparent overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group" style={{ borderRadius: 10 }}>
-                <div className="bg-[var(--panel)] bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] p-10 lg:p-11 flex flex-col gap-4.5 relative z-10 h-full" style={{ borderRadius: 9, minHeight: 700 }}>
+              <div className="relative bg-[var(--panel)] border border-[var(--line)] p-10 lg:p-11 flex flex-col gap-4.5 overflow-hidden shadow-[0_20px_50px_-28px_rgba(14,12,26,0.1)] group" style={{ borderRadius: 10, minHeight: 700 }}>
+                <div className="relative z-10 flex flex-col h-full">
                   {/* #12: Geist 400 14px letter-spacing 3px uppercase */}
                   <span
                     className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-primary text-white border border-primary self-start mb-4"
@@ -453,7 +452,7 @@ export default function HomePage() {
                         className="flex gap-3 items-start text-[var(--ink)]"
                         style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '100%', letterSpacing: '0%' }}
                       >
-                        <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
+                        <span className="shrink-0 text-primary font-black text-[18px] leading-none select-none mt-0.5">✓</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -501,7 +500,7 @@ export default function HomePage() {
                         className="flex gap-3 items-start text-[var(--ink)]"
                         style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 16, lineHeight: '100%', letterSpacing: '0%' }}
                       >
-                        <div className="shrink-0 w-[22px] h-[22px] rounded-full bg-primary text-white flex items-center justify-center text-[12px] font-extrabold mt-0.5">✓</div>
+                        <span className="shrink-0 text-primary font-black text-[18px] leading-none select-none mt-0.5">✓</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -523,9 +522,9 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* AI SEARCH METRICS                                             */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
+        <section className="relative py-10 md:py-16 bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
-            <div className="text-center max-w-[820px] mx-auto mb-16">
+            <div className="text-center max-w-[820px] mx-auto mb-8">
               {/* #1: AI Search Metrics badge */}
               <span 
                 className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
@@ -535,23 +534,23 @@ export default function HomePage() {
               </span>
               {/* #2: Discover how AI interprets your brand */}
               <h2 
-                className="mb-4 text-[var(--ink)]"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px', textAlign: 'center' }}
+                className="mb-4 text-[var(--ink)] text-2xl sm:text-3xl md:text-[42px] leading-tight md:leading-[100%]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, letterSpacing: '0px', textAlign: 'center' }}
               >
                 Discover how AI<br />interprets your brand
               </h2>
               {/* #3: Track the most important performance indicators across AI search. */}
               <p 
-                className="text-[var(--ink-2)] max-w-[660px] mx-auto"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%', textAlign: 'center' }}
+                className="text-[var(--ink-2)] max-w-[660px] mx-auto text-sm sm:text-base md:text-lg leading-relaxed md:leading-[32px]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%', textAlign: 'center' }}
               >
                 Track the most important performance indicators across AI search.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-12 items-stretch">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] gap-4 items-stretch">
               {/* Left Column: SEO/AEO/GEO Cards */}
-              <div className="flex flex-col gap-5 justify-between">
+              <div className="flex flex-col gap-2.5 h-full">
                 {[
                   {
                     title: "SEO",
@@ -571,7 +570,7 @@ export default function HomePage() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className={`p-6 md:p-8 rounded-2xl text-left flex flex-col justify-center border transition-all duration-300 ${
+                    className={`flex-1 p-4.5 md:p-5 rounded-2xl text-left flex flex-col justify-center border transition-all duration-300 ${
                       idx === 0
                         ? isDark
                           ? "bg-[var(--panel)] border-[var(--line)] shadow-[0_12px_36px_rgba(0,0,0,0.3)]"
@@ -612,7 +611,7 @@ export default function HomePage() {
               </div>
 
               {/* Right Column: Search Mockup */}
-              <div className={`flex rounded-[32px] p-6 lg:p-8 flex-col gap-6 text-left border transition-all duration-300 ${
+              <div className={`flex rounded-[32px] p-4.5 lg:p-6 flex-col gap-4 text-left border transition-all duration-300 ${
                 isDark 
                   ? "bg-[var(--bg-2)] border-[var(--line)]" 
                   : "bg-[#F4F3EE] border-[var(--line)]"
@@ -640,9 +639,9 @@ export default function HomePage() {
                   </button>
                 </div>
                 
-                <div className="flex flex-col gap-6 mt-4">
+                <div className="flex flex-col gap-4 mt-2">
                   {[1, 2, 3, 4].map((num) => (
-                    <div key={num} className="flex flex-col gap-2 border-b border-dashed border-[var(--line)] pb-5 last:border-0 last:pb-0">
+                    <div key={num} className="flex flex-col gap-1.5 border-b border-dashed border-[var(--line)] pb-3.5 last:border-0 last:pb-0">
                       <div className="flex items-baseline gap-2.5">
                         {/* #9: numbers 01. , 02. , 03. , 04. */}
                         <span 
@@ -682,9 +681,8 @@ export default function HomePage() {
         {/* SIX SUPERPOWERS – 2×2 feature card grid                      */}
         {/* ═══════════════════════════════════════════════════════════════ */}
         <section 
-          className="relative py-20 md:py-[130px]" 
+          className="relative py-20 md:py-[130px] bg-[var(--bg)]" 
           id="features"
-          style={{ backgroundColor: isDark ? "var(--bg)" : "#ffffff" }}
         >
           <div className="max-w-[1240px] mx-auto px-7">
             {/* 2-Column Header */}
@@ -699,8 +697,8 @@ export default function HomePage() {
                 </span>
                 {/* #13 Six superpowers. One subscription. */}
                 <h2 
-                  className="text-[var(--ink)]"
-                  style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
+                  className="text-[var(--ink)] text-2xl sm:text-3xl md:text-[42px] leading-tight md:leading-[100%]"
+                  style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, letterSpacing: '0px' }}
                 >
                   Six superpowers.<br />
                   One subscription.
@@ -708,8 +706,8 @@ export default function HomePage() {
               </div>
               {/* #14 Description subtext */}
               <p 
-                className="text-[var(--ink-2)] max-w-[650px] leading-relaxed lg:text-right"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
+                className="text-[var(--ink-2)] max-w-[650px] text-sm sm:text-base md:text-lg leading-relaxed md:leading-[32px] text-left"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%' }}
               >
                 No integrations to configure. No freelancers to brief. No tool-switching.<br className="hidden lg:inline" /> Everything works together because it lives in one place.
               </p>
@@ -800,8 +798,8 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Mobile view: show the vertical HTML cards list for readability */}
-            <div className="md:hidden grid grid-cols-1 gap-5 mt-10">
+            {/* Mobile view: show the horizontal scrolling HTML cards list for readability */}
+            <div className="md:hidden flex overflow-x-auto pb-6 no-scrollbar snap-x snap-mandatory gap-5 mt-10">
               {[
                 { 
                   icon: LinkIcon, 
@@ -824,7 +822,7 @@ export default function HomePage() {
                   desc: "Content goes live. Posts publish. SEO improves. You get weekly reports on exactly what's working." 
                 }
               ].map((step, i) => (
-                <div key={i} className="bg-[var(--bg-2)] border border-[var(--line)] rounded-2xl p-7 flex flex-col gap-3.5 text-left">
+                <div key={i} className="bg-[var(--bg-2)] border border-[var(--line)] rounded-2xl p-7 flex flex-col gap-3.5 text-left snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px]">
                   <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center mb-1">
                     <step.icon className="w-6 h-6" />
                   </div>
@@ -851,7 +849,7 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* NUMBERS – "Real Results. Not Marketing Fluff."                */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)] overflow-hidden">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)] overflow-hidden">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
               {/* #6 Badge */}
@@ -863,15 +861,15 @@ export default function HomePage() {
               </span>
               {/* #7 Title */}
               <h2 
-                className="mb-[18px] text-[var(--ink)] text-center"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
+                className="mb-[18px] text-[var(--ink)] text-center text-2xl sm:text-3xl md:text-[42px] leading-tight md:leading-[100%]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, letterSpacing: '0px' }}
               >
                 Real Results.<br />
                 Not Marketing Fluff.
               </h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-[var(--line)] border border-[var(--line)] rounded-3xl overflow-hidden shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)]">
+            <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory gap-4 md:gap-px bg-transparent md:bg-[var(--line)] md:border md:border-[var(--line)] md:rounded-3xl md:overflow-hidden md:shadow-[0_30px_60px_-30px_rgba(14,12,26,0.1)]">
               {[
                 { v: "10×", l: "Faster content production vs. doing it manually." },
                 { v: "6 Tools", l: "Replaced by a single Solo Spider subscription." },
@@ -880,7 +878,7 @@ export default function HomePage() {
                 { v: "₹40k+", l: "Avg. monthly tool cost replaced by one Solo Spider plan." },
                 { v: "2,000+", l: "Agencies and creators already using Solo Spider." }
               ].map((num, i) => (
-                <div key={i} className="bg-[var(--panel)] p-8 lg:p-12 flex flex-col gap-2.5 text-left">
+                <div key={i} className="bg-[var(--panel)] p-8 lg:p-12 flex flex-col gap-2.5 text-left snap-start min-w-[240px] sm:min-w-[280px] flex-shrink-0 w-[240px] sm:w-[280px] md:w-auto md:min-w-0 md:flex-shrink rounded-2xl border border-[var(--line)] md:border-0 md:rounded-none">
                   {/* #8 Value */}
                   <div 
                     className="text-primary font-extralight"
@@ -916,16 +914,16 @@ export default function HomePage() {
               </span>
               {/* #11 Title */}
               <h2 
-                className="mb-[18px] text-[var(--ink)] text-center"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 42, lineHeight: '100%', letterSpacing: '0px' }}
+                className="mb-[18px] text-[var(--ink)] text-center text-2xl sm:text-3xl md:text-[42px] leading-tight md:leading-[100%]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, letterSpacing: '0px' }}
               >
                 Stop Paying for a Stack.<br />
                 Start Using a System.
               </h2>
               {/* #12 Subtext */}
               <p 
-                className="text-[var(--ink-2)] max-w-[660px] mx-auto text-center font-normal"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
+                className="text-[var(--ink-2)] max-w-[660px] mx-auto text-center font-normal text-sm sm:text-base md:text-lg leading-relaxed md:leading-[32px]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%' }}
               >
                 Here&apos;s what Solo Spider replaces — and what none<br className="hidden lg:inline" /> of those tools can do together.
               </p>
@@ -1015,7 +1013,7 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* PRICING                                                       */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative py-20 md:py-[130px] bg-[var(--bg-2)]" id="pricing">
+        <section className="relative py-20 md:py-[130px] bg-[var(--bg)]" id="pricing">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[48px]">
               <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
@@ -1025,16 +1023,16 @@ export default function HomePage() {
                 One Price.<br />Everything included.
               </h2>
               <p 
-                className="text-[18px] text-[var(--ink-2)] max-w-[720px] mx-auto text-center font-normal animate-fade-in"
-                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, fontSize: 18, lineHeight: '32px', letterSpacing: '0%' }}
+                className="text-[var(--ink-2)] max-w-[720px] mx-auto text-center font-normal animate-fade-in text-sm sm:text-base md:text-lg leading-relaxed md:leading-[32px]"
+                style={{ fontFamily: "'Geist', sans-serif", fontWeight: 400, letterSpacing: '0%' }}
               >
                 No feature gating. No per-seat pricing surprises. Pick the plan that fits<br className="hidden lg:inline" /> your volume and get access to every single Solo Spider capability.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-[1240px] mx-auto text-left">
+            <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory gap-4 md:gap-6 items-stretch max-w-[1240px] mx-auto text-left">
               {/* Free Plan */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Free</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For creators just getting started</div>
@@ -1063,7 +1061,7 @@ export default function HomePage() {
               </div>
 
               {/* Starter Plan */}
-              <div className="relative border-2 border-primary bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible">
+              <div className="relative border-2 border-primary bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] shadow-[0_20px_50px_-12px_rgba(144,37,242,0.18)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_25px_60px_-12px_rgba(144,37,242,0.28)] overflow-visible snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-white font-display font-extrabold text-[10px] tracking-widest uppercase px-5 py-2 rounded-full z-20 shadow-[0_4px_14px_rgba(144,37,242,0.5)] whitespace-nowrap" style={{background:'#9025F2'}}>Most popular</span>
                 
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Recommended for creators</span>
@@ -1095,7 +1093,7 @@ export default function HomePage() {
               </div>
 
               {/* Growth Plan */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">For scaling businesses</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Growth</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For growing teams &amp; agencies</div>
@@ -1127,7 +1125,7 @@ export default function HomePage() {
               </div>
 
               {/* Enterprise Plan */}
-              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative">
+              <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 lg:p-7 flex flex-col gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Best for enterprise</span>
                 <h3 className="font-display text-[22px] font-extrabold tracking-tight text-[var(--ink)] uppercase">Enterprise</h3>
                 <div className="text-[12px] text-[var(--muted)] -mt-2">For large teams &amp; custom volume</div>
@@ -1170,10 +1168,31 @@ export default function HomePage() {
         <section className="relative py-20 md:py-[130px] bg-[var(--bg)]">
           <div className="max-w-[1240px] mx-auto px-7">
             <div className="text-center max-w-[820px] mx-auto mb-[72px]">
-              <span className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary text-[11px] font-mono font-bold uppercase tracking-wider mb-3">
+              <span 
+                className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/10 text-primary mb-3"
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 14,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  verticalAlign: 'middle',
+                  textTransform: 'uppercase'
+                }}
+              >
                 ● Common questions
               </span>
-              <h2 className="mb-[18px] text-4xl md:text-[54px] tracking-tight font-black leading-[1.1] text-[var(--ink)]">
+              <h2 
+                className="mb-[18px] text-[var(--ink)] text-3xl sm:text-[42px] leading-tight md:leading-[100%]"
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 42,
+                  lineHeight: '100%',
+                  letterSpacing: '0px',
+                  textAlign: 'center'
+                }}
+              >
                 Everything you want to<br />know before you sign up.
               </h2>
             </div>
@@ -1191,7 +1210,15 @@ export default function HomePage() {
                 <div key={i} className={`bg-[var(--panel)] border border-[var(--line)] rounded-2xl overflow-hidden transition-all duration-200 ${openFaq === i ? 'border-primary/20' : ''}`}>
                   <button 
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left font-display font-semibold text-[18px] text-[var(--ink)]"
+                    className="w-full flex justify-between items-center gap-4.5 p-5 lg:px-6 lg:py-5 text-left text-[var(--ink)]"
+                    style={{
+                      fontFamily: "'Geist', sans-serif",
+                      fontWeight: 600,
+                      fontSize: 17,
+                      lineHeight: '23.8px',
+                      letterSpacing: '0%',
+                      verticalAlign: 'middle'
+                    }}
                   >
                     <span>{faq.q}</span>
                     <span className={`shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-[14px] transition-all duration-200 ${openFaq === i ? 'bg-primary text-white rotate-45 border border-transparent' : 'bg-primary-soft text-primary border border-primary/15'}`}>
@@ -1199,7 +1226,16 @@ export default function HomePage() {
                     </span>
                   </button>
                   <div className={`overflow-hidden transition-all duration-350 ease-in-out ${openFaq === i ? 'max-h-[340px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-6 pb-6 pt-4 border-t border-[var(--line)] text-[15px] text-[var(--ink-2)] leading-relaxed">
+                    <div 
+                      className="px-6 pb-6 pt-4 border-t border-[var(--line)] text-[var(--ink-2)]"
+                      style={{
+                        fontFamily: "'Geist', sans-serif",
+                        fontWeight: 400,
+                        fontSize: 16,
+                        lineHeight: '28px',
+                        letterSpacing: '0%'
+                      }}
+                    >
                       {faq.a}
                     </div>
                   </div>
@@ -1212,57 +1248,116 @@ export default function HomePage() {
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* FINAL CTA                                                     */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <section className="relative bg-[var(--bg-2)] overflow-hidden py-20 md:py-[130px]">
+        <section className="relative bg-[var(--bg)] overflow-hidden py-20 md:py-[130px]">
           <div className="max-w-[1240px] mx-auto px-7 relative z-10">
-            <div className={`rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
-              isDark ? "border border-[var(--line)]" : "border-0"
+            <div className={`relative text-center max-w-[1240px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[32px] overflow-hidden shadow-[0_40px_80px_-30px_rgba(144,37,242,0.25)] transition-all duration-300 ${
+              isDark 
+                ? "bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)] border border-[var(--line)]" 
+                : "bg-[#9025f2] text-white border-0"
             }`}>
-              <div className={`relative text-center max-w-[920px] mx-auto py-12 md:py-20 px-6 md:px-10 rounded-[30.5px] overflow-hidden transition-all duration-300 ${
-                isDark 
-                  ? "bg-gradient-to-b from-[var(--panel)] to-[var(--bg-2)]" 
-                  : "bg-primary text-white"
-              }`}>
               
-              <span className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border text-[11px] font-mono font-bold uppercase tracking-wider mb-6 ${
-                isDark 
-                  ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" 
-                  : "bg-white/10 text-white border-white/20"
-              }`}>
+              <span 
+                className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border mb-6 ${
+                  isDark 
+                    ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" 
+                    : "bg-white/10 text-white border-white/20"
+                }`}
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 14,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  verticalAlign: 'middle',
+                  textTransform: 'uppercase'
+                }}
+              >
                 ● READY TO SWITCH?
               </span>
-              <h2 className="text-4xl md:text-[64px] leading-[1.05] mb-6 font-black tracking-tight text-white">
+              <h2 
+                className="mb-6 text-white text-3xl sm:text-[42px] leading-tight md:leading-[100%]"
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 700,
+                  fontSize: 42,
+                  lineHeight: '100%',
+                  letterSpacing: '0px',
+                  textAlign: 'center'
+                }}
+              >
                 Simplify your marketing.<br />
                 <span className={isDark ? "grad-text" : "text-purple-200"}>Amplify your results.</span>
               </h2>
-              <p className={`text-[18px] mb-9 max-w-[680px] mx-auto ${isDark ? "text-[var(--ink-2)]" : "text-white/85"}`}>
+              <p 
+                className={`mb-9 max-w-[680px] mx-auto ${isDark ? "text-[var(--ink-2)]" : "text-white/85"}`}
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 18,
+                  lineHeight: '32px',
+                  letterSpacing: '0%',
+                  textAlign: 'center'
+                }}
+              >
                 Join 2,000+ agencies and creators who replaced their entire digital marketing workflow with Solo Spider. Less cost. Less complexity. More output.
               </p>
               
               <div className="flex justify-center gap-3.5 flex-wrap mb-9">
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className={`btn px-8 py-4 rounded-full font-bold cursor-pointer transition-all ${
-                  isDark 
-                    ? "btn-grad" 
-                    : "bg-white text-primary hover:bg-purple-100 hover:scale-[1.02] shadow-lg shadow-black/10"
-                }`}>
-                  Start Free
+                <button 
+                  onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} 
+                  className={`btn px-8 py-4 rounded-full cursor-pointer transition-all ${
+                    isDark 
+                      ? "btn-grad" 
+                      : "bg-white text-primary hover:bg-purple-100 hover:scale-[1.02] shadow-lg shadow-black/10"
+                  }`}
+                  style={{
+                    fontFamily: "'Geist', sans-serif",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    verticalAlign: 'middle'
+                  }}
+                >
+                  Start Free — No Card Needed
                 </button>
-                <button onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} className={`btn px-8 py-4 rounded-full font-bold cursor-pointer transition-all ${
-                  isDark 
-                    ? "btn-ghost" 
-                    : "bg-transparent border border-white/40 text-white hover:bg-white/10"
-                }`}>
-                  Book a Demo
+                <button 
+                  onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }} 
+                  className={`btn px-8 py-4 rounded-full cursor-pointer transition-all ${
+                    isDark 
+                      ? "btn-ghost" 
+                      : "bg-transparent border border-white/40 text-white hover:bg-white/10"
+                  }`}
+                  style={{
+                    fontFamily: "'Geist', sans-serif",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    verticalAlign: 'middle'
+                  }}
+                >
+                  Book a 20-Minute Demo
                 </button>
               </div>
               
-              <div className={`flex justify-center flex-wrap gap-x-8 gap-y-4 text-[13.5px] ${isDark ? "text-[var(--ink-2)]" : "text-white/80"}`}>
-                {["Free plan, always", "14-day trial on paid plans", "Cancel anytime", "Setup under 5 minutes"].map((p, idx) => (
+              <div 
+                className={`flex justify-center flex-wrap gap-x-8 gap-y-4 ${isDark ? "text-[var(--ink-2)]" : "text-white/80"}`}
+                style={{
+                  fontFamily: "'Geist', sans-serif",
+                  fontWeight: 400,
+                  fontSize: 15,
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  textAlign: 'center'
+                }}
+              >
+                {["Free plan, always", "7-day trial on paid plans", "Cancel anytime", "Setup under 5 minutes"].map((p, idx) => (
                   <span key={idx} className="flex items-center gap-2">
                     <span className={isDark ? "text-primary font-extrabold" : "text-purple-200 font-extrabold"}>✓</span>
                     <span>{p}</span>
                   </span>
                 ))}
-              </div>
             </div>
           </div>
         </div>

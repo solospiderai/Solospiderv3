@@ -156,7 +156,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
 
           {/* Mobile Menu Toggle */}
           <button
-            className="lg:hidden text-ink-2 hover:text-primary p-2 cursor-pointer"
+            className="lg:hidden text-[var(--ink-2)] hover:text-primary p-2 cursor-pointer"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -166,28 +166,28 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
 
       {/* Mobile Nav */}
       {mobileMenuOpen && (
-        <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-line py-6 px-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-2 z-50">
-          <a href="/#features" className="text-lg text-ink-2 py-2 border-b border-line cursor-pointer font-semibold" onClick={(e) => handleScrollTo(e, "features")}>
+        <div className="lg:hidden absolute top-full left-0 w-full bg-[var(--panel)] border-b border-[var(--line)] py-6 px-4 flex flex-col gap-4 shadow-2xl animate-in slide-in-from-top-2 z-50">
+          <a href="/#features" className="text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer font-semibold" onClick={(e) => handleScrollTo(e, "features")}>
             Features
           </a>
-          <a href="/#audience" className="text-lg text-ink-2 py-2 border-b border-line cursor-pointer font-semibold" onClick={(e) => handleScrollTo(e, "audience")}>
+          <a href="/#audience" className="text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer font-semibold" onClick={(e) => handleScrollTo(e, "audience")}>
             Who's It For
           </a>
-          <Link href="/pricing" className="text-lg text-ink-2 py-2 border-b border-line cursor-pointer font-semibold" onClick={() => setMobileMenuOpen(false)}>
+          <Link href="/pricing" className="text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer font-semibold" onClick={() => setMobileMenuOpen(false)}>
             Pricing
           </Link>
-          <button onClick={() => { setMobileMenuOpen(false); onOpenWizard?.(); }} className="text-left text-lg text-ink-2 py-2 border-b border-line cursor-pointer bg-transparent font-semibold">
+          <button onClick={() => { setMobileMenuOpen(false); onOpenWizard?.(); }} className="text-left text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer bg-transparent font-semibold">
             Blog
           </button>
-          <button onClick={() => { setMobileMenuOpen(false); onOpenWizard?.(); }} className="text-left text-lg text-ink-2 py-2 border-b border-line cursor-pointer bg-transparent font-semibold">
+          <button onClick={() => { setMobileMenuOpen(false); onOpenWizard?.(); }} className="text-left text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer bg-transparent font-semibold">
             SEO Audit
           </button>
           <div className="flex flex-col gap-3 mt-4">
-            <div className="flex items-center justify-between py-2 px-1 border-b border-dashed border-line">
+            <div className="flex items-center justify-between py-2 px-1 border-b border-dashed border-[var(--line)]">
               <span className="text-xs text-slate-500 font-bold">Theme</span>
               <button 
                 onClick={onToggleTheme} 
-                className="p-2 rounded-xl border border-line text-ink hover:bg-slate-50 transition-all cursor-pointer bg-transparent flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded-xl border border-[var(--line)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all cursor-pointer bg-transparent flex items-center gap-1.5 text-xs font-semibold"
               >
                 {isDark ? (
                   <>
@@ -209,7 +209,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
             ) : (
               <>
                 <Link href="/login" className="w-full text-center" onClick={() => setMobileMenuOpen(false)}>
-                  <button className="w-full py-3 rounded-xl border border-line text-ink-2 font-medium hover:bg-bg-2 cursor-pointer">
+                  <button className="w-full py-3 rounded-xl border border-[var(--line)] text-[var(--ink-2)] font-medium hover:bg-[var(--bg-2)] cursor-pointer">
                     Login
                   </button>
                 </Link>

@@ -449,8 +449,8 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
   }, [brokenPagesCount, missingTitlesCount, duplicateTitlesCount, missingDescsCount, missingH1sCount, totalCalculatedCount, totalPageCount]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-      <div className="md:col-span-1">
+    <div className="flex md:grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory">
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
         <CircularProgress 
           label="Overall SEO Score" 
           value={seoScore} 
@@ -461,7 +461,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           tooltipContent={seoTooltipContent}
         />
       </div>
-      <div className="md:col-span-1">
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
         <TrendCard 
           label="Organic Traffic" 
           value={trafficValue} 
@@ -475,7 +475,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           redirectTo="/app/en/settings/integrations"
         />
       </div>
-      <div className="md:col-span-1">
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
         <TrendCard 
           label="Total Impressions" 
           value={impressionsValue} 
@@ -489,7 +489,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           redirectTo="/app/en/settings/integrations"
         />
       </div>
-      <div className="md:col-span-1">
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
         <TrendCard 
           label="Backlinks" 
           value={backlinksValue} 
@@ -503,7 +503,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           redirectTo="/app/en/settings/integrations"
         />
       </div>
-      <div className="md:col-span-1">
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
         <CircularProgress 
           label="AI Visibility Score" 
           value={aeoScore} 
