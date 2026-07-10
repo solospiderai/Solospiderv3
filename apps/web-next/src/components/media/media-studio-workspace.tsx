@@ -701,63 +701,63 @@ export function MediaStudioWorkspace() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-purple-600">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
+        <div className="flex items-center gap-2.5 md:gap-4 rounded-2xl bg-white p-3.5 md:p-6 shadow-sm border border-slate-100">
+          <div className="flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-lg md:rounded-xl bg-purple-100 text-purple-600 shrink-0">
+            <svg className="h-4.5 w-4.5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
               <circle cx="9" cy="9" r="2"/>
               <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
             </svg>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Generated Assets</p>
-            <h3 className="text-2xl font-black text-slate-900">{savedAssets.length}</h3>
+          <div className="min-w-0">
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 truncate">Generated Assets</p>
+            <h3 className="text-lg md:text-2xl font-black text-slate-900 leading-tight">{savedAssets.length}</h3>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-2.5 md:gap-4 rounded-2xl bg-white p-3.5 md:p-6 shadow-sm border border-slate-100">
+          <div className="flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-lg md:rounded-xl bg-blue-100 text-blue-600 shrink-0">
+            <svg className="h-4.5 w-4.5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m22 8-6 4 6 4V8Z"/>
               <rect width="14" height="12" x="2" y="6" rx="2" ry="2"/>
             </svg>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Video Engine</p>
-            <h3 className="text-2xl font-black text-slate-900">0</h3>
+          <div className="min-w-0">
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 truncate">Video Engine</p>
+            <h3 className="text-lg md:text-2xl font-black text-slate-900 leading-tight">0</h3>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-2.5 md:gap-4 rounded-2xl bg-white p-3.5 md:p-6 shadow-sm border border-slate-100">
+          <div className="flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-lg md:rounded-xl bg-emerald-100 text-emerald-600 shrink-0">
+            <svg className="h-4.5 w-4.5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/>
             </svg>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Brand Presets</p>
-            <h3 className="text-2xl font-black text-slate-900">{presets.length}</h3>
+          <div className="min-w-0">
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 truncate">Brand Presets</p>
+            <h3 className="text-lg md:text-2xl font-black text-slate-900 leading-tight">{presets.length}</h3>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <div className="flex items-center gap-2.5 md:gap-4 rounded-2xl bg-white p-3.5 md:p-6 shadow-sm border border-slate-100">
+          <div className="flex h-9 w-9 md:h-12 md:w-12 items-center justify-center rounded-lg md:rounded-xl bg-amber-100 text-amber-600 shrink-0">
+            <svg className="h-4.5 w-4.5 md:h-6 md:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" x2="12" y1="15" y2="3"/>
             </svg>
           </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Active Workspaces</p>
-            <h3 className="text-2xl font-black text-slate-900">{activeProject ? 1 : 0}</h3>
+          <div className="min-w-0">
+            <p className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 truncate">Active Workspaces</p>
+            <h3 className="text-lg md:text-2xl font-black text-slate-900 leading-tight">{activeProject ? 1 : 0}</h3>
           </div>
         </div>
       </div>
 
       {/* Main Studio Grid */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-3">
         {/* Generator Form */}
         <div className="space-y-6 lg:col-span-2">
           <div className="overflow-hidden rounded-2xl border bg-white shadow-sm">
@@ -795,9 +795,9 @@ export function MediaStudioWorkspace() {
             </div>
 
             {/* Tab Contents */}
-            <div className="p-6">
+            <div className="p-4 md:p-6">
               {activeTab === "image" ? (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Prompt Textarea */}
                   <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1010,7 +1010,7 @@ export function MediaStudioWorkspace() {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Prompt Textarea */}
                   <div className="space-y-2">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -1288,7 +1288,7 @@ export function MediaStudioWorkspace() {
             <p className="text-xs text-slate-400">Provide details above to generate and seed your brand library.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-4">
             {savedAssets.map((asset) => (
               <div key={asset.id} className="group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
                 {/* Image & Ratio badges */}
@@ -1315,12 +1315,12 @@ export function MediaStudioWorkspace() {
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60 p-4 flex flex-col justify-between">
-                    <div className="flex justify-between items-start">
-                      <div className="rounded-lg bg-white/95 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-slate-900 shadow">
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60 p-2.5 md:p-4 flex flex-col justify-between">
+                    <div className="flex justify-between items-start gap-1">
+                      <div className="rounded-md bg-white/95 px-1.5 py-0.5 text-[8px] md:text-[10px] font-black uppercase tracking-wider text-slate-900 shadow truncate max-w-[70px] md:max-w-none">
                         {activeProject?.name || "Solospider"}
                       </div>
-                      <span className="rounded-md bg-slate-900/90 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
+                      <span className="rounded-md bg-slate-900/90 px-1.5 py-0.5 text-[8px] md:text-[9px] font-black uppercase tracking-widest text-white shrink-0">
                         {asset.format}
                       </span>
                     </div>
@@ -1328,7 +1328,7 @@ export function MediaStudioWorkspace() {
                 </div>
 
                 {/* Text area */}
-                <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                <div className="p-2.5 md:p-4 flex-1 flex flex-col justify-between space-y-2 md:space-y-3">
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Caption</span>

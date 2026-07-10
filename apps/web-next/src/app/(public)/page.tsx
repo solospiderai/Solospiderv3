@@ -1052,7 +1052,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory gap-4 md:gap-6 items-stretch max-w-[1240px] mx-auto text-left">
+            <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 overflow-x-auto md:overflow-x-visible pt-5 pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory gap-4 md:gap-6 items-stretch max-w-[1240px] mx-auto text-left">
               {/* Free Plan */}
               <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-4.5 md:p-6 lg:p-7 flex flex-col gap-3.5 md:gap-5 transition-all duration-300 hover:border-primary/45 hover:-translate-y-1.5 hover:shadow-[0_20px_40px_-15px_rgba(144,37,242,0.12)] relative snap-start min-w-[280px] sm:min-w-[320px] flex-shrink-0 w-[280px] sm:w-[320px] md:w-auto md:min-w-0 md:flex-shrink">
                 <span className="font-mono text-[11px] uppercase tracking-widest text-primary font-bold">Free forever</span>

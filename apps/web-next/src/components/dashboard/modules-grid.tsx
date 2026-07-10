@@ -80,14 +80,18 @@ export function ModulesGrid() {
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {modules.map((mod) => (
-          <div key={mod.id} className="p-3 md:p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between aspect-square md:aspect-auto">
+          <Link
+            key={mod.id}
+            href={mod.href}
+            className="p-3 md:p-4 rounded-xl border border-slate-100 hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between aspect-square md:aspect-auto text-left bg-white cursor-pointer group"
+          >
             <div className="flex items-center md:items-start gap-2 md:gap-3 mb-2">
               <div className={`p-2 md:p-2.5 rounded-xl ${mod.color} shadow-sm shrink-0`}>
                 {mod.icon}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <h4 className="font-bold text-slate-900 text-xs md:text-sm truncate">{mod.title}</h4>
+                  <h4 className="font-bold text-slate-900 text-xs md:text-sm truncate group-hover:text-blue-600 transition-colors">{mod.title}</h4>
                   {mod.isNew && (
                     <span className="px-1 py-0.5 rounded text-[8px] md:text-[10px] font-bold bg-emerald-100 text-emerald-700 shrink-0">New</span>
                   )}
@@ -97,10 +101,10 @@ export function ModulesGrid() {
             <p className="text-[10px] md:text-xs text-slate-500 font-medium leading-normal md:leading-relaxed mb-2 md:mb-4 flex-1 line-clamp-2 md:line-clamp-none">
               {mod.desc}
             </p>
-            <Link href={mod.href} className="flex items-center text-[10px] md:text-xs font-bold text-blue-600 hover:text-blue-800 mt-auto">
-              Open <ArrowRight className="w-3 h-3 ml-1" />
-            </Link>
-          </div>
+            <div className="flex items-center text-[10px] md:text-xs font-bold text-blue-600 group-hover:text-blue-800 mt-auto">
+              Open <ArrowRight className="w-3 h-3 ml-1 transition-transform group-hover:translate-x-0.5" />
+            </div>
+          </Link>
         ))}
       </div>
     </div>
