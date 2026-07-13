@@ -190,7 +190,8 @@ description: "${field === 'meta_desc' ? value : ''}"
     }
   }
 
-  const putRes = await fetch(fileUrl, {
+  const putUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${matchedFile}`;
+  const putRes = await fetch(putUrl, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
