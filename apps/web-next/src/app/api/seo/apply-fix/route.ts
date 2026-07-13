@@ -599,8 +599,9 @@ export async function POST(req: Request) {
     const isSynced = cmsSyncStatus.startsWith("Successfully synced");
     return NextResponse.json({
       ok: true,
-      message: `Applied fix locally. CMS Sync status: ${cmsSyncStatus}`,
-      noIntegration: !isSynced,
+      message: cmsSyncStatus,
+      noIntegration: integrations.length === 0,
+      isSynced,
       updatedField,
       updatedValue
     }, { headers: corsHeaders });
