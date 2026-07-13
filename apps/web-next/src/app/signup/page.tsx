@@ -187,3 +187,5 @@ export default function SignupPage() {
     </div>
   );
 }
+
+// SEO Update: missing-h1s = Sign Up for SoloSpider AEO & SEO Optimization
