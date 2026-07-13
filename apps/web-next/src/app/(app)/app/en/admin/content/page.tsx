@@ -152,3 +152,5 @@ export default function AdminContentPage() {
     </div>
   );
 }
+
+// SEO Update: missing-h1s = Join the SoloSpider Affiliate Program – Apply Now
