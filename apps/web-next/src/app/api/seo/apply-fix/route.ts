@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
@@ -245,10 +246,22 @@ export async function POST(req: Request) {
       }, { headers: corsHeaders });
     }
 
+    // Try to get currently logged in user
+    let currentUserId = project.user_id;
+    try {
+      const supabaseServer = await getSupabaseServerClient();
+      const { data: { user: currentUser } } = await supabaseServer.auth.getUser();
+      if (currentUser) {
+        currentUserId = currentUser.id;
+      }
+    } catch (e) {
+      console.warn("[ApplyFix] Failed to get session user:", e);
+    }
+
     const { data: integrations, error: intErr } = await supabase
       .from("workspace_integrations")
       .select("*")
-      .eq("user_id", project.user_id)
+      .or(`user_id.eq.${project.user_id},user_id.eq.${currentUserId}`)
       .eq("is_active", true);
 
     if (intErr || !integrations || integrations.length === 0) {
