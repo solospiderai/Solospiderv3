@@ -2257,9 +2257,14 @@ export function SeoWorkspace() {
                                               </div>
                                             </div>
                                             <div className="flex flex-col gap-2 shrink-0">
-                                              {aiRecommendations[`${issue.id}-${page.url}`].suggestedValue && (
+                                              { (aiRecommendations[`${issue.id}-${page.url}`].suggestedValue || (issue.id === "missing-schema" && aiRecommendations[`${issue.id}-${page.url}`].codeSnippet)) && (
                                                 <button 
-                                                  onClick={() => handleApplyFix(issue.id, page.url, aiRecommendations[`${issue.id}-${page.url}`].suggestedValue!)}
+                                                  onClick={() => {
+                                                    const fixVal = issue.id === "missing-schema"
+                                                      ? aiRecommendations[`${issue.id}-${page.url}`].codeSnippet!
+                                                      : aiRecommendations[`${issue.id}-${page.url}`].suggestedValue!;
+                                                    handleApplyFix(issue.id, page.url, fixVal);
+                                                  }}
                                                   disabled={fixingKeys[`${issue.id}-${page.url}`]}
                                                   className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-lg shadow-sm text-[10px] font-black flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
                                                   title="Apply automated fix to website and database"

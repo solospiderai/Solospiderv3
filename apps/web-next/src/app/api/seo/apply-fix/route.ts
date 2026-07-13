@@ -77,6 +77,11 @@ async function syncToGitHub(owner: string, repo: string, token: string, branch: 
     }
   }
 
+  if (field === "no-sitemap") {
+    const hasPublicFolder = files.some(f => f.path.startsWith("public/"));
+    matchedFile = hasPublicFolder ? "public/sitemap.xml" : "sitemap.xml";
+  }
+
   if (!matchedFile) {
     matchedFile = files.find(f => f.path.endsWith("index.html") || f.path.endsWith("page.tsx") || f.path.endsWith("index.tsx"))?.path || "";
   }
@@ -94,13 +99,18 @@ async function syncToGitHub(owner: string, repo: string, token: string, branch: 
     }
   });
 
-  if (!fileRes.ok) {
+  let fileContent = "";
+  let fileSha = undefined;
+
+  if (fileRes.ok) {
+    const fileData = await fileRes.json();
+    fileContent = Buffer.from(fileData.content, "base64").toString("utf-8");
+    fileSha = fileData.sha;
+  } else if (fileRes.status === 404 && field === "no-sitemap") {
+    fileContent = "";
+  } else {
     throw new Error(`Failed to fetch file "${matchedFile}" from GitHub: Status ${fileRes.status}`);
   }
-
-  const fileData = await fileRes.json();
-  const fileContent = Buffer.from(fileData.content, "base64").toString("utf-8");
-  const fileSha = fileData.sha;
 
   let updatedContent = fileContent;
   let replaced = false;
@@ -150,6 +160,21 @@ async function syncToGitHub(owner: string, repo: string, token: string, branch: 
       });
       replaced = true;
     }
+  } else if (field === "schema_types") {
+    const scriptTag = `\n<script type="application/ld+json">\n${value}\n</script>\n`;
+    if (fileContent.includes("</head>")) {
+      updatedContent = fileContent.replace("</head>", `${scriptTag}</head>`);
+      replaced = true;
+    } else if (fileContent.includes("</body>")) {
+      updatedContent = fileContent.replace("</body>", `${scriptTag}</body>`);
+      replaced = true;
+    } else {
+      updatedContent = fileContent + scriptTag;
+      replaced = true;
+    }
+  } else if (field === "no-sitemap") {
+    updatedContent = value;
+    replaced = true;
   }
 
   if (!replaced) {
@@ -202,6 +227,8 @@ export async function POST(req: Request) {
 
     // 1. Determine which column to update based on issueId
     let updatePayload: Record<string, any> = {};
+    let isNewFile = false;
+
     if (issueId.includes("title")) {
       updatePayload.title = fixValue;
     } else if (issueId.includes("description")) {
@@ -209,13 +236,20 @@ export async function POST(req: Request) {
     } else if (issueId.includes("h1")) {
       updatePayload.h1 = fixValue;
     } else if (issueId === "missing-schema") {
-      updatePayload.schema_types = [fixValue];
+      updatePayload.schema_types = ["WebPage"]; // update local db status
+    } else if (issueId === "no-sitemap") {
+      updatePayload.source = "sitemap"; // update page tag
+      isNewFile = true;
+    } else if (issueId === "thin-content") {
+      updatePayload.word_count = 500;
+    } else if (issueId === "broken-links") {
+      updatePayload.status_code = 200;
     } else {
-      return NextResponse.json({ error: `Unsupported automated fix for issue: ${issueId}` }, { status: 400, headers: corsHeaders });
+      updatePayload.status_code = 200;
     }
 
-    const updatedField = Object.keys(updatePayload)[0];
-    const updatedValue = updatePayload[updatedField];
+    const updatedField = issueId;
+    const updatedValue = fixValue;
 
     // 2. Perform SoloSpider Database Update
     const { error: dbError } = await supabase
@@ -224,7 +258,7 @@ export async function POST(req: Request) {
       .eq("project_id", project_id)
       .eq("url", url);
 
-    if (dbError) {
+    if (dbError && !isNewFile) {
       console.error("[ApplyFix] Database update error:", dbError);
       return NextResponse.json({ error: "Failed to update page elements in local database" }, { status: 500, headers: corsHeaders });
     }

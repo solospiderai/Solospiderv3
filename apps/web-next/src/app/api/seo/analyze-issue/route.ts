@@ -188,7 +188,7 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
       return {
         recommendation: markdown,
         explanation: `Search engines penalize pages with thin content (< 200 words) as they lack sufficient crawlable context and index value. Expanding this page to 500+ words of rich, structured content will help it rank.`,
-        suggestedValue: null
+        suggestedValue: markdown
       };
     }
 
@@ -234,7 +234,15 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
       return {
         recommendation: "Redirect this URL to a relevant working page, or restore the missing content.",
         explanation: "Pages returning error codes (like 404 Not Found) degrade overall domain authority, stop indexing bots in their tracks, and lead to lost visitor trust. Set up a 301 Redirect.",
-        suggestedValue: null
+        suggestedValue: "/"
+      };
+    }
+
+    case "no-sitemap": {
+      return {
+        recommendation: "Create a sitemap.xml file at the root of your project.",
+        explanation: "A sitemap.xml allows crawlers to discover all pages on your site.",
+        suggestedValue: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url>\n    <loc>https://${domain}/</loc>\n  </url>\n</urlset>`
       };
     }
 
@@ -242,7 +250,7 @@ function generateLocalSeoRecommendation(url: string, issueId: string, currentTit
       return {
         recommendation: `Optimize page elements on ${url} to fix issues in category: ${issueId}.`,
         explanation: "Standard SEO best practices indicate optimizing headings, metadata, and structured data is key to rank visibility.",
-        suggestedValue: null
+        suggestedValue: "Optimized Elements"
       };
   }
 }
