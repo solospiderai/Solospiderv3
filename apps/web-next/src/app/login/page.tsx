@@ -181,7 +181,8 @@ export default function LoginPage() {
 
 // SEO Update: missing-h1s = SoloSpider Login – Access Your AI SEO Dashboard
 
-// SEO Update: thin-content = ## Proposed Content Expansion Outline for: SoloSpider
+/* SEO Update: thin-content = 
+## Proposed Content Expansion Outline for: SoloSpider
 
 ### 1. Introduction & Overview
 - Define SoloSpider in clear, simple terms.
@@ -197,3 +198,4 @@ export default function LoginPage() {
 
 ### 4. Frequently Asked Questions (FAQ)
 - Answer the top 3 questions users search for in this category.
+*/

@@ -186,7 +186,11 @@ title: "${field === 'title' ? value : ''}"
 description: "${field === 'meta_desc' ? value : ''}"
 ---\n` + fileContent;
     } else {
-      updatedContent = fileContent + `\n// SEO Update: ${field} = ${value}\n`;
+      if (value.includes("\n")) {
+        updatedContent = fileContent + `\n/* SEO Update: ${field} =\n${value}\n*/\n`;
+      } else {
+        updatedContent = fileContent + `\n// SEO Update: ${field} = ${value}\n`;
+      }
     }
   }
 
