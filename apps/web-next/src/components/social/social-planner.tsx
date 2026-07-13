@@ -319,7 +319,7 @@ export function SocialPlanner() {
     };
     // Only show platforms that are actually connected
     const connected = (accountsQuery.data || []).map(acc => acc.platform);
-    const platforms = connected.length > 0 ? connected : allPlatforms.slice(0, 4);
+    const platforms = connected;
     return platforms.map(p => ({
       platform: p,
       handle: accountHandleMap[p] || "—",
