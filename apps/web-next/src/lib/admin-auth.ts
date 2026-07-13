@@ -18,18 +18,7 @@ export async function requireAdmin() {
 
   const adminClient = getSupabaseAdminClient();
 
-  // Check admin_users table first
-  const { data: adminRow } = await adminClient
-    .from("admin_users")
-    .select("role")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (adminRow) {
-    return { error: null, user, adminRole: adminRow.role as string };
-  }
-
-  // Fallback: check if the user is the hardcoded admin email
+  // Admin access is strictly restricted to info@solospider.ai
   if (user.email === "info@solospider.ai") {
     return { error: null, user, adminRole: "super_admin" };
   }

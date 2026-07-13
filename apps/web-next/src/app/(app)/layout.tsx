@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { ProjectsProvider } from "@/hooks/useProjects";
 
 export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const supabase = await getSupabaseServerClient();
@@ -13,8 +14,10 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   }
 
   return (
-    <AppShell>
-      {children}
-    </AppShell>
+    <ProjectsProvider>
+      <AppShell>
+        {children}
+      </AppShell>
+    </ProjectsProvider>
   );
 }

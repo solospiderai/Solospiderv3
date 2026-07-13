@@ -28,9 +28,9 @@ export default function LoginPage() {
       
       if (email === "info@solospider.ai") {
         if (typeof window !== "undefined") {
-          window.localStorage.setItem("solospider_role_view", "admin");
+          window.localStorage.setItem("solospider_role_view", "user");
         }
-        router.replace("/app/en/admin");
+        router.replace(redirectedFrom);
         router.refresh();
       } else {
         if (typeof window !== "undefined") {

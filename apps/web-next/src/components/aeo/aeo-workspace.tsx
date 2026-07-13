@@ -1134,7 +1134,7 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
       const domain = getDomain(url);
       if (!domain) continue;
 
-      let brand = getBrandFromCitation(cit, activeProject?.domain, activeProject?.brand_name || activeProject?.name);
+      let brand = getBrandFromCitation(cit, activeProject?.domain || "", activeProject?.brand_name || activeProject?.name || "Our Brand");
 
       if (!responseBrandsMap.has(key)) {
         responseBrandsMap.set(key, new Set<string>());
@@ -2129,12 +2129,12 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
               type="button"
               onClick={handleLaunchScan}
               disabled={scanning || seeding || generatingPrompts}
-              className="flex items-center gap-2 rounded-xl bg-violet-650 hover:bg-violet-600 text-white px-6 py-3 text-xs font-black shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+              className="flex items-center gap-2 rounded-xl bg-white hover:bg-slate-50 text-slate-900 border border-slate-200 px-6 py-3 text-xs font-black shadow-md hover:shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {scanning ? (
-                <><Loader2 className="h-4 w-4 animate-spin text-white" /> Launching Scan...</>
+                <><Loader2 className="h-4 w-4 animate-spin text-slate-900" /> Launching Scan...</>
               ) : (
-                <><Play className="h-4 w-4 text-white" /> Launch AI Visibility Scan</>
+                <><Play className="h-4 w-4 text-slate-900" /> Launch AI Visibility Scan</>
               )}
             </button>
           </div>

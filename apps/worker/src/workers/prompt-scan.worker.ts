@@ -64,45 +64,13 @@ async function processPromptScanJob(job: Job<PromptScanJobData>): Promise<object
     throw new Error("No active prompts found. Add prompts in the Prompt Lab tab first.");
   }
 
-  // Load crawled pages for RAG grounding context
-  const { data: crawledPages } = await supabase
-    .from("crawled_pages")
-    .select("url, title, meta_desc, h1")
-    .eq("project_id", project_id)
-    .eq("status_code", 200)
-    .limit(15);
-
-  const brandNameGround = project?.brand_name || project?.name || brand_name;
   const brandDomainGround = project?.domain || "";
-  const brandDescriptionGround = cleanDesc || project?.brand_tagline || "A leading platform in its space.";
 
-  let competitorsSection = "";
-  if (mergedCompetitors.length > 0) {
-    competitorsSection = `Target Competitors:\n${mergedCompetitors.map(c => `- ${c}`).join("\n")}\n\n`;
-  }
-
-  let groundingContext = `\nWeb Search Grounding Context:\nBrand Information:\n- Brand Name: ${brandNameGround}\n- Website Domain: ${brandDomainGround}\n- Description: ${brandDescriptionGround}\n\n${competitorsSection}Indexed Web Pages for ${brandNameGround}:\n`;
-
-  if (crawledPages && crawledPages.length > 0) {
-    groundingContext += crawledPages.map(p => `* URL: ${p.url}\n  Title: ${p.title || ""}\n  Description: ${p.meta_desc || ""}\n  Heading: ${p.h1 || ""}`).join("\n");
-  } else {
-    groundingContext += "No indexed web pages available yet.";
-  }
-
-  const competitorInstruction = mergedCompetitors.length > 0
-    ? ` and its competitors (${mergedCompetitors.join(", ")})`
-    : "";
-
-  const systemPrompt = `You are a search engine assistant (like ChatGPT Search, Perplexity, or Gemini Search) with access to real-time search results and web indices.
-To answer the user's query, you must utilize the following search engine index records and grounding context:
-
-${groundingContext}
-
+  const systemPrompt = `You are a search engine assistant (like ChatGPT Search, Perplexity, or Gemini Search) with access to real-time search results.
 Instructions:
 1. Provide a comprehensive, detailed, and realistic response to the search query.
-2. Integrate citations, links, or mentions of the brand (${brandNameGround})${competitorInstruction} where relevant to the user query, as a search engine would.
-3. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
-4. Maintain a natural, authoritative search engine synthesis tone.`;
+2. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
+3. Maintain a natural, authoritative search engine synthesis tone.`;
 
   // Create tasks list representing prompt x model combinations
   const tasks: Array<{
@@ -241,9 +209,7 @@ Instructions:
     const searchPromise = (async () => {
       console.log(`[PromptScanWorker] Querying Gemini for live search grounding: "${promptText.slice(0, 50)}…"`);
       try {
-        const searchSysPrompt = `You are a real-time search engine query synthesizer. Provide a detailed summary of live web search results, top sources, links, comparison of brands, and a list of competitor brands visible on the web for this query. Be objective and cite real websites.
-To synthesize these results, you must ground your answer using the following indexed website records:
-${groundingContext}`;
+        const searchSysPrompt = `You are a real-time search engine query synthesizer. Provide a detailed summary of live web search results, top sources, links, comparison of brands, and a list of competitor brands visible on the web for this query. Be objective and cite real websites.`;
         const res = await queryModel("gemini", promptText, searchSysPrompt);
         perplexityCache.set(promptId, res);
         trackTokens("gemini", res.usage);
@@ -277,18 +243,14 @@ ${groundingContext}`;
       } else {
         const searchCtx = await getPerplexityGrounding(prompt.id, prompt.prompt);
         const enrichedSystemPrompt = `You are a search engine assistant (like ChatGPT Search, Gemini Search, or Perplexity Search) synthesizing search results to answer a user's query.
-To answer the user's query, you must utilize the following search engine index records and grounding context:
-
-${groundingContext}
 
 Real-time Search Engine Results (Context from live web search):
 ${searchCtx.text}
 
 Instructions:
-1. Provide a comprehensive, detailed response synthesizing the query based on the search results and grounding context.
-2. Integrate citations, links, or mentions of the brand (${brandNameGround})${competitorInstruction} where relevant to the user query, as a search engine would.
-3. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
-4. Maintain a natural, authoritative search engine synthesis tone.`;
+1. Provide a comprehensive, detailed response synthesizing the query based on the search results.
+2. Be objective. Cite specific tools, products, companies, and brand names where appropriate.
+3. Maintain a natural, authoritative search engine synthesis tone.`;
 
         console.log(`[PromptScanWorker] Querying model: ${modelKey} for prompt "${prompt.prompt.slice(0, 50)}…"`);
         res = await queryModel(modelKey, prompt.prompt, enrichedSystemPrompt);

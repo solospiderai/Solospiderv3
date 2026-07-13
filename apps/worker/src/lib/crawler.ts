@@ -28,7 +28,7 @@ const USER_AGENTS = [
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
 ];
 
-const TIMEOUT = 30_000;
+const TIMEOUT = 8000;
 
 let uaIndex = 0;
 function getNextUA(): string {
@@ -37,7 +37,7 @@ function getNextUA(): string {
   return ua;
 }
 
-async function fetchPage(url: string, retryCount = 2): Promise<{ html: string; status: number; error?: string } | null> {
+async function fetchPage(url: string, retryCount = 1): Promise<{ html: string; status: number; error?: string } | null> {
   let lastError: any = null;
   
   for (let attempt = 0; attempt <= retryCount; attempt++) {
@@ -88,8 +88,13 @@ async function fetchPage(url: string, retryCount = 2): Promise<{ html: string; s
  */
 async function fetchPageWithFallback(url: string): Promise<{ html: string; status: number; error?: string; cached?: boolean } | null> {
   // 1. Try direct fetch first
-  const directResult = await fetchPage(url, 2);
+  const directResult = await fetchPage(url, 1);
   if (directResult && directResult.status >= 200 && directResult.status < 400 && directResult.html.length > 500) {
+    return directResult;
+  }
+
+  // If the page does not exist (e.g. 404) or is a normal client/server error (except 403/429 blocking), return immediately
+  if (directResult && directResult.status > 0 && directResult.status !== 403 && directResult.status !== 429) {
     return directResult;
   }
 
@@ -409,44 +414,9 @@ async function discoverUrlsViaBingSearch(origin: string, maxPages: number): Prom
  */
 function generateCommonUrlPatterns(origin: string): string[] {
   const commonPaths = [
-    "", "/about", "/about-us", "/contact", "/contact-us", "/contactus",
-    "/services", "/products", "/pricing", "/features", "/solutions",
-    "/blog", "/blogs", "/news", "/articles", "/insights", "/resources",
-    "/faq", "/faqs", "/help", "/support", "/help-center",
-    "/careers", "/jobs", "/hiring", "/team", "/our-team", "/leadership",
-    "/privacy", "/privacy-policy", "/terms", "/terms-of-service", "/terms-and-conditions",
-    "/cookie-policy", "/disclaimer", "/legal", "/refund-policy",
-    "/login", "/signin", "/sign-in", "/signup", "/sign-up", "/register",
-    "/restaurants", "/menu", "/order", "/delivery", "/dine-out", "/dining",
-    "/categories", "/search", "/explore", "/discover", "/browse",
-    "/partners", "/investors", "/press", "/media", "/newsroom", "/press-releases",
-    "/reviews", "/testimonials", "/case-studies", "/success-stories",
-    "/documentation", "/docs", "/api", "/developers", "/developer",
-    "/download", "/downloads", "/app", "/mobile", "/get-started",
-    "/store", "/shop", "/marketplace", "/collections", "/catalog",
-    "/gallery", "/portfolio", "/work", "/projects", "/our-work",
-    "/events", "/webinars", "/workshops", "/conferences",
-    "/community", "/forum", "/discussions",
-    "/locations", "/branches", "/offices", "/stores", "/find-us",
-    "/plans", "/subscription", "/enterprise", "/business",
-    "/integration", "/integrations", "/plugins", "/extensions",
-    "/security", "/compliance", "/certifications", "/trust",
-    "/rewards", "/offers", "/deals", "/coupons", "/promotions",
-    "/gift-cards", "/gift-card", "/vouchers",
-    "/affiliate", "/referral", "/refer",
-    "/feedback", "/surveys", "/report",
-    "/sitemap.html", "/site-map",
-    "/company", "/corporate", "/group",
-    "/why-us", "/how-it-works", "/overview",
-    "/education", "/learn", "/guides", "/tutorials", "/knowledge-base",
-    "/customer-service", "/returns", "/shipping", "/track-order",
-    "/comparison", "/alternatives", "/vs",
-    "/demo", "/free-trial", "/trial", "/request-demo",
-    "/white-papers", "/ebooks", "/reports",
-    "/brand", "/brand-story", "/our-story", "/history", "/mission",
-    "/safety", "/quality", "/sustainability", "/csr",
-    "/accessibility", "/sitemap-page",
-    "/pro", "/premium", "/plus", "/gold", "/infinity",
+    "", "/about", "/about-us", "/contact", "/contact-us",
+    "/services", "/products", "/pricing", "/features",
+    "/blog", "/faq", "/careers", "/privacy", "/terms"
   ];
   
   return commonPaths.map(p => `${origin}${p}`.replace(/\/$/, ""));

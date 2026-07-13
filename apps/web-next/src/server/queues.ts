@@ -52,6 +52,8 @@ export function getRedisConnection() {
     globalForQueues.solospiderRedis = new Redis(env.REDIS_URL, {
       maxRetriesPerRequest: null,
       enableReadyCheck: false,
+      enableOfflineQueue: false,
+      connectTimeout: 5000,
       tls: env.REDIS_URL.startsWith("rediss://") ? {} : undefined,
     });
   }

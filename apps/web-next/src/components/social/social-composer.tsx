@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { toast } from "sonner";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   Facebook,
   Instagram,
@@ -104,14 +105,12 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
   const [isCustomPostEnabled, setIsCustomPostEnabled] = useState(false);
   
   // Dynamic captions
-  const [unifiedCaption, setUnifiedCaption] = useState(
-    "Everything Construction. One Platform. We are automating how developers, engineers, and builders source materials and track progress in real-time. 🏗️🚀 #BuilditIndia #PropTech"
-  );
+  const [unifiedCaption, setUnifiedCaption] = useState("");
   const [platformCaptions, setPlatformCaptions] = useState<Record<string, string>>({
-    facebook: "Builditindia is launching the premier all-in-one ecosystem for construction orchestration! Find trusted vendors, schedule logistics, and deploy smart sensors seamlessly. 🏗️✨ Learn more on our page. #BuilditIndia #PropTech #SaaS2026",
-    instagram: "One unified workspace for the entire construction cycle. 👷‍♂️🏗️ Elevate your delivery speeds, minimize material waist, and coordinate workforce deployment. Link in bio! 🚀 #BuilditIndia #PropTech #ConstructionAutomation #FutureOfBuilders",
-    linkedin: "We are thrilled to announce the official rollout of Builditindia - the ultimate construction intelligence platform. Designed to drive efficiency, maximize margin safety, and automate procurement pipelines for enterprise developers. Read our full whitepaper. #BuilditIndia #PropTech #B2BConstruction",
-    twitter: "The future of construction is digital, unified, and autonomous. Try Builditindia today: everything construction on one platform. 🏗️🤖 #BuilditIndia #PropTech"
+    facebook: "",
+    instagram: "",
+    linkedin: "",
+    twitter: ""
   });
 
   // Media array
@@ -120,7 +119,91 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
   // CTA options
   const [isCtaEnabled, setIsCtaEnabled] = useState(true);
   const [ctaType, setCtaType] = useState("Learn More");
-  const [ctaUrl, setCtaUrl] = useState("https://builditindia.com/register");
+  const [ctaUrl, setCtaUrl] = useState("");
+
+  const getPlatformHandle = (platform: string) => {
+    if (!activeProject) return platformConfigs[platform as keyof typeof platformConfigs]?.handle || "";
+    const brandName = activeProject.brand_name || activeProject.name || "Brand";
+    
+    switch (platform) {
+      case "facebook":
+        return `${brandName} - Official Page`;
+      case "instagram":
+        return brandName.toLowerCase().replace(/\s+/g, "");
+      case "linkedin":
+        return `${brandName} Company`;
+      case "twitter":
+        return `${brandName.toLowerCase().replace(/\s+/g, "")}_ai`;
+      default:
+        return brandName;
+    }
+  };
+
+  const getPlatformAvatar = (platform: string) => {
+    if (activeProject?.brand_logo_url) {
+      return activeProject.brand_logo_url;
+    }
+    return platformConfigs[platform as keyof typeof platformConfigs]?.avatarUrl || "";
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!activeProject?.id) {
+      toast.error("Please select a project first.");
+      return;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    toast.info("Uploading media asset...");
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${activeProject.id}/social_${Date.now()}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from("blog_images")
+        .upload(fileName, file, { upsert: true });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("blog_images")
+        .getPublicUrl(fileName);
+
+      setMediaUrls((prev) => [...prev, publicUrl]);
+      toast.success("Media asset uploaded successfully!");
+    } catch (err: any) {
+      console.error("Failed to upload social asset:", err);
+      toast.error(err?.message || "Failed to upload image. Make sure the 'blog_images' bucket exists in Supabase.");
+    }
+  };
+
+  useEffect(() => {
+    if (!activeProject) return;
+
+    const brandName = activeProject.brand_name || activeProject.name || "Brand";
+    const domain = activeProject.domain || "example.com";
+    const tagline = activeProject.brand_tagline || "Your unified growth partner.";
+    const description = activeProject.brand_description || `Automating brand growth and SEO optimization.`;
+    
+    // Clean description to remove metadata
+    const cleanDescription = description.split("\n---\nMETADATA:")[0].trim();
+    const hashtag = brandName.replace(/\s+/g, "");
+
+    setUnifiedCaption(
+      `Excited to share what we are building at ${brandName}! ${tagline} Learn more on our platform: ${domain} 🚀 #${hashtag} #SaaS #Growth`
+    );
+
+    setPlatformCaptions({
+      facebook: `${brandName} is launching the premier ecosystem to streamline your operations! ${cleanDescription} Learn more on our page. #${hashtag} #SaaS2026`,
+      instagram: `One unified workspace for your entire growth cycle. 🚀 Elevate your delivery speeds, minimize overhead, and coordinate deployment. Link in bio! #${hashtag} #FutureOfBrand`,
+      linkedin: `We are thrilled to announce the official rollout of ${brandName} - the ultimate business intelligence platform. Designed to drive efficiency, maximize results, and automate pipelines. Read our update. #${hashtag} #B2BSoftware`,
+      twitter: `The future is digital, unified, and autonomous. Try ${brandName} today: ${tagline} 🤖 #${hashtag}`
+    });
+
+    setCtaUrl(`https://${domain.replace(/^https?:\/\//, "")}/register`);
+  }, [activeProject]);
 
   // Scheduling details
   const [scheduleDate, setScheduleDate] = useState(initialDate);
@@ -149,12 +232,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
     return isCustomPostEnabled ? platformCaptions[platform] || "" : unifiedCaption;
   };
 
-  // Add random mock photo helper
-  const handleAddMockPhoto = () => {
-    const nextIndex = mediaUrls.length % mockImageOptions.length;
-    setMediaUrls((prev) => [...prev, mockImageOptions[nextIndex]]);
-    toast.success("Media asset added successfully!");
-  };
+  // Removed mock photo helper - replaced by handlePhotoUpload
 
   // Run AI generator simulation
   const handleGenerateAICopy = () => {
@@ -166,12 +244,15 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
     toast.info("Generating high-converting social copy...");
 
     setTimeout(() => {
-      const generatedUnified = `🚧 Disrupting traditional workflows: ${aiPrompt}\n\nBuilditindia brings all stakeholders into a single, high-fidelity digital dashboard. Drive real-time coordination, optimize vendor costs, and scale construction securely. 🚀⚙️\n\n#BuilditIndia #PropTech #AutonomousOS`;
+      const brandName = activeProject?.brand_name || activeProject?.name || "Brand";
+      const hashtag = brandName.replace(/\s+/g, "");
       
-      const generatedFb = `🏗️ Transforming Construction Orchestration:\n\n${aiPrompt}\n\nOur intelligent enterprise panel eliminates critical delays and connects vendors in minutes. Build smart, build fast with Builditindia. 🌍🛡️ #BuilditIndia #PropTech`;
-      const generatedIg = `Smarter workflows. Faster builds. Better margins. 👷‍♂️⚙️\n\n${aiPrompt}\n\nSwipe left to see our latest dashboard deployments! 🚀 #BuilditIndia #ConstructionAutomation #PropTech`;
-      const generatedLi = `Autonomous project execution in PropTech is no longer a concept—it is here.\n\n${aiPrompt}\n\nBuilditindia brings structural data processing and vendor logistics under one automated platform. Read the study. #PropTech #EnterpriseSoftware #RealEstate`;
-      const generatedTw = `How we're driving 40% faster project dispatch schedules: ${aiPrompt} 🏗️📈 #BuilditIndia #PropTech`;
+      const generatedUnified = `🚀 Driving growth and innovation: ${aiPrompt}\n\n${brandName} brings everything into a single, high-fidelity dashboard. Drive real-time coordination, optimize costs, and scale securely. ⚡📈\n\n#${hashtag} #SaaS #Growth #Innovation`;
+      
+      const generatedFb = `🌍 Transforming operations for teams everywhere:\n\n${aiPrompt}\n\nOur intelligent dashboard connects resources and optimizes workflows. Scale smart, grow fast with ${brandName}. ✨🚀 #${hashtag} #SaaS2026`;
+      const generatedIg = `Smarter workflows. Faster growth. Better efficiency. ⚙️💡\n\n${aiPrompt}\n\nSwipe left to see how we help you scale! 🚀 #${hashtag} #Automation #Efficiency`;
+      const generatedLi = `Autonomous workflow orchestration is no longer a concept—it is here.\n\n${aiPrompt}\n\n${brandName} brings data processing and operations under one automated platform. Read the study. #${hashtag} #EnterpriseSoftware #BusinessGrowth`;
+      const generatedTw = `Driving faster dispatch and efficiency: ${aiPrompt} 📈⚡ #${hashtag} #Tech`;
 
       setUnifiedCaption(generatedUnified);
       setPlatformCaptions({
@@ -372,13 +453,18 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
               ))}
 
               {/* Add attachment block */}
-              <button 
-                onClick={handleAddMockPhoto}
-                className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 hover:border-violet-500 hover:bg-violet-50/5 flex flex-col items-center justify-center text-slate-400 hover:text-violet-600 transition-all cursor-pointer active:scale-95"
+              <label 
+                className="aspect-square rounded-2xl border-2 border-dashed border-slate-200 hover:border-violet-500 hover:bg-violet-50/5 flex flex-col items-center justify-center text-slate-400 hover:text-violet-600 transition-all cursor-pointer active:scale-95 relative"
               >
                 <Plus className="w-6 h-6 mb-1" />
                 <span className="text-[10px] font-black uppercase tracking-wider">Add Photo</span>
-              </button>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+              </label>
             </div>
             
             <p className="text-[10px] font-semibold text-slate-400 leading-normal">
@@ -763,13 +849,13 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <img 
-                            src={platformConfigs.facebook.avatarUrl} 
+                            src={getPlatformAvatar("facebook")} 
                             className="w-10 h-10 rounded-full border border-slate-100 shadow-sm object-cover" 
                             alt="Facebook Profile"
                           />
                           <div>
                             <span className="text-[13px] font-black text-slate-900 hover:underline block leading-snug cursor-pointer">
-                              {platformConfigs.facebook.handle}
+                              {getPlatformHandle("facebook")}
                             </span>
                             <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1 mt-0.5">
                               Just now · <Globe className="w-3 h-3" />
@@ -832,7 +918,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                             <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3.5 flex justify-between items-center select-none shadow-inner">
                               <div className="flex-1 min-w-0 pr-3">
                                 <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block leading-none">
-                                  {new URL(ctaUrl || "https://builditindia.com").hostname.toUpperCase()}
+                                   {ctaUrl ? new URL(ctaUrl).hostname.toUpperCase() : "WEBSITE LINK"}
                                 </span>
                                 <span className="text-[12.5px] font-black text-slate-800 truncate block mt-1 leading-snug">
                                   {ctaType} & Register
@@ -878,13 +964,13 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                       <div className="p-3.5 flex items-center justify-between border-b border-slate-50">
                         <div className="flex items-center gap-2.5">
                           <img 
-                            src={platformConfigs.instagram.avatarUrl} 
+                            src={getPlatformAvatar("instagram")} 
                             className="w-8.5 h-8.5 rounded-full p-[1.5px] bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 object-cover" 
                             alt="Instagram Avatar"
                           />
                           <div>
                             <span className="text-[12px] font-black text-slate-900 block leading-tight cursor-pointer hover:underline">
-                              {platformConfigs.instagram.handle}
+                              {getPlatformHandle("instagram")}
                             </span>
                             <span className="text-[10px] text-slate-400 font-medium block mt-0.5">Mumbai, India</span>
                           </div>
@@ -934,12 +1020,12 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                         </div>
 
                         {/* Likes counter details */}
-                        <p className="text-[12px] font-black text-slate-900 leading-tight">Liked by buildit_ai and 8,432 others</p>
+                        <p className="text-[12px] font-black text-slate-900 leading-tight">Liked by you and 8,432 others</p>
 
                         {/* Text Caption display */}
                         <div className="text-[12px] text-slate-800 leading-relaxed">
                           <span className="font-black text-slate-900 mr-1.5 hover:underline cursor-pointer">
-                            {platformConfigs.instagram.handle}
+                            {getPlatformHandle("instagram")}
                           </span>
                           <span className="whitespace-pre-wrap">
                             {getActiveCaption("instagram") || "Write custom details in composer..."}
@@ -963,13 +1049,13 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <img 
-                            src={platformConfigs.linkedin.avatarUrl} 
+                            src={getPlatformAvatar("linkedin")} 
                             className="w-11 h-11 rounded-lg border border-slate-100 shadow-sm object-cover" 
                             alt="LinkedIn Company logo"
                           />
                           <div>
                             <span className="text-[13px] font-black text-slate-900 hover:underline hover:text-sky-700 block cursor-pointer">
-                              {platformConfigs.linkedin.handle}
+                              {getPlatformHandle("linkedin")}
                             </span>
                             <span className="text-[10px] text-slate-400 font-bold block mt-0.5">38,412 followers</span>
                             <span className="text-[10px] text-slate-400 font-bold flex items-center gap-1.5 mt-0.5">
@@ -1000,7 +1086,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                                   {ctaType} & Register
                                 </span>
                                 <span className="text-[10px] text-slate-400 font-extrabold uppercase mt-0.5 block leading-none">
-                                  {new URL(ctaUrl || "https://builditindia.com").hostname}
+                                   {ctaUrl ? new URL(ctaUrl).hostname : "website link"}
                                 </span>
                               </div>
                               <span className="bg-white border border-slate-300 text-violet-600 text-[11px] font-extrabold px-4 py-2 rounded-full whitespace-nowrap shadow-sm hover:bg-slate-50 cursor-pointer">
@@ -1044,7 +1130,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                       {/* Left circular avatar + Right layout structure */}
                       <div className="flex gap-3">
                         <img 
-                          src={platformConfigs.twitter.avatarUrl} 
+                          src={getPlatformAvatar("twitter")} 
                           className="w-10 h-10 rounded-full border border-slate-100 object-cover" 
                           alt="Twitter Avatar"
                         />
@@ -1053,10 +1139,10 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
                           {/* Username info header */}
                           <div className="flex items-center gap-1.5">
                             <span className="text-[12.5px] font-black text-slate-900 hover:underline cursor-pointer block leading-none">
-                              {platformConfigs.twitter.name}
+                              {activeProject?.brand_name || activeProject?.name || "Brand"}
                             </span>
                             <span className="text-[11px] text-slate-400 font-semibold truncate block leading-none">
-                              @{platformConfigs.twitter.handle} · Just now
+                              @{getPlatformHandle("twitter")} · Just now
                             </span>
                           </div>
 

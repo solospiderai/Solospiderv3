@@ -1,13 +1,41 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createProject, getPlanLimit, getProjects, getSubscription } from "@/lib/services/projects";
 import type { Project, PlanTier } from "@/types/project";
 
 const ACTIVE_PROJECT_KEY = "solospider.next.activeProjectId";
 
+interface ProjectsContextType {
+  projects: Project[];
+  activeProject: Project;
+  activeProjectId: string | null;
+  selectActiveProject: (projectId: string) => void;
+  isLoading: boolean;
+  error: any;
+  addProject: any;
+  currentPlan: PlanTier;
+  projectLimit: number;
+  canAddProject: boolean;
+}
+
+const ProjectsContext = createContext<ProjectsContextType | undefined>(undefined);
+
+export function ProjectsProvider({ children }: { children: React.ReactNode }) {
+  const value = useProjectsStandalone();
+  return React.createElement(ProjectsContext.Provider, { value }, children);
+}
+
 export function useProjects() {
+  const context = useContext(ProjectsContext);
+  if (context !== undefined) {
+    return context;
+  }
+  return useProjectsStandalone();
+}
+
+function useProjectsStandalone(): ProjectsContextType {
   const qc = useQueryClient();
   const [activeProjectId, setActiveProjectId] = useState<string | null>(() => {
     if (typeof window !== "undefined") {
@@ -39,7 +67,6 @@ export function useProjects() {
 
   const projects = (projectsQuery.data || []) as Project[];
 
-
   useEffect(() => {
     if (projects.length === 0) return;
     if (activeProjectId && projects.some((p) => p.id === activeProjectId)) return;
@@ -69,7 +96,7 @@ export function useProjects() {
 
   return {
     projects,
-    activeProject,
+    activeProject: activeProject as Project,
     activeProjectId,
     selectActiveProject,
     isLoading: projectsQuery.isLoading || subscriptionQuery.isLoading,

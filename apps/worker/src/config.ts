@@ -82,6 +82,8 @@ export const env = loadEnv();
 export const redis = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: null, // required by BullMQ
   enableReadyCheck: false,
+  enableOfflineQueue: false,
+  connectTimeout: 5000,
   tls: env.REDIS_URL.startsWith("rediss://") ? {} : undefined,
 });
 

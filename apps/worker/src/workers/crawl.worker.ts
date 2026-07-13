@@ -271,14 +271,10 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   for (let i = 0; i < urlQueue.length; i += BATCH_SIZE) {
     const batch = urlQueue.slice(i, i + BATCH_SIZE);
     
-    // Process each URL in the batch sequentially with a polite delay
-    const batchData: any[] = [];
-    for (const item of batch) {
-      const p = await crawlPage(item.url, item.source);
-      batchData.push(p);
-      // Polite 200ms delay between pages
-      await new Promise(resolve => setTimeout(resolve, 200));
-    }
+    // Process each URL in the batch in parallel
+    const batchData = await Promise.all(
+      batch.map(item => crawlPage(item.url, item.source))
+    );
 
     const rows = batchData.map(p => ({ ...p, project_id }));
 

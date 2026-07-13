@@ -9,11 +9,7 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) {
-    if (user.email === "info@solospider.ai") {
-      redirect("/app/en/admin");
-    }
-  }
+
 
   return <DashboardWorkspace />;
 }

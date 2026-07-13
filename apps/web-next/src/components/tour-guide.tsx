@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, X, Sparkles, LayoutDashboard, Fingerprint, Search, Megaphone, Plug, Shield, PlayCircle, BarChart3, TrendingUp, Settings2, HeadphonesIcon, Mail } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TourStep {
   title: string;
@@ -74,14 +75,21 @@ export function TourGuide() {
     }
   ];
 
+  const { user, loading } = useAuth();
+
   useEffect(() => {
+    if (loading || !user) return;
+
     if (typeof window !== "undefined") {
       const tourCompleted = window.localStorage.getItem("solospider_tour_completed");
-      if (!tourCompleted) {
+      const isNewUser = Date.now() - new Date(user.created_at).getTime() < 24 * 60 * 60 * 1000;
+      if (!tourCompleted && isNewUser) {
         setIsOpen(true);
+      } else {
+        setIsOpen(false);
       }
     }
-  }, []);
+  }, [user, loading]);
 
   useEffect(() => {
     const handleResize = () => {
