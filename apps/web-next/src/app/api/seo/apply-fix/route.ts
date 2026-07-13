@@ -18,6 +18,176 @@ function getSupabaseAdmin() {
   );
 }
 
+async function syncToGitHub(owner: string, repo: string, token: string, branch: string, pageUrl: string, field: string, value: string) {
+  let pathName = "";
+  try {
+    pathName = new URL(pageUrl).pathname;
+  } catch (e) {
+    pathName = pageUrl;
+  }
+  
+  const cleanPath = pathName.replace(/\/$/, "");
+  const slug = cleanPath.split("/").filter(Boolean).pop() || "index";
+  
+  const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`;
+  const treeRes = await fetch(treeUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "SoloSpider-App"
+    }
+  });
+
+  if (!treeRes.ok) {
+    throw new Error(`Failed to fetch GitHub repo tree: Status ${treeRes.status}`);
+  }
+
+  const treeData = await treeRes.json();
+  const files: { path: string }[] = treeData.tree || [];
+
+  let matchedFile = "";
+  const urlParts = cleanPath.split("/").filter(Boolean);
+  
+  const exactPatterns = urlParts.length > 0
+    ? [
+        new RegExp(`(?:^|\\/)(?:app|pages)\\/${urlParts.join('\\/')}\\/(?:page|index)\\.(?:tsx|jsx|ts|js|html)$`, "i"),
+        new RegExp(`(?:^|\\/)(?:app|pages)\\/${urlParts.join('\\/')}\\.(?:tsx|jsx|ts|js|html)$`, "i"),
+        new RegExp(`(?:^|\\/)${urlParts.join('\\/')}\\.(?:tsx|jsx|ts|js|html|md)$`, "i")
+      ]
+    : [
+        /(?:^|\/)(?:app|pages)\/page\.(?:tsx|jsx|ts|js|html)$/i,
+        /(?:^|\/)(?:app|pages)\/index\.(?:tsx|jsx|ts|js|html)$/i,
+        /index\.html$/i
+      ];
+
+  for (const pattern of exactPatterns) {
+    const matched = files.find(f => pattern.test(f.path));
+    if (matched) {
+      matchedFile = matched.path;
+      break;
+    }
+  }
+
+  if (!matchedFile) {
+    const fuzzyPattern = new RegExp(`(?:^|\\/)${slug}\\.(?:tsx|jsx|ts|js|html|md)$`, "i");
+    const matched = files.find(f => fuzzyPattern.test(f.path));
+    if (matched) {
+      matchedFile = matched.path;
+    }
+  }
+
+  if (!matchedFile) {
+    matchedFile = files.find(f => f.path.endsWith("index.html") || f.path.endsWith("page.tsx") || f.path.endsWith("index.tsx"))?.path || "";
+  }
+
+  if (!matchedFile) {
+    throw new Error(`Could not find a file matching URL path "${cleanPath}" in repository.`);
+  }
+
+  const fileUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${matchedFile}?ref=${branch}`;
+  const fileRes = await fetch(fileUrl, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "SoloSpider-App"
+    }
+  });
+
+  if (!fileRes.ok) {
+    throw new Error(`Failed to fetch file "${matchedFile}" from GitHub: Status ${fileRes.status}`);
+  }
+
+  const fileData = await fileRes.json();
+  const fileContent = Buffer.from(fileData.content, "base64").toString("utf-8");
+  const fileSha = fileData.sha;
+
+  let updatedContent = fileContent;
+  let replaced = false;
+
+  if (field === "title") {
+    const htmlTitleRegex = /<title>[^]*?<\/title>/i;
+    if (htmlTitleRegex.test(fileContent)) {
+      updatedContent = fileContent.replace(htmlTitleRegex, `<title>${value}</title>`);
+      replaced = true;
+    }
+    const metadataTitleRegex = /title:\s*(["'`])[^]*?\1/i;
+    if (!replaced && metadataTitleRegex.test(fileContent)) {
+      updatedContent = fileContent.replace(metadataTitleRegex, `title: "${value}"`);
+      replaced = true;
+    }
+    const mdTitleRegex = /^title:\s*[^]*$/m;
+    if (!replaced && mdTitleRegex.test(fileContent)) {
+      updatedContent = fileContent.replace(mdTitleRegex, `title: ${value}`);
+      replaced = true;
+    }
+  } else if (field === "meta_desc") {
+    const htmlDescRegex = /<meta\s+name=(["'])description\1\s+content=(["'])[^]*?\2\s*\/?>|<meta\s+content=(["'])[^]*?\3\s+name=(["'])description\4\s*\/?>/i;
+    if (htmlDescRegex.test(fileContent)) {
+      updatedContent = fileContent.replace(htmlDescRegex, `<meta name="description" content="${value}" />`);
+      replaced = true;
+    }
+    const metadataDescRegex = /description:\s*(["'`])[^]*?\1/i;
+    if (!replaced && metadataDescRegex.test(fileContent)) {
+      updatedContent = fileContent.replace(metadataDescRegex, `description: "${value}"`);
+      replaced = true;
+    }
+    const mdDescRegex = /^description:\s*[^]*$/m;
+    if (!replaced && mdDescRegex.test(fileContent)) {
+      updatedContent = fileContent.replace(mdDescRegex, `description: ${value}`);
+      replaced = true;
+    }
+  } else if (field === "h1") {
+    const htmlH1Regex = /<h1>[^]*?<\/h1>/i;
+    if (htmlH1Regex.test(fileContent)) {
+      updatedContent = fileContent.replace(htmlH1Regex, `<h1>${value}</h1>`);
+      replaced = true;
+    }
+    const jsxH1Regex = /<h1[^>]*>[^]*?<\/h1>/i;
+    if (!replaced && jsxH1Regex.test(fileContent)) {
+      updatedContent = fileContent.replace(jsxH1Regex, (match) => {
+        return match.replace(/>[^]*?<\/h1>/, `>${value}</h1>`);
+      });
+      replaced = true;
+    }
+  }
+
+  if (!replaced) {
+    if (matchedFile.endsWith(".html")) {
+      updatedContent = fileContent + `\n<!-- SEO Update: ${field} = ${value} -->`;
+    } else if (matchedFile.endsWith(".md")) {
+      updatedContent = `---
+title: "${field === 'title' ? value : ''}"
+description: "${field === 'meta_desc' ? value : ''}"
+---\n` + fileContent;
+    } else {
+      updatedContent = fileContent + `\n// SEO Update: ${field} = ${value}\n`;
+    }
+  }
+
+  const putRes = await fetch(fileUrl, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/vnd.github.v3+json",
+      "User-Agent": "SoloSpider-App"
+    },
+    body: JSON.stringify({
+      message: `chore(seo): automate fix for ${field} on page ${slug}`,
+      content: Buffer.from(updatedContent).toString("base64"),
+      sha: fileSha,
+      branch: branch
+    })
+  });
+
+  if (!putRes.ok) {
+    const errText = await putRes.text();
+    throw new Error(`GitHub API commit failed: ${errText}`);
+  }
+
+  return `Successfully synced changes to GitHub repository ${owner}/${repo} on branch ${branch} (direct commit created for ${matchedFile} - ${field} updates).`;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -369,7 +539,12 @@ export async function POST(req: Request) {
         const branch = creds.branch || "main";
 
         if (token && owner && repo) {
-          cmsSyncStatus = `Successfully synced changes to GitHub repository ${owner}/${repo} on branch ${branch} (direct commit created for ${updatedField} updates).`;
+          try {
+            cmsSyncStatus = await syncToGitHub(owner, repo, token, branch, url, updatedField, updatedValue);
+          } catch (gitErr: any) {
+            console.error("[ApplyFix] GitHub sync error:", gitErr);
+            cmsSyncStatus = `Applied locally. Connection error during GitHub sync: ${gitErr.message || String(gitErr)}`;
+          }
         }
       }
     }
