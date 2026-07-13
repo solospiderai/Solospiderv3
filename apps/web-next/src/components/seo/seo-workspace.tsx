@@ -459,6 +459,11 @@ export function SeoWorkspace() {
     pageItem: { url: string; detail?: string | number | null };
   } | null>(null);
 
+  const [fixResults, setFixResults] = useState<Record<string, {
+    success: boolean;
+    message: string;
+  }>>({});
+
   const handleCopyText = (text: string, message = "Copied to clipboard!") => {
     navigator.clipboard.writeText(text);
     toast.success(message);
@@ -653,8 +658,15 @@ export function SeoWorkspace() {
           window.location.href = "/app/en/settings/integrations";
         }
       } else {
+        setFixResults(prev => ({
+          ...prev,
+          [cacheKey]: {
+            success: true,
+            message: data.message || `Successfully synced changes live.`
+          }
+        }));
         toast.success(`Successfully fixed ${fieldLabel} live!`, {
-          description: `Updated value: "${data.updatedValue}"`
+          description: data.message || `Updated value: "${data.updatedValue}"`
         });
       }
       
@@ -2285,6 +2297,18 @@ export function SeoWorkspace() {
                                               <strong className="text-slate-600">Why this matters:</strong> {aiRecommendations[`${issue.id}-${page.url}`].explanation}
                                             </p>
                                           </div>
+
+                                          {fixResults[`${issue.id}-${page.url}`] && (
+                                            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs font-semibold text-emerald-800 space-y-1 text-left mt-3 animate-in fade-in zoom-in-95 duration-200">
+                                              <div className="flex items-center gap-1.5 font-bold">
+                                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                                <span>Fix Applied Successfully!</span>
+                                              </div>
+                                              <p className="text-[10px] text-emerald-700 font-medium leading-relaxed">
+                                                {fixResults[`${issue.id}-${page.url}`].message}
+                                              </p>
+                                            </div>
+                                          )}
                                         </div>
                                       )}
                                     </div>
