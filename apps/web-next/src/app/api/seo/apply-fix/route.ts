@@ -209,7 +209,9 @@ description: "${field === 'meta_desc' ? value : ''}"
 
   if (!putRes.ok) {
     const errText = await putRes.text();
-    throw new Error(`GitHub API commit failed: ${errText}`);
+    const err = new Error(`GitHub API commit failed: ${errText}`) as any;
+    err.matchedFile = matchedFile;
+    throw err;
   }
 
   return {
@@ -598,6 +600,9 @@ export async function POST(req: Request) {
           } catch (gitErr: any) {
             console.error("[ApplyFix] GitHub sync error:", gitErr);
             cmsSyncStatus = `Applied locally. Connection error during GitHub sync: ${gitErr.message || String(gitErr)}`;
+            if (gitErr.matchedFile) {
+              matchedFilePath = gitErr.matchedFile;
+            }
           }
         }
       }
