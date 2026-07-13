@@ -598,9 +598,9 @@ export function SeoWorkspace() {
         ...prev,
         [cacheKey]: {
           recommendation: data.recommendation || "",
-          codeSnippet: data.codeSnippet,
+          codeSnippet: data.codeSnippet === "null" || data.codeSnippet === null ? undefined : data.codeSnippet,
           explanation: data.explanation || "",
-          suggestedValue: data.suggestedValue,
+          suggestedValue: data.suggestedValue === "null" || data.suggestedValue === null ? undefined : data.suggestedValue,
           loading: false
         }
       }));
