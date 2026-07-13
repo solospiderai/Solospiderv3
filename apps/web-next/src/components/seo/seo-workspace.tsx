@@ -381,6 +381,26 @@ export function SeoWorkspace() {
 
   const gsc = gscQuery.data;
 
+  const integrationsQuery = useQuery({
+    queryKey: ["workspace_integrations"],
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from("workspace_integrations")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const isGitHubConnected = useMemo(() => {
+    return integrationsQuery.data?.some((int: any) => int.platform === "github") ?? false;
+  }, [integrationsQuery.data]);
+
   const dynamicKeywords = useMemo(() => {
     if (gsc?.connected && Array.isArray(gsc.topQueries) && gsc.topQueries.length > 0) {
       return gsc.topQueries.map((q: any) => ({
@@ -432,6 +452,12 @@ export function SeoWorkspace() {
   }>>({});
 
   const [fixingKeys, setFixingKeys] = useState<Record<string, boolean>>({});
+
+  const [githubPrompt, setGithubPrompt] = useState<{
+    isOpen: boolean;
+    issueId: string;
+    pageItem: { url: string; detail?: string | number | null };
+  } | null>(null);
 
   const handleCopyText = (text: string, message = "Copied to clipboard!") => {
     navigator.clipboard.writeText(text);
@@ -2160,7 +2186,17 @@ export function SeoWorkspace() {
                                     </div>
                                     <div className="flex items-center gap-1.5 shrink-0">
                                       <button 
-                                        onClick={() => triggerAiRecommendation(issue.id, page)}
+                                        onClick={() => {
+                                          if (!isGitHubConnected) {
+                                            setGithubPrompt({
+                                              isOpen: true,
+                                              issueId: issue.id,
+                                              pageItem: page
+                                            });
+                                          } else {
+                                            triggerAiRecommendation(issue.id, page);
+                                          }
+                                        }}
                                         className="flex items-center gap-1 text-[10px] font-black bg-indigo-50 hover:bg-indigo-100 text-indigo-650 border border-indigo-100 px-2 py-1 rounded-lg transition-colors cursor-pointer shadow-sm"
                                         title="Get AI Fix Suggestions"
                                       >
@@ -2993,6 +3029,68 @@ export function SeoWorkspace() {
           </div>
         </div>
       </Modal>
+
+      {githubPrompt && githubPrompt.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
+          <div 
+            className="w-full max-w-md bg-white rounded-3xl border border-slate-100 shadow-2xl p-6 relative overflow-hidden flex flex-col gap-4 select-none animate-in fade-in zoom-in-95 duration-200"
+          >
+            {/* Gradient border top banner */}
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-violet-600 to-indigo-600"></div>
+
+            <div className="flex items-start gap-4 mt-2">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-650 shrink-0">
+                <Bot className="w-6 h-6 text-indigo-600" />
+              </div>
+              <div className="space-y-1 text-left">
+                <h3 className="text-base font-extrabold text-slate-900 leading-none">Connect GitHub for AI Fixes</h3>
+                <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
+                  Connect your GitHub account to let SoloSpider automatically apply and commit SEO updates directly to your website's source code.
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-semibold text-slate-650 leading-relaxed text-left">
+              If you don't connect GitHub, you can still view the AI recommendation and manual code snippets to fix the issue yourself.
+            </div>
+
+            <div className="flex flex-col gap-2 pt-2">
+              <button 
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem("solospider.pending_fix", JSON.stringify({
+                      issueId: githubPrompt.issueId,
+                      pageUrl: githubPrompt.pageItem.url,
+                      suggestedValue: ""
+                    }));
+                    window.location.href = "/app/en/settings/integrations";
+                  }
+                }}
+                className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm text-xs font-black transition-colors cursor-pointer text-center"
+              >
+                Connect GitHub Account
+              </button>
+              
+              <button 
+                onClick={() => {
+                  triggerAiRecommendation(githubPrompt.issueId, githubPrompt.pageItem);
+                  setGithubPrompt(null);
+                }}
+                className="w-full py-2.5 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer text-center"
+              >
+                Just See Recommendation
+              </button>
+
+              <button 
+                onClick={() => setGithubPrompt(null)}
+                className="w-full py-2 px-4 hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-xl text-xs font-bold transition-colors cursor-pointer text-center"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
