@@ -176,3 +176,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+// SEO Update: missing-h1s = SoloSpider Login – Access Your AI SEO Dashboard
