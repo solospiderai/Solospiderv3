@@ -1427,6 +1427,18 @@ export function SeoWorkspace() {
     );
   }
 
+  // Loading state guard
+  if (crawledPagesQuery.isLoading || crawlRunQuery.isLoading) {
+    return (
+      <div className="w-full max-w-[1400px] mx-auto py-12 flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+          <span className="text-xs font-bold text-slate-500 font-semibold">Loading SEO workspace...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Return empty bootstrap state when no pages are crawled
   if (crawledPages.length === 0 && !isCrawlingActive) {
     return (

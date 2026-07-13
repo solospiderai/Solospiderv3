@@ -167,7 +167,11 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
         .limit(max_pages);
 
       if (donorPages && donorPages.length > 0) {
-        const rows = donorPages.map(p => ({ ...p, project_id }));
+        const rows = donorPages.map(p => ({ 
+          ...p, 
+          project_id,
+          crawled_at: new Date().toISOString()
+        }));
         
         await supabase
           .from("crawled_pages")
@@ -276,7 +280,11 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
       batch.map(item => crawlPage(item.url, item.source))
     );
 
-    const rows = batchData.map(p => ({ ...p, project_id }));
+    const rows = batchData.map(p => ({ 
+      ...p, 
+      project_id,
+      crawled_at: new Date().toISOString()
+    }));
 
     // Accumulate metrics incrementally to avoid keeping raw pages in RAM
     for (const row of rows) {
