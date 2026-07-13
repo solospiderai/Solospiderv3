@@ -30,7 +30,9 @@ import {
   Download,
   TrendingUp,
   FileSpreadsheet,
-  Wrench
+  Wrench,
+  GitCommit,
+  X
 } from "lucide-react";
 
 interface CrawledPage {
@@ -354,6 +356,16 @@ export function SeoWorkspace() {
   const { activeProject } = useProjects();
 
   const [activeTab, setActiveTab] = useState("All Issues");
+  const [appliedFixResult, setAppliedFixResult] = useState<{
+    isOpen: boolean;
+    issueId: string;
+    pageUrl: string;
+    fieldLabel: string;
+    beforeValue: string;
+    afterValue: string;
+    syncStatus: string;
+    filePath?: string;
+  } | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [crawlerMaxPages, setCrawlerMaxPages] = useState(50);
   const [crawling, setCrawling] = useState(false);
@@ -641,12 +653,29 @@ export function SeoWorkspace() {
 
       const data = await res.json();
       
-      // Determine user-friendly field label
       const fieldLabel = data.updatedField === "meta_desc" 
         ? "Meta Description" 
         : data.updatedField 
           ? data.updatedField.toUpperCase() 
           : "Page Elements";
+
+      const pageDetails = crawledPages.find(p => p.url === pageUrl);
+      let beforeValue = "❌ Missing / Unset";
+      if (issueId.includes("title")) {
+        beforeValue = pageDetails?.title || "❌ Missing Title tag";
+      } else if (issueId.includes("description")) {
+        beforeValue = pageDetails?.meta_desc || "❌ Missing Meta Description";
+      } else if (issueId.includes("h1")) {
+        beforeValue = pageDetails?.h1 || "❌ Missing H1 tag";
+      } else if (issueId === "missing-schema") {
+        beforeValue = "❌ No schema structures";
+      } else if (issueId === "no-sitemap") {
+        beforeValue = "❌ Sitemap file not found";
+      } else if (issueId === "thin-content") {
+        beforeValue = `${pageDetails?.word_count || 0} words (Thin content)`;
+      } else if (issueId === "broken-links") {
+        beforeValue = `Status code ${pageDetails?.status_code || 404} (Broken link)`;
+      }
 
       if (data.noIntegration) {
         if (typeof window !== "undefined") {
@@ -665,12 +694,23 @@ export function SeoWorkspace() {
             message: data.message || `Successfully synced changes live.`
           }
         }));
+
+        setAppliedFixResult({
+          isOpen: true,
+          issueId,
+          pageUrl,
+          fieldLabel,
+          beforeValue,
+          afterValue: data.updatedValue || suggestedValue,
+          syncStatus: data.message || "Successfully committed changes.",
+          filePath: data.matchedFile || undefined
+        });
+
         toast.success(`Successfully fixed ${fieldLabel} live!`, {
           description: data.message || `Updated value: "${data.updatedValue}"`
         });
       }
       
-      // Invalidate crawled pages query to trigger client-side recalculation of diagnostics and score
       qc.invalidateQueries({ queryKey: ["crawled_pages", activeProject?.id] });
     } catch (err: any) {
       console.error("[ApplyFix UI Error]", err);
@@ -3058,6 +3098,91 @@ export function SeoWorkspace() {
           </div>
         </div>
       </Modal>
+
+      {/* Premium Before/After Fix Applied Modal */}
+      {appliedFixResult && appliedFixResult.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden border border-slate-100 flex flex-col animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="bg-indigo-650 px-6 py-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="bg-white/25 p-1.5 rounded-lg">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black tracking-wide uppercase">SEO Fix Applied Successfully</h3>
+                  <p className="text-[10px] text-indigo-200 font-bold">{appliedFixResult.fieldLabel} Optimized</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setAppliedFixResult(null)}
+                className="text-indigo-200 hover:text-white transition-colors cursor-pointer p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+              {/* Meta details */}
+              <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                <div>
+                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block mb-0.5">Page URL</span>
+                  <span className="break-all text-slate-800">{appliedFixResult.pageUrl}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] text-slate-400 uppercase tracking-wider block mb-0.5">File Patched</span>
+                  <span className="font-mono text-indigo-700 break-all">{appliedFixResult.filePath || "Local Database (no matched file)"}</span>
+                </div>
+              </div>
+
+              {/* Before & After comparison columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Before Card */}
+                <div className="border border-red-100 bg-red-50/20 rounded-xl p-4 flex flex-col space-y-2">
+                  <div className="flex items-center gap-1.5 text-red-700 text-[10px] font-black uppercase tracking-wider">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                    Before (Original)
+                  </div>
+                  <div className="text-xs text-slate-600 bg-white border border-red-100 p-3 rounded-lg flex-1 font-medium break-words max-h-40 overflow-y-auto scrollbar-thin whitespace-pre-wrap leading-relaxed">
+                    {appliedFixResult.beforeValue}
+                  </div>
+                </div>
+
+                {/* After Card */}
+                <div className="border border-emerald-100 bg-emerald-50/20 rounded-xl p-4 flex flex-col space-y-2">
+                  <div className="flex items-center gap-1.5 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    After (Applied)
+                  </div>
+                  <div className="text-xs text-slate-800 bg-white border border-emerald-100 p-3 rounded-lg flex-1 font-bold break-words max-h-40 overflow-y-auto scrollbar-thin whitespace-pre-wrap leading-relaxed">
+                    {appliedFixResult.afterValue}
+                  </div>
+                </div>
+              </div>
+
+              {/* Git commit status */}
+              <div className="flex items-start gap-2.5 bg-indigo-50/30 border border-indigo-100 p-4 rounded-xl text-xs text-indigo-900 leading-relaxed font-bold">
+                <GitCommit className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-[9px] text-indigo-600 uppercase tracking-wider block font-black mb-0.5">GitHub Sync Details</span>
+                  {appliedFixResult.syncStatus}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-slate-50 border-t border-slate-100 px-6 py-4 flex justify-end">
+              <button 
+                onClick={() => setAppliedFixResult(null)}
+                className="py-2.5 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-sm transition-colors cursor-pointer"
+              >
+                Close & Return
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {githubPrompt && githubPrompt.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">

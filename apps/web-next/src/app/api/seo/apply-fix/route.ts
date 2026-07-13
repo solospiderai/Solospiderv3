@@ -212,7 +212,10 @@ description: "${field === 'meta_desc' ? value : ''}"
     throw new Error(`GitHub API commit failed: ${errText}`);
   }
 
-  return `Successfully synced changes to GitHub repository ${owner}/${repo} on branch ${branch} (direct commit created for ${matchedFile} - ${field} updates).`;
+  return {
+    message: `Successfully synced changes to GitHub repository ${owner}/${repo} on branch ${branch} (direct commit created for ${matchedFile} - ${field} updates).`,
+    matchedFile
+  };
 }
 
 export async function POST(req: Request) {
@@ -229,6 +232,7 @@ export async function POST(req: Request) {
     // 1. Determine which column to update based on issueId
     let updatePayload: Record<string, any> = {};
     let isNewFile = false;
+    let matchedFilePath = "";
 
     if (issueId.includes("title")) {
       updatePayload.title = fixValue;
@@ -588,7 +592,9 @@ export async function POST(req: Request) {
 
         if (token && owner && repo) {
           try {
-            cmsSyncStatus = await syncToGitHub(owner, repo, token, branch, url, updatedField, updatedValue);
+            const gitRes = await syncToGitHub(owner, repo, token, branch, url, updatedField, updatedValue);
+            cmsSyncStatus = gitRes.message;
+            matchedFilePath = gitRes.matchedFile;
           } catch (gitErr: any) {
             console.error("[ApplyFix] GitHub sync error:", gitErr);
             cmsSyncStatus = `Applied locally. Connection error during GitHub sync: ${gitErr.message || String(gitErr)}`;
@@ -603,6 +609,7 @@ export async function POST(req: Request) {
       message: cmsSyncStatus,
       noIntegration: integrations.length === 0,
       isSynced,
+      matchedFile: matchedFilePath,
       updatedField,
       updatedValue
     }, { headers: corsHeaders });
