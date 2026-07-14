@@ -409,8 +409,8 @@ export function SeoWorkspace() {
     }
   });
 
-  const isGitHubConnected = useMemo(() => {
-    return integrationsQuery.data?.some((int: any) => int.platform === "github") ?? false;
+  const isCmsOrGitConnected = useMemo(() => {
+    return integrationsQuery.data?.some((int: any) => ["github", "wordpress", "shopify"].includes(int.platform)) ?? false;
   }, [integrationsQuery.data]);
 
   const dynamicKeywords = useMemo(() => {
@@ -2251,7 +2251,7 @@ export function SeoWorkspace() {
                                     <div className="flex items-center gap-1.5 shrink-0">
                                       <button 
                                         onClick={() => {
-                                          if (!isGitHubConnected) {
+                                          if (!isCmsOrGitConnected) {
                                             setGithubPrompt({
                                               isOpen: true,
                                               issueId: issue.id,
@@ -3209,15 +3209,15 @@ export function SeoWorkspace() {
                 <Bot className="w-6 h-6 text-indigo-600" />
               </div>
               <div className="space-y-1 text-left">
-                <h3 className="text-base font-extrabold text-slate-900 leading-none">Connect GitHub for AI Fixes</h3>
+                <h3 className="text-base font-extrabold text-slate-900 leading-none">Connect CMS or Git for AI Fixes</h3>
                 <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
-                  Connect your GitHub account to let SoloSpider automatically apply and commit SEO updates directly to your website's source code.
+                  Connect your WordPress, Shopify, or GitHub account to let SoloSpider automatically apply and sync SEO updates directly to your website.
                 </p>
               </div>
             </div>
 
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 text-xs font-semibold text-slate-650 leading-relaxed text-left">
-              If you don't connect GitHub, you can still view the AI recommendation and manual code snippets to fix the issue yourself.
+              If you don't connect an active integration, you can still view the AI recommendation and manual code snippets to fix the issue yourself.
             </div>
 
             <div className="flex flex-col gap-2 pt-2">
@@ -3234,7 +3234,7 @@ export function SeoWorkspace() {
                 }}
                 className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm text-xs font-black transition-colors cursor-pointer text-center"
               >
-                Connect GitHub Account
+                Connect Website / GitHub
               </button>
               
               <button 
