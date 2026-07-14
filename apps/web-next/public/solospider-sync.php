@@ -31,6 +31,16 @@ function solospider_register_meta_for_rest() {
             "single"       => true,
             "type"         => "string",
         ));
+        register_post_meta($type, "_yoast_wpseo_content_score", array(
+            "show_in_rest" => true,
+            "single"       => true,
+            "type"         => "string",
+        ));
+        register_post_meta($type, "_yoast_wpseo_linkdex", array(
+            "show_in_rest" => true,
+            "single"       => true,
+            "type"         => "string",
+        ));
         register_post_meta($type, "rank_math_description", array(
             "show_in_rest" => true,
             "single"       => true,
