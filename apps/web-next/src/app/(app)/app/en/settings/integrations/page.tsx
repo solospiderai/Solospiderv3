@@ -726,7 +726,7 @@ export default function IntegrationsSettingsPage() {
               <form onSubmit={handleAddWordPress} className="bg-slate-50/50 rounded-2xl p-4 border border-indigo-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
                 <h4 className="text-[11px] font-black uppercase text-slate-700">WordPress Setup</h4>
                 
-                {/* Embedded WordPress Step-by-Step Guide */}
+                 {/* Embedded WordPress Step-by-Step Guide */}
                 <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2.5 text-[11px]">
                   <p className="font-extrabold text-indigo-700 uppercase tracking-wide text-[9px]">How to connect:</p>
                   <ol className="list-decimal list-inside space-y-1.5 text-slate-500 font-medium leading-relaxed">
@@ -735,6 +735,29 @@ export default function IntegrationsSettingsPage() {
                     <li>Scroll to the bottom, type a name (e.g. <code className="bg-slate-100 px-1 rounded">SoloSpider</code>) and click <strong className="text-slate-700">Add New Application Password</strong>.</li>
                     <li>Copy the 24-character password and paste it below with your URL and login username.</li>
                   </ol>
+                  
+                  <div className="pt-2.5 border-t border-slate-100">
+                    <details className="cursor-pointer group">
+                      <summary className="font-extrabold text-amber-700 uppercase tracking-wide text-[9px] list-none flex items-center justify-between">
+                        ⚡ Enable Yoast / Rank Math Auto-Sync (Optional) <span className="group-open:rotate-90 transition-transform">&rarr;</span>
+                      </summary>
+                      <p className="text-[10px] text-slate-500 font-medium mt-1 leading-relaxed">
+                        WordPress blocks writing to SEO metadata via the REST API by default. Copy and paste this code to your active theme's <code className="bg-slate-100 px-1 rounded font-mono font-bold text-slate-700">functions.php</code> file to authorize SoloSpider to apply live meta fixes:
+                      </p>
+                      <pre className="mt-2 p-2 bg-slate-900 text-slate-100 text-[9px] font-mono rounded-lg overflow-x-auto select-all max-h-32 leading-normal scrollbar-thin">
+{`add_action('init', 'register_yoast_meta_for_rest');
+function register_yoast_meta_for_rest() {
+    $types = ['post', 'page'];
+    foreach ($types as $t) {
+        register_post_meta($t, '_yoast_wpseo_metadesc', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
+        register_post_meta($t, '_yoast_wpseo_title', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
+        register_post_meta($t, 'rank_math_description', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
+        register_post_meta($t, 'rank_math_title', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
+    }
+}`}
+                      </pre>
+                    </details>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
