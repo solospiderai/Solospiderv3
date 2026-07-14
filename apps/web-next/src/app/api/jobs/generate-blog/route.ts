@@ -330,16 +330,33 @@ export async function POST(request: NextRequest) {
       if (!sectionHeading) {
         return NextResponse.json({ error: "sectionHeading is required for regeneration" }, { status: 400 });
       }
-      // Run section regeneration in background (will update DB)
-      after(() => {
+      
+      if (process.env.NODE_ENV === "development") {
         runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
-      });
+      } else {
+        try {
+          after(() => {
+            runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
+          });
+        } catch (e) {
+          console.warn("[GenerateBlog] after() hook failed, running directly:", e);
+          runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
+        }
+      }
       return NextResponse.json({ ok: true, message: "Section regeneration started." });
     } else {
-      // Start full blog generation in background
-      after(() => {
+      if (process.env.NODE_ENV === "development") {
         runBlogGeneration(contentId, includeToc);
-      });
+      } else {
+        try {
+          after(() => {
+            runBlogGeneration(contentId, includeToc);
+          });
+        } catch (e) {
+          console.warn("[GenerateBlog] after() hook failed, running directly:", e);
+          runBlogGeneration(contentId, includeToc);
+        }
+      }
       return NextResponse.json({ ok: true, message: "Blog generation started in background." });
     }
   } catch (error: any) {
