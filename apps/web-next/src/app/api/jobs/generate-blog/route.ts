@@ -4,6 +4,7 @@ import { readJson } from "@/server/api";
 import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
+export const maxDuration = 300; // Allow up to 5 minutes on Vercel Pro/Enterprise for background generation
 
 const GenerateBlogSchema = z.object({
   contentId: z.string().uuid(),
@@ -56,6 +57,7 @@ async function callLLM(prompt: string, maxTokens = 1500) {
           max_tokens: maxTokens,
           temperature: 0.7,
         }),
+        signal: AbortSignal.timeout(25000), // Timeout after 25s to prevent hanging
       });
 
       if (response.ok) {
@@ -80,6 +82,7 @@ async function callLLM(prompt: string, maxTokens = 1500) {
           messages: [{ role: "user", content: prompt }],
           model: "openai"
         }),
+        signal: AbortSignal.timeout(20000), // Timeout after 20s to prevent hanging
       });
       if (res.ok) {
         text = (await res.text()).trim();

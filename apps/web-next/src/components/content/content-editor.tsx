@@ -727,16 +727,22 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
         <div className="mb-6 border border-slate-200 rounded-xl overflow-hidden bg-white shadow-sm">
           <button
             onClick={() => setShowSEO(!showSEO)}
-            className="flex items-center gap-2 w-full p-4 hover:bg-slate-50/50 transition-all"
+            className="flex items-center gap-2 w-full p-4 hover:bg-slate-50/50 transition-all text-left"
           >
             <BarChart3 className="h-5 w-5 text-indigo-600" />
-            <span className="font-bold text-slate-800">SEO Score</span>
+            <div>
+              <span className="font-bold text-slate-800 block">SEO Score</span>
+              <span className="text-[10px] text-slate-400 font-semibold">Click to view/hide optimization criteria details</span>
+            </div>
             <div className="ml-auto flex items-center gap-3">
               <span className="text-lg font-black text-indigo-600">{seoResult.score}%</span>
             </div>
           </button>
           {showSEO && (
-            <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-3">
+            <div className="p-4 border-t border-slate-100 bg-slate-50/50 space-y-4">
+              <p className="text-[11px] text-slate-500 font-bold bg-white border border-slate-100 p-2.5 rounded-xl shadow-sm leading-relaxed">
+                ℹ️ <strong>Calculation Basis:</strong> The SEO score is calculated out of 100% by evaluating 10 key on-page SEO criteria (10% per check). Passing checks indicate that your content is optimized for search engines, readability, structure, and keyword density.
+              </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {seoResult.checks.map((check) => (
                   <div key={check.label} className="flex items-start gap-2.5 text-xs text-slate-800">
