@@ -651,9 +651,17 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
   }
 
   const isGenerating = content.status === "generating";
-  const wordCount = (content.generated_content || "").split(/\s+/).filter(Boolean).length;
-  const seoResult = content.status === "completed" || content.status === "published" ? computeSEOScore(content) : null;
-  const h2Headings = extractH2Headings(content.generated_content || "");
+  const wordCount = editContent.split(/\s+/).filter(Boolean).length;
+  const seoResult =
+    content.status === "completed" || content.status === "published"
+      ? computeSEOScore({
+          ...content,
+          generated_title: editTitle,
+          meta_description: editMetaDesc,
+          generated_content: editContent,
+        })
+      : null;
+  const h2Headings = extractH2Headings(editContent);
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">

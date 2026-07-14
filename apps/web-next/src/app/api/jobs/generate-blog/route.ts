@@ -194,17 +194,14 @@ JSON format:
       fullMarkdown += `\n---\n\n`;
     }
 
-    for (let idx = 0; idx < h2List.length; idx++) {
-      const heading = h2List[idx];
-      const sectionNum = idx + 1;
+    await supabase
+      .from("content_items")
+      .update({
+        current_section: `Generating all ${h2List.length} sections concurrently...`,
+      })
+      .eq("id", contentId);
 
-      await supabase
-        .from("content_items")
-        .update({
-          current_section: `Writing Section ${sectionNum} of ${h2List.length}: "${heading}"...`,
-        })
-        .eq("id", contentId);
-
+    const sectionPromises = h2List.map((heading, idx) => {
       const sectionPrompt = `You are a premium B2B SaaS copywriter and SEO content optimizer. Write a highly detailed, engaging, and professional section for a blog post.
 Article Title: "${seoTitle}"
 Main Keyword: "${item.main_keyword}"
@@ -214,8 +211,6 @@ Tone: "${item.tone}"
 Target Country: "${item.target_country}"
 Additional Details to Weave In: "${item.details || "None"}"
 Internal Links to Include Naturally: "${(item.internal_links || []).join(", ")}"
-Previous Written Content Context:
-${fullMarkdown.slice(-1000)}
 
 Strive for 250-400 words for this section. Output only the content under the heading (do not repeat the heading title in your output, just write the paragraph text). Use formatting (bullet points, bold text, bolding key phrases) naturally to improve readability.
 
@@ -226,19 +221,23 @@ Strict SEO Rules to Follow:
 4. If this is the FIRST section (typically an introduction or benefits), you MUST include the target keyword "${item.main_keyword}" in the first 100 words of the text.
 5. If this is the LAST section (typically a conclusion or next steps), include a clear final summary and call to action.`;
 
-      const sectionText = await callLLM(sectionPrompt, 1200);
-      fullMarkdown += `## ${heading}\n\n${sectionText}\n\n`;
+      return callLLM(sectionPrompt, 1200).then((text) => ({ idx, heading, text }));
+    });
 
-      // Update intermediate progress
-      const currentProgress = 1 + Math.round((sectionNum / h2List.length) * (totalSections - 1));
-      await supabase
-        .from("content_items")
-        .update({
-          generated_content: fullMarkdown,
-          sections_completed: Math.min(totalSections - 1, currentProgress),
-        })
-        .eq("id", contentId);
-    }
+    const sections = await Promise.all(sectionPromises);
+    sections.sort((a, b) => a.idx - b.idx);
+
+    sections.forEach(({ heading, text }) => {
+      fullMarkdown += `## ${heading}\n\n${text}\n\n`;
+    });
+
+    await supabase
+      .from("content_items")
+      .update({
+        generated_content: fullMarkdown,
+        sections_completed: totalSections - 1,
+      })
+      .eq("id", contentId);
 
     // 4. Wrap up and set status to completed
     await supabase
