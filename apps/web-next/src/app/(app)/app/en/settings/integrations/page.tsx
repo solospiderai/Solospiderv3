@@ -736,27 +736,23 @@ export default function IntegrationsSettingsPage() {
                     <li>Copy the 24-character password and paste it below with your URL and login username.</li>
                   </ol>
                   
-                  <div className="pt-2.5 border-t border-slate-100">
-                    <details className="cursor-pointer group">
-                      <summary className="font-extrabold text-amber-700 uppercase tracking-wide text-[9px] list-none flex items-center justify-between">
-                        ⚡ Enable Yoast / Rank Math Auto-Sync (Optional) <span className="group-open:rotate-90 transition-transform">&rarr;</span>
-                      </summary>
-                      <p className="text-[10px] text-slate-500 font-medium mt-1 leading-relaxed">
-                        WordPress blocks writing to SEO metadata via the REST API by default. Copy and paste this code to your active theme's <code className="bg-slate-100 px-1 rounded font-mono font-bold text-slate-700">functions.php</code> file to authorize SoloSpider to apply live meta fixes:
-                      </p>
-                      <pre className="mt-2 p-2 bg-slate-900 text-slate-100 text-[9px] font-mono rounded-lg overflow-x-auto select-all max-h-32 leading-normal scrollbar-thin">
-{`add_action('init', 'register_yoast_meta_for_rest');
-function register_yoast_meta_for_rest() {
-    $types = ['post', 'page'];
-    foreach ($types as $t) {
-        register_post_meta($t, '_yoast_wpseo_metadesc', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
-        register_post_meta($t, '_yoast_wpseo_title', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
-        register_post_meta($t, 'rank_math_description', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
-        register_post_meta($t, 'rank_math_title', ['show_in_rest'=>true, 'single'=>true, 'type'=>'string']);
-    }
-}`}
-                      </pre>
-                    </details>
+                  <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
+                    <p className="font-extrabold text-amber-700 uppercase tracking-wide text-[9px]">
+                      ⚡ Enable Yoast / Rank Math Auto-Sync (Recommended):
+                    </p>
+                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
+                      WordPress limits external apps from writing to Yoast/Rank Math metadata by default. To enable automatic meta description fixes:
+                    </p>
+                    <a 
+                      href="/solospider-sync.zip" 
+                      download
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[10px] font-black rounded-lg border border-amber-200 transition-colors cursor-pointer select-none no-underline"
+                    >
+                      📥 Download SoloSpider Sync Plugin (.zip)
+                    </a>
+                    <p className="text-[9.5px] text-slate-400 font-bold leading-normal mt-1">
+                      Download the zip, upload it under <strong>Plugins &rarr; Add New Plugin &rarr; Upload Plugin</strong> in WordPress, and activate it. Zero coding required!
+                    </p>
                   </div>
                 </div>
 
