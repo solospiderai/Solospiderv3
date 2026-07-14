@@ -330,33 +330,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "sectionHeading is required for regeneration" }, { status: 400 });
       }
       
-      if (process.env.NODE_ENV === "development") {
-        runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
-      } else {
-        try {
-          after(() => {
-            runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
-          });
-        } catch (e) {
-          console.warn("[GenerateBlog] after() hook failed, running directly:", e);
-          runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
-        }
-      }
-      return NextResponse.json({ ok: true, message: "Section regeneration started." });
+      await runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
+      return NextResponse.json({ ok: true, message: "Section regenerated successfully." });
     } else {
-      if (process.env.NODE_ENV === "development") {
-        runBlogGeneration(contentId, includeToc);
-      } else {
-        try {
-          after(() => {
-            runBlogGeneration(contentId, includeToc);
-          });
-        } catch (e) {
-          console.warn("[GenerateBlog] after() hook failed, running directly:", e);
-          runBlogGeneration(contentId, includeToc);
-        }
-      }
-      return NextResponse.json({ ok: true, message: "Blog generation started in background." });
+      await runBlogGeneration(contentId, includeToc);
+      return NextResponse.json({ ok: true, message: "Blog generation completed successfully." });
     }
   } catch (error: any) {
     console.error("[GenerateBlog] Error:", error);
