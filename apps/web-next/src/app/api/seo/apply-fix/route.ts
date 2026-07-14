@@ -398,10 +398,12 @@ export async function POST(req: Request) {
               const metaPayload: Record<string, any> = {};
               if (issueId.includes("description")) {
                 metaPayload.yoast_wpseo_metadesc = fixValue;
+                metaPayload._yoast_wpseo_metadesc = fixValue; // Support standard Yoast DB key
                 metaPayload.rank_math_description = fixValue;
               }
               if (issueId.includes("title")) {
                 metaPayload.yoast_wpseo_title = fixValue;
+                metaPayload._yoast_wpseo_title = fixValue; // Support standard Yoast DB key
                 metaPayload.rank_math_title = fixValue;
               }
 
