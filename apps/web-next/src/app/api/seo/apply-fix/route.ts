@@ -393,6 +393,9 @@ export async function POST(req: Request) {
               if (issueId.includes("title") || issueId.includes("h1")) {
                 wpPayload.title = fixValue;
               }
+              if (issueId.includes("description")) {
+                wpPayload.excerpt = fixValue; // standard WP field: acts as native fallback description for Yoast/Rank Math
+              }
 
               // Update SEO Meta descriptions for Yoast or Rank Math plugins if active
               const metaPayload: Record<string, any> = {};
