@@ -146,7 +146,7 @@ export function ContentGenerator({ redirectBase = "/app/en/content" }: { redirec
 
       if (error) throw error;
 
-      fetch("/api/jobs/generate-blog", {
+      const invokeRes = await fetch("/api/jobs/generate-blog", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -155,9 +155,16 @@ export function ContentGenerator({ redirectBase = "/app/en/content" }: { redirec
           contentId: data.id,
           includeToc: structToc,
         }),
-      }).catch((err: any) => console.error("Generation invoke error:", err));
+      }).catch((err: any) => {
+        console.error("Generation invoke error:", err);
+        return null;
+      });
 
-      toast.success("Generation started!");
+      if (!invokeRes || !invokeRes.ok) {
+        toast.error("Failed to start generation background task");
+      } else {
+        toast.success("Generation started!");
+      }
       router.push(`${redirectBase}/${data.id}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to start generation");

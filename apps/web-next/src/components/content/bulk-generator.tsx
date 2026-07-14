@@ -162,16 +162,21 @@ export function BulkGenerator() {
 
       if (ids.length === 0) throw new Error("Failed to insert records");
 
-      // Fire generations
-      ids.forEach((id: any) => {
-        fetch("/api/jobs/generate-blog", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ contentId: id }),
-        }).catch((err: any) => console.error("Generation invoke error:", err));
-      });
+      // Fire generations and await all of them to prevent fetch cancellation on redirect
+      await Promise.all(
+        ids.map((id: any) =>
+          fetch("/api/jobs/generate-blog", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ contentId: id }),
+          }).catch((err: any) => {
+            console.error("Generation invoke error:", err);
+            return null;
+          })
+        )
+      );
 
       toast.success(`${validTopics.length} posts queued for generation!`);
       router.push(`/app/en/dashboard`);

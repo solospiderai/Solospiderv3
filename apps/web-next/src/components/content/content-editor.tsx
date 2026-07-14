@@ -523,15 +523,22 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
 
       if (updateError) throw updateError;
 
-      fetch("/api/jobs/generate-blog", {
+      const invokeRes = await fetch("/api/jobs/generate-blog", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ contentId: id }),
-      }).catch((err: any) => console.error("Retry invoke error:", err));
+      }).catch((err: any) => {
+        console.error("Retry invoke error:", err);
+        return null;
+      });
 
-      toast.success("Retrying generation...");
+      if (!invokeRes || !invokeRes.ok) {
+        toast.error("Failed to trigger generation retry");
+      } else {
+        toast.success("Retrying generation...");
+      }
       fetchContent();
     } catch (err: any) {
       toast.error(err.message || "Failed to retry");
