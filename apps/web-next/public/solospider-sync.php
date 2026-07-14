@@ -26,12 +26,22 @@ function solospider_register_meta_for_rest() {
             "single"       => true,
             "type"         => "string",
         ));
+        register_post_meta($type, "_yoast_wpseo_focuskw", array(
+            "show_in_rest" => true,
+            "single"       => true,
+            "type"         => "string",
+        ));
         register_post_meta($type, "rank_math_description", array(
             "show_in_rest" => true,
             "single"       => true,
             "type"         => "string",
         ));
         register_post_meta($type, "rank_math_title", array(
+            "show_in_rest" => true,
+            "single"       => true,
+            "type"         => "string",
+        ));
+        register_post_meta($type, "rank_math_focus_keyword", array(
             "show_in_rest" => true,
             "single"       => true,
             "type"         => "string",

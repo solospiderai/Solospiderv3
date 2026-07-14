@@ -102,6 +102,48 @@ export async function POST(request: NextRequest) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&apos;');
 
+      const seoTitle = content.generated_title || content.h1 || "";
+      const seoDesc = content.meta_description || "";
+      const focusKeyword = content.main_keyword || "";
+
+      const customFields = [
+        { key: "_yoast_wpseo_title", value: seoTitle },
+        { key: "yoast_wpseo_title", value: seoTitle },
+        { key: "_yoast_wpseo_metadesc", value: seoDesc },
+        { key: "yoast_wpseo_metadesc", value: seoDesc },
+        { key: "_yoast_wpseo_focuskw", value: focusKeyword },
+        { key: "yoast_wpseo_focuskw", value: focusKeyword },
+        { key: "rank_math_title", value: seoTitle },
+        { key: "rank_math_description", value: seoDesc },
+        { key: "rank_math_focus_keyword", value: focusKeyword },
+      ];
+
+      const customFieldsBlock = `
+        <member>
+          <name>custom_fields</name>
+          <value>
+            <array>
+              <data>
+                ${customFields.map(cf => `
+                  <value>
+                    <struct>
+                      <member>
+                        <name>key</name>
+                        <value><string>${cf.key}</string></value>
+                      </member>
+                      <member>
+                        <name>value</name>
+                        <value><string>${escapeXml(cf.value)}</string></value>
+                      </member>
+                    </struct>
+                  </value>
+                `).join("\n")}
+              </data>
+            </array>
+          </value>
+        </member>
+      `;
+
       let categoriesBlock = "";
       if (categories && categories.length > 0) {
         categoriesBlock = `
@@ -157,6 +199,7 @@ export async function POST(request: NextRequest) {
           </member>
           ${categoriesBlock}
           ${authorBlock}
+          ${customFieldsBlock}
         </struct>
       </value>
     </param>
@@ -208,6 +251,26 @@ export async function POST(request: NextRequest) {
       content: content.generated_content || "",
       status: publishStatus,
     };
+
+    const seoTitle = content.generated_title || content.h1 || "";
+    const seoDesc = content.meta_description || "";
+    const focusKeyword = content.main_keyword || "";
+
+    wpPayload.meta = {
+      _yoast_wpseo_title: seoTitle,
+      yoast_wpseo_title: seoTitle,
+      _yoast_wpseo_metadesc: seoDesc,
+      yoast_wpseo_metadesc: seoDesc,
+      _yoast_wpseo_focuskw: focusKeyword,
+      yoast_wpseo_focuskw: focusKeyword,
+      rank_math_title: seoTitle,
+      rank_math_description: seoDesc,
+      rank_math_focus_keyword: focusKeyword,
+      _rank_math_title: seoTitle,
+      _rank_math_description: seoDesc,
+      _rank_math_focus_keyword: focusKeyword,
+    };
+
     if (categories && categories.length > 0) wpPayload.categories = categories;
     if (authorId) wpPayload.author = authorId;
 

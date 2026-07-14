@@ -355,82 +355,169 @@ export async function POST(req: Request) {
               continue;
             }
 
-            // Find post or page matching slug
+            // Find content matching slug across ALL public post types (posts, pages, portfolio, services, etc.)
             let foundId: number | null = null;
-            let type: "posts" | "pages" = "posts";
+            let foundType: string = "posts";
 
-            // Check posts
-            const postsUrl = `${siteUrl}/wp-json/wp/v2/posts?slug=${slug}`;
-            const postsRes = await fetch(postsUrl, {
-              headers: { Authorization: `Basic ${authString}` }
-            });
-            if (postsRes.ok) {
-              const posts = await postsRes.json();
-              if (posts && posts.length > 0) {
-                foundId = posts[0].id;
-                type = "posts";
-              }
-            }
-
-            // Check pages if not found in posts
-            if (!foundId) {
-              const pagesUrl = `${siteUrl}/wp-json/wp/v2/pages?slug=${slug}`;
-              const pagesRes = await fetch(pagesUrl, {
+            // Dynamically discover all public post types from WordPress REST API
+            let postTypeSlugs: string[] = ["posts", "pages"];
+            try {
+              const typesRes = await fetch(`${siteUrl}/wp-json/wp/v2/types`, {
                 headers: { Authorization: `Basic ${authString}` }
               });
-              if (pagesRes.ok) {
-                const pages = await pagesRes.json();
-                if (pages && pages.length > 0) {
-                  foundId = pages[0].id;
-                  type = "pages";
+              if (typesRes.ok) {
+                const typesData = await typesRes.json();
+                // Collect REST base slugs for all public types (e.g. "portfolio", "services", "testimonials")
+                const discoveredSlugs = Object.values(typesData)
+                  .filter((t: any) => t.rest_base && t.slug !== "attachment" && t.slug !== "nav_menu_item" && t.slug !== "wp_block" && t.slug !== "wp_template" && t.slug !== "wp_template_part" && t.slug !== "wp_global_styles" && t.slug !== "wp_navigation" && t.slug !== "wp_font_family" && t.slug !== "wp_font_face")
+                  .map((t: any) => t.rest_base as string);
+                if (discoveredSlugs.length > 0) {
+                  postTypeSlugs = discoveredSlugs;
                 }
+              }
+            } catch (e) {
+              // Fallback to posts + pages if types endpoint fails
+            }
+
+            // Search each post type for the matching slug
+            for (const restBase of postTypeSlugs) {
+              if (foundId) break;
+              try {
+                const searchUrl = `${siteUrl}/wp-json/wp/v2/${restBase}?slug=${slug}`;
+                const searchRes = await fetch(searchUrl, {
+                  headers: { Authorization: `Basic ${authString}` }
+                });
+                if (searchRes.ok) {
+                  const results = await searchRes.json();
+                  if (Array.isArray(results) && results.length > 0) {
+                    foundId = results[0].id;
+                    foundType = restBase;
+                  }
+                }
+              } catch (e) {
+                // Skip this type and continue searching
               }
             }
 
             if (foundId) {
-              // Build WordPress REST payload
-              const wpPayload: Record<string, any> = {};
-              if (issueId.includes("title") || issueId.includes("h1")) {
-                wpPayload.title = fixValue;
-              }
-              if (issueId.includes("description")) {
-                wpPayload.excerpt = fixValue; // standard WP field: acts as native fallback description for Yoast/Rank Math
+              // First, fetch the current page content so we can modify it for content-level fixes
+              let currentContent = "";
+              try {
+                const getPageRes = await fetch(`${siteUrl}/wp-json/wp/v2/${foundType}/${foundId}`, {
+                  headers: { Authorization: `Basic ${authString}` }
+                });
+                if (getPageRes.ok) {
+                  const pageData = await getPageRes.json();
+                  currentContent = pageData.content?.raw || pageData.content?.rendered || "";
+                }
+              } catch (e) {
+                // If we can't fetch current content, we'll skip content-level fixes
               }
 
-              // Update SEO Meta descriptions for Yoast or Rank Math plugins if active
+              // Build WordPress REST payload based on issue type
+              const wpPayload: Record<string, any> = {};
               const metaPayload: Record<string, any> = {};
-              if (issueId.includes("description")) {
-                metaPayload.yoast_wpseo_metadesc = fixValue;
-                metaPayload._yoast_wpseo_metadesc = fixValue; // Support standard Yoast DB key
-                metaPayload.rank_math_description = fixValue;
-              }
+
+              // --- TITLE FIXES (missing-titles, duplicate-titles, long-titles) ---
               if (issueId.includes("title")) {
+                wpPayload.title = fixValue;
+                // Also update Yoast/Rank Math SEO title meta
                 metaPayload.yoast_wpseo_title = fixValue;
-                metaPayload._yoast_wpseo_title = fixValue; // Support standard Yoast DB key
+                metaPayload._yoast_wpseo_title = fixValue;
                 metaPayload.rank_math_title = fixValue;
               }
 
+              // --- DESCRIPTION FIXES (missing-descriptions, duplicate-descriptions) ---
+              if (issueId.includes("description")) {
+                wpPayload.excerpt = fixValue; // Standard WP field (Yoast/Rank Math fallback)
+                metaPayload.yoast_wpseo_metadesc = fixValue;
+                metaPayload._yoast_wpseo_metadesc = fixValue;
+                metaPayload.rank_math_description = fixValue;
+              }
+
+              // --- H1 FIXES (missing-h1s) ---
+              // H1 is inside the page content body, NOT the WordPress title field
+              if (issueId.includes("h1")) {
+                if (currentContent) {
+                  // Check if there's already an H1 tag and replace it
+                  const h1Regex = /<h1[^>]*>.*?<\/h1>/gi;
+                  if (h1Regex.test(currentContent)) {
+                    wpPayload.content = currentContent.replace(h1Regex, `<h1>${fixValue}</h1>`);
+                  } else {
+                    // No H1 exists, prepend one at the top of the content
+                    wpPayload.content = `<h1>${fixValue}</h1>\n${currentContent}`;
+                  }
+                } else {
+                  // No current content available, create a minimal page with the H1
+                  wpPayload.content = `<h1>${fixValue}</h1>`;
+                }
+              }
+
+              // --- THIN CONTENT FIXES ---
+              if (issueId === "thin-content") {
+                if (currentContent) {
+                  // Append the AI-generated content to the existing page content
+                  wpPayload.content = `${currentContent}\n\n${fixValue}`;
+                } else {
+                  wpPayload.content = fixValue;
+                }
+              }
+
+              // --- MISSING SCHEMA FIXES ---
+              if (issueId === "missing-schema") {
+                if (currentContent) {
+                  // Append the JSON-LD schema script to the page content
+                  wpPayload.content = `${currentContent}\n\n<script type="application/ld+json">\n${fixValue}\n</script>`;
+                } else {
+                  wpPayload.content = `<script type="application/ld+json">\n${fixValue}\n</script>`;
+                }
+              }
+
+              // --- BROKEN LINKS FIXES ---
+              if (issueId === "broken-links") {
+                // fixValue is expected to be JSON with { oldUrl, newUrl } or the fixed content
+                if (currentContent) {
+                  try {
+                    const linkFix = JSON.parse(fixValue);
+                    if (linkFix.oldUrl && linkFix.newUrl) {
+                      wpPayload.content = currentContent.replaceAll(linkFix.oldUrl, linkFix.newUrl);
+                    } else {
+                      wpPayload.content = fixValue;
+                    }
+                  } catch {
+                    // If fixValue isn't JSON, treat it as replacement content
+                    wpPayload.content = fixValue;
+                  }
+                }
+              }
+
+              // Attach SEO meta payload if any keys were set
               if (Object.keys(metaPayload).length > 0) {
                 wpPayload.meta = metaPayload;
               }
 
-              // Push the update to WordPress
-              const updateUrl = `${siteUrl}/wp-json/wp/v2/${type}/${foundId}`;
-              const updateRes = await fetch(updateUrl, {
-                method: "POST",
-                headers: {
-                  Authorization: `Basic ${authString}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(wpPayload)
-              });
-
-              if (updateRes.ok) {
-                cmsSyncStatus = `Successfully synced changes to live WordPress ${type.slice(0, -1)} (ID: ${foundId}).`;
+              // Only push if we have something to update
+              if (Object.keys(wpPayload).length === 0) {
+                cmsSyncStatus = `Applied locally. Issue type "${issueId}" does not have a direct WordPress field mapping.`;
               } else {
-                const errText = await updateRes.text();
-                cmsSyncStatus = `WordPress API matched but failed to write changes: Status ${updateRes.status}.`;
-                console.warn("[ApplyFix] WP sync fail:", errText);
+                // Push the update to WordPress
+                const updateUrl = `${siteUrl}/wp-json/wp/v2/${foundType}/${foundId}`;
+                const updateRes = await fetch(updateUrl, {
+                  method: "POST",
+                  headers: {
+                    Authorization: `Basic ${authString}`,
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(wpPayload)
+                });
+
+                if (updateRes.ok) {
+                  cmsSyncStatus = `Successfully synced changes to live WordPress ${foundType.slice(0, -1)} (ID: ${foundId}).`;
+                } else {
+                  const errText = await updateRes.text();
+                  cmsSyncStatus = `WordPress API matched but failed to write changes: Status ${updateRes.status}.`;
+                  console.warn("[ApplyFix] WP sync fail:", errText);
+                }
               }
             } else {
               cmsSyncStatus = `Applied locally. Could not find corresponding post/page with slug "${slug}" on WordPress.`;

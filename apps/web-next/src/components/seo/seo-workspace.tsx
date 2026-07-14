@@ -3173,11 +3173,16 @@ export function SeoWorkspace() {
                 </div>
               </div>
 
-              {/* Git commit status */}
+              {/* Sync status */}
               <div className="flex items-start gap-2.5 bg-indigo-50/30 border border-indigo-100 p-4 rounded-xl text-xs text-indigo-900 leading-relaxed font-bold">
                 <GitCommit className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-[9px] text-indigo-600 uppercase tracking-wider block font-black mb-0.5">GitHub Sync Details</span>
+                  <span className="text-[9px] text-indigo-600 uppercase tracking-wider block font-black mb-0.5">
+                    {appliedFixResult.syncStatus?.toLowerCase().includes("wordpress") ? "WordPress Sync Details"
+                      : appliedFixResult.syncStatus?.toLowerCase().includes("shopify") ? "Shopify Sync Details"
+                      : appliedFixResult.syncStatus?.toLowerCase().includes("github") ? "GitHub Sync Details"
+                      : "Live Sync Details"}
+                  </span>
                   {appliedFixResult.syncStatus}
                 </div>
               </div>

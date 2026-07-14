@@ -16,7 +16,8 @@ import {
   FolderKanban,
   RefreshCw,
   Info,
-  ChevronDown
+  ChevronDown,
+  X
 } from "lucide-react";
 
 // Official High-Fidelity Brand SVG Icons
@@ -160,6 +161,9 @@ export default function IntegrationsSettingsPage() {
   const [gscClientSecret, setGscClientSecret] = useState("");
   const [gscRefreshToken, setGscRefreshToken] = useState("");
   const [showGscGuide, setShowGscGuide] = useState(false);
+
+  // WordPress Guide Modal state
+  const [showWpGuide, setShowWpGuide] = useState(false);
 
   // Verification states
   const [editingIntegrationId, setEditingIntegrationId] = useState<string | null>(null);
@@ -722,38 +726,17 @@ export default function IntegrationsSettingsPage() {
             </div>
 
             {/* WordPress Form */}
-            {activeForm === "wordpress" && (
+             {activeForm === "wordpress" && (
               <form onSubmit={handleAddWordPress} className="bg-slate-50/50 rounded-2xl p-4 border border-indigo-100 space-y-4 animate-in slide-in-from-top-3 duration-200">
-                <h4 className="text-[11px] font-black uppercase text-slate-700">WordPress Setup</h4>
-                
-                 {/* Embedded WordPress Step-by-Step Guide */}
-                <div className="bg-white border border-slate-100 rounded-xl p-3 space-y-2.5 text-[11px]">
-                  <p className="font-extrabold text-indigo-700 uppercase tracking-wide text-[9px]">How to connect:</p>
-                  <ol className="list-decimal list-inside space-y-1.5 text-slate-500 font-medium leading-relaxed">
-                    <li>Log in to your WordPress dashboard.</li>
-                    <li>Go to <strong className="text-slate-700">Users &rarr; Profile</strong> in the left-hand menu.</li>
-                    <li>Scroll to the bottom, type a name (e.g. <code className="bg-slate-100 px-1 rounded">SoloSpider</code>) and click <strong className="text-slate-700">Add New Application Password</strong>.</li>
-                    <li>Copy the 24-character password and paste it below with your URL and login username.</li>
-                  </ol>
-                  
-                  <div className="pt-2.5 border-t border-slate-100 space-y-1.5">
-                    <p className="font-extrabold text-amber-700 uppercase tracking-wide text-[9px]">
-                      ⚡ Enable Yoast / Rank Math Auto-Sync (Recommended):
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">
-                      WordPress limits external apps from writing to Yoast/Rank Math metadata by default. To enable automatic meta description fixes:
-                    </p>
-                    <a 
-                      href="/solospider-sync.zip" 
-                      download
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[10px] font-black rounded-lg border border-amber-200 transition-colors cursor-pointer select-none no-underline"
-                    >
-                      📥 Download SoloSpider Sync Plugin (.zip)
-                    </a>
-                    <p className="text-[9.5px] text-slate-400 font-bold leading-normal mt-1">
-                      Download the zip, upload it under <strong>Plugins &rarr; Add New Plugin &rarr; Upload Plugin</strong> in WordPress, and activate it. Zero coding required!
-                    </p>
-                  </div>
+                <div className="flex items-center justify-between border-b border-indigo-50 pb-2">
+                  <h4 className="text-[11px] font-black uppercase text-slate-700">WordPress Setup</h4>
+                  <button
+                    type="button"
+                    onClick={() => setShowWpGuide(true)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-black rounded-lg border border-indigo-150 transition-all cursor-pointer select-none"
+                  >
+                    📖 View Step-by-Step Guide
+                  </button>
                 </div>
 
                 <div className="space-y-2">
@@ -1376,6 +1359,112 @@ export default function IntegrationsSettingsPage() {
         </div>
 
       </div>
+
+      {showWpGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📝</span>
+                <div>
+                  <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">WordPress Connection & Sync Guide</h3>
+                  <p className="text-[10px] text-slate-400 font-bold">Follow these steps to connect your site and enable auto-fixes</p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                onClick={() => setShowWpGuide(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors p-1.5 hover:bg-slate-100 rounded-full cursor-pointer border-none bg-transparent"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-6 text-xs text-slate-600 leading-relaxed scrollbar-thin">
+              {/* Step 1: Credentials */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-indigo-50 text-indigo-600 font-black text-[10px]">1</span>
+                  <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">Generate Application Password in WordPress</h4>
+                </div>
+                <div className="pl-7 space-y-1.5 text-[11px] text-slate-500 font-medium">
+                  <p>First, we need to create a secure key so SoloSpider can securely push updates:</p>
+                  <ol className="list-decimal pl-4 space-y-1">
+                    <li>Log in to your WordPress dashboard (e.g., <code className="bg-slate-100 px-1 rounded text-slate-700">https://yoursite.com/wp-admin</code>).</li>
+                    <li>In the left sidebar, click on <strong className="text-slate-700">Users</strong> ➔ <strong className="text-slate-700">Profile</strong> (or edit your administrator profile).</li>
+                    <li>Scroll all the way to the bottom until you find the <strong className="text-slate-700">Application Passwords</strong> section.</li>
+                    <li>Type a name in the input (e.g. <code className="bg-slate-100 px-1.5 py-0.5 rounded text-indigo-600 font-bold font-mono">SoloSpider</code>) and click the <strong className="text-slate-700">Add New Application Password</strong> button.</li>
+                    <li>A temporary <strong>24-character password</strong> will appear (e.g. <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-800 font-black">xxxx xxxx xxxx xxxx</code>). Copy this password.</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Step 2: Meta description auto sync */}
+              <div className="space-y-2 pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-amber-50 text-amber-700 font-black text-[10px]">2</span>
+                  <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">Enable Yoast / Rank Math Meta Auto-Sync</h4>
+                </div>
+                <div className="pl-7 space-y-2 text-[11px] text-slate-500 font-medium">
+                  <p>
+                    By default, WordPress blocks external apps from editing SEO metadata (like descriptions and titles) for security. To automatically sync meta descriptions, install our helper plugin:
+                  </p>
+                  <div className="bg-slate-50 border border-slate-150 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <p className="font-extrabold text-slate-800 text-[11px]">Download Helper Plugin Zip</p>
+                      <p className="text-[10px] text-slate-400">Contains the permissions configuration script.</p>
+                    </div>
+                    <a 
+                      href="/solospider-sync.zip" 
+                      download
+                      className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[11.5px] font-black rounded-xl shadow-md shadow-indigo-100 hover:shadow-lg transition-all cursor-pointer no-underline select-none shrink-0"
+                    >
+                      📥 Download Plugin (.zip)
+                    </a>
+                  </div>
+                  <p className="font-bold text-slate-700 mt-2">How to install it:</p>
+                  <ol className="list-decimal pl-4 space-y-1">
+                    <li>Inside your WordPress admin, go to <strong className="text-slate-700">Plugins</strong> ➔ <strong className="text-slate-700">Add New Plugin</strong>.</li>
+                    <li>Click the <strong className="text-slate-700">Upload Plugin</strong> button at the top of the page.</li>
+                    <li>Choose the downloaded <code className="bg-slate-100 px-1 rounded text-slate-700 font-mono font-bold">solospider-sync.zip</code> file, then click <strong className="text-slate-700">Install Now</strong>.</li>
+                    <li>Once installed, click the blue <strong className="text-slate-700">Activate Plugin</strong> button. That's it!</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Step 3: Connect details */}
+              <div className="space-y-2 pt-4 border-t border-slate-100">
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 font-black text-[10px]">3</span>
+                  <h4 className="font-bold text-slate-800 text-[11px] uppercase tracking-wide">Enter Credentials & Save</h4>
+                </div>
+                <div className="pl-7 text-[11px] text-slate-500 font-medium">
+                  <p>Fill out the WordPress form in SoloSpider settings:</p>
+                  <ul className="list-disc pl-4 space-y-0.5 mt-1">
+                    <li>Input your website URL (e.g. <code className="bg-slate-100 px-1 rounded">https://f3clicks.com</code>).</li>
+                    <li>Input your WordPress admin login username (e.g. <code className="bg-slate-100 px-1 rounded">f3clicks</code>).</li>
+                    <li>Input the 24-character Application Password (with spaces) in the password input.</li>
+                    <li>Click <strong className="text-slate-700">Verify & Save Connection</strong>.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-end px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+              <button 
+                type="button"
+                onClick={() => setShowWpGuide(false)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-[11px] font-black rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer border-none"
+              >
+                Close & Return
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
