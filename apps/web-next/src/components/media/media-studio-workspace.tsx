@@ -107,15 +107,11 @@ function buildPremiumEnhancedPrompt(input: string, brand: {
   const domain = brand.domain || "";
 
   return [
-    `Create a high-quality digital marketing banner for ${clean}.`,
+    `Create a high-quality, professional marketing graphic for ${clean}.`,
     `Brand context: ${brandName}${tagline ? ` — ${tagline}` : ""}. ${description}`.trim(),
-    `Visual direction: modern smart factory environment with advanced machinery, robotic arms, automated production lines, CNC systems, and industrial engineers using digital tablets.`,
-    `Industry 4.0 cues: AI automation, IoT connectivity, cloud workflows, data analytics dashboards, and global supply-chain style overlays.`,
-    `Composition: premium editorial layout with strong visual hierarchy, clean negative space, and clear focal flow from operations to digital growth outcomes.`,
-    `Color and lighting: corporate blue, steel/silver, and controlled orange accents; cinematic yet professional lighting with crisp contrast.`,
-    `Marketing intent: B2B authority, innovation, reliability, and measurable growth performance.`,
-    `Deliverable quality: polished, campaign-ready creative suitable for social ads, website hero banners, and LinkedIn promotions.`,
-    `Text and logo handling: reserve clean space for headline and CTA; reserve an explicit logo-safe area (top-right or bottom-right) with strong contrast and no obstruction.`,
+    `Visual direction: clean, modern, high-end professional design aligned with the brand and topic.`,
+    `Composition: premium layout with strong visual hierarchy, clean negative space, and a clear focal point.`,
+    `Deliverable quality: polished, campaign-ready creative suitable for social ads, website banners, and LinkedIn promotions.`,
     `Hard constraints: do not invent random brand names, do not add unrelated logos, no low-quality collage artifacts, no chaotic typography.`,
     domain ? `Brand website reference: ${domain}.` : "",
   ].filter(Boolean).join(" ");
@@ -585,6 +581,30 @@ export function MediaStudioWorkspace() {
       }
     } catch {
       toast.error("Failed to delete asset from database");
+    }
+  };
+
+  const handleDownloadAsset = async (url: string, format: string) => {
+    try {
+      toast.info("Downloading file locally...");
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      
+      const fileExt = url.toLowerCase().includes(".mp4") ? "mp4" : "png";
+      link.download = `solospider_asset_${Date.now()}.${fileExt}`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      toast.success("Download completed successfully!");
+    } catch (error) {
+      console.error("Failed to download image locally:", error);
+      // Fallback: Open in new tab
+      window.open(url, "_blank");
     }
   };
 
@@ -1417,17 +1437,15 @@ export function MediaStudioWorkspace() {
                         </svg>
                       </button>
 
-                      <a
-                        href={asset.url}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        onClick={() => handleDownloadAsset(asset.url, asset.format)}
                         className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-colors"
-                        title="Download/Open"
+                        title="Download locally"
                       >
                         <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
                         </svg>
-                      </a>
+                      </button>
 
                       <button
                         onClick={() => setSchedulingAsset(asset)}
