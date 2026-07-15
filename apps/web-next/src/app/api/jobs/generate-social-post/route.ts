@@ -86,6 +86,64 @@ export async function POST(request: NextRequest) {
     // 1. Image generation
     if (body.type === "image" || body.action === "image") {
       const promptText = body.prompt || "Minimalist aesthetic social media post graphic";
+      const openrouterKey = process.env.OPENROUTER_API_KEY;
+
+      if (openrouterKey) {
+        try {
+          console.log("[Image Gen] Submitting to OpenRouter via black-forest-labs/flux-schnell...");
+          const res = await fetch("https://openrouter.ai/api/v1/images", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${openrouterKey}`,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              model: "black-forest-labs/flux-schnell",
+              prompt: promptText,
+              width: 1024,
+              height: 1024
+            })
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const base64Image = data.data?.[0]?.image;
+            if (base64Image) {
+              const imageBuffer = Buffer.from(base64Image, "base64");
+              const projectId = body.projectId || "global";
+              const fileName = `media_assets/${projectId}_${Date.now()}.png`;
+
+              console.log(`[Image Gen] Uploading generated image to Supabase Storage as ${fileName}...`);
+              const supabaseAdmin = getSupabaseAdmin();
+              const { error: uploadError } = await supabaseAdmin.storage
+                .from("blog_images")
+                .upload(fileName, imageBuffer, {
+                  contentType: "image/png",
+                  duplex: "half"
+                });
+
+              if (!uploadError) {
+                const { data: { publicUrl } } = supabaseAdmin.storage
+                  .from("blog_images")
+                  .getPublicUrl(fileName);
+                console.log(`[Image Gen] Successfully stored in Supabase: ${publicUrl}`);
+                return NextResponse.json({ imageUrl: publicUrl });
+              } else {
+                console.error("[Image Gen] Supabase storage upload failed:", uploadError);
+              }
+            } else {
+              console.error("[Image Gen] OpenRouter returned no base64 image data:", data);
+            }
+          } else {
+            console.error("[Image Gen] OpenRouter image request failed:", res.status, await res.text());
+          }
+        } catch (err) {
+          console.error("[Image Gen] OpenRouter image generation failed, falling back:", err);
+        }
+      }
+
+      // Fallback to Pollinations AI
+      console.log("[Image Gen] Falling back to Pollinations AI...");
       const seed = Math.floor(Math.random() * 1000000);
       const imageUrl = `https://image.pollinations.ai/p/${encodeURIComponent(promptText)}?width=1080&height=1080&nologo=true&seed=${seed}`;
       return NextResponse.json({ imageUrl });
@@ -288,18 +346,18 @@ Make captions authentic, engaging, and platform-native. Mix the types across the
 
     // 3. Single post generation
     if (body.action === "single_post") {
-      const prompt = `You are an expert copywriter. Generate a social media post draft for:
+      const prompt = `You are an expert social media copywriter and brand designer. Generate a high-performing post and a matching visual prompt for:
 Brand: ${body.brandName}
 Description: ${body.brandDescription || ""}
 Goal: ${body.goal || "Brand awareness"}
 Tone: ${body.tone || "engaging"}
 Topic/Instruction: ${body.prompt || "General overview"}
 
-Return ONLY a valid JSON object with the following fields:
+Return ONLY a valid JSON object with these fields:
 - "hook": a catchy opening line (max 15 words)
-- "caption": full post caption (150-300 chars, engaging, with emojis)
+- "caption": full post caption (150-300 chars, engaging, with emojis and a clear call to action)
 - "hashtags": array of 10-15 relevant hashtags (without # symbol)
-- "imagePrompt": a visual prompt for generating a matching post image
+- "imagePrompt": a highly descriptive, detailed image prompt (describing style, composition, colors, lighting, and a clean professional setting representing the post's message) for a text-to-image AI generator. Do NOT reference text overlays.
 
 Do not wrap in markdown code blocks. Output raw JSON.`;
 
