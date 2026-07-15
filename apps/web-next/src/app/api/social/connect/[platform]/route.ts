@@ -107,9 +107,9 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         if (!clientExists) {
           oauthUrl = `${origin}/api/social/callback/facebook?code=mock_code&state=${projectId}`;
         } else {
-          // Requesting page permissions now that the Meta app has the use case.
           const scopes = "public_profile,pages_manage_posts,pages_read_engagement,pages_show_list";
-          oauthUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${env.FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.FACEBOOK_REDIRECT_URI || "")}&scope=${encodeURIComponent(scopes)}&state=${projectId}`;
+          const redirectUri = `${origin}/api/social/callback/facebook`;
+          oauthUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${env.FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&state=${projectId}`;
         }
         break;
       }

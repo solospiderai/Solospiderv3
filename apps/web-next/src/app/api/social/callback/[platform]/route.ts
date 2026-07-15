@@ -222,12 +222,15 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       const hasConfig = env.FACEBOOK_CLIENT_ID && env.FACEBOOK_CLIENT_SECRET && env.FACEBOOK_REDIRECT_URI;
 
       if (hasConfig) {
+        const origin = request.nextUrl.origin;
+        const redirectUri = `${origin}/api/social/callback/facebook`;
+
         // Step 1: Exchange authorization code for a short-lived user access token
         console.log(`[SocialCallback] Facebook: Exchanging code for short-lived user token`);
         const tokenUrl = new URL("https://graph.facebook.com/v20.0/oauth/access_token");
         tokenUrl.searchParams.set("client_id", env.FACEBOOK_CLIENT_ID || "");
         tokenUrl.searchParams.set("client_secret", env.FACEBOOK_CLIENT_SECRET || "");
-        tokenUrl.searchParams.set("redirect_uri", env.FACEBOOK_REDIRECT_URI || "");
+        tokenUrl.searchParams.set("redirect_uri", redirectUri);
         tokenUrl.searchParams.set("code", code);
 
         const tokenResponse = await fetch(tokenUrl.toString());
