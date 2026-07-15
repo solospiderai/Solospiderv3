@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
       if (openrouterKey) {
         try {
-          console.log("[Image Gen] Submitting to OpenRouter via black-forest-labs/flux-schnell...");
+          console.log("[Image Gen] Submitting to OpenRouter via black-forest-labs/flux.2-pro...");
           const res = await fetch("https://openrouter.ai/api/v1/images", {
             method: "POST",
             headers: {
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
               "Content-Type": "application/json"
             },
             body: JSON.stringify({
-              model: "black-forest-labs/flux-schnell",
+              model: "black-forest-labs/flux.2-pro",
               prompt: promptText,
               width: 1024,
               height: 1024
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
 
           if (res.ok) {
             const data = await res.json();
-            const base64Image = data.data?.[0]?.image;
+            const base64Image = data.data?.[0]?.b64_json || data.data?.[0]?.image;
             if (base64Image) {
               const imageBuffer = Buffer.from(base64Image, "base64");
               const projectId = body.projectId || "global";
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
                 console.error("[Image Gen] Supabase storage upload failed:", uploadError);
               }
             } else {
-              console.error("[Image Gen] OpenRouter returned no base64 image data:", data);
+              console.error("[Image Gen] OpenRouter returned no base64 image data. Keys:", data.data?.[0] ? Object.keys(data.data[0]) : "no data object");
             }
           } else {
             console.error("[Image Gen] OpenRouter image request failed:", res.status, await res.text());
