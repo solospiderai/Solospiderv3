@@ -53,6 +53,23 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) throw error;
+
+    // Create system notification
+    try {
+      const isDraft = data.status === "draft";
+      await adminClient.from("notifications").insert({
+        project_id: data.project_id,
+        title: isDraft ? "Social draft saved" : "Social post scheduled",
+        message: isDraft 
+          ? `A draft post was saved for platform ${data.platform.toUpperCase()}`
+          : `A post was scheduled for platform ${data.platform.toUpperCase()} on ${new Date(data.scheduled_at).toLocaleDateString()}`,
+        type: "social",
+        status: "unread"
+      });
+    } catch (notifErr) {
+      console.warn("Failed to create notification:", notifErr);
+    }
+
     return NextResponse.json({ ok: true, post: data });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : String(error) }, { status: 500 });

@@ -569,6 +569,19 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
       } as never)
       .eq("id", socialAccount.id);
 
+    // Create successful notification
+    try {
+      await supabase.from("notifications").insert({
+        project_id: scheduledPost.project_id,
+        title: "Social post published",
+        message: `Successfully posted to ${scheduledPost.platform.toUpperCase()}!`,
+        type: "social",
+        status: "unread"
+      } as never);
+    } catch (notifErr) {
+      console.warn("Failed to create worker success notification:", notifErr);
+    }
+
     await job.updateProgress(100);
     return { success: true, post_id: scheduledPost.id, external_post_id: externalPostId };
 
@@ -593,6 +606,19 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
       } as never)
       .eq("project_id", scheduledPost.project_id)
       .eq("platform", scheduledPost.platform);
+
+    // Create failed notification
+    try {
+      await supabase.from("notifications").insert({
+        project_id: scheduledPost.project_id,
+        title: "Social post failed",
+        message: `Failed to publish post to ${scheduledPost.platform.toUpperCase()}: ${reason.slice(0, 100)}`,
+        type: "social",
+        status: "unread"
+      } as never);
+    } catch (notifErr) {
+      console.warn("Failed to create worker failure notification:", notifErr);
+    }
 
     throw err; // Throw error to mark job as failed in BullMQ
   }

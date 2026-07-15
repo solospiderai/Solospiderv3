@@ -318,6 +318,19 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
   }).eq("id", runId);
   if (completeErr) throw new Error(`Supabase finalize crawl run failed: ${completeErr.message}`);
 
+  // Create crawl success notification
+  try {
+    await supabase.from("notifications").insert({
+      project_id,
+      title: "Crawl completed",
+      message: `Website crawl finished successfully. Crawled ${pagesCrawled} pages.`,
+      type: "crawl",
+      status: "unread"
+    } as never);
+  } catch (notifErr) {
+    console.warn("Failed to create crawl success notification:", notifErr);
+  }
+
   // Delete pages that were NOT updated in this crawl run
   try {
     const { error: cleanupErr } = await supabase
@@ -475,6 +488,19 @@ export function startCrawlWorker() {
       await supabase.from("crawl_runs")
         .update({ status: "failed", error: err.message, finished_at: new Date().toISOString() })
         .eq("id", job.data.run_id);
+    }
+    if (job?.data?.project_id) {
+      try {
+        await supabase.from("notifications").insert({
+          project_id: job.data.project_id,
+          title: "Crawl failed",
+          message: `Crawl run failed: ${err.message.slice(0, 100)}`,
+          type: "crawl",
+          status: "unread"
+        } as never);
+      } catch (notifErr) {
+        console.warn("Failed to create crawl failed notification:", notifErr);
+      }
     }
   });
   worker.on("error", (err) => console.error("[CrawlWorker] Worker error:", err));

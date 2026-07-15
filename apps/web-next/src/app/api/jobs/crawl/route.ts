@@ -54,5 +54,18 @@ export async function POST(request: NextRequest) {
     jobId: `crawl-${parsed.data.project_id}-${Date.now()}`,
   });
 
+  // Create crawl start notification
+  try {
+    await supabase.from("notifications").insert({
+      project_id: parsed.data.project_id,
+      title: "Crawl started",
+      message: `Website crawl started for ${parsed.data.website}`,
+      type: "crawl",
+      status: "unread"
+    } as never);
+  } catch (e) {
+    console.warn("Failed to create crawl start notification:", e);
+  }
+
   return NextResponse.json({ ok: true, job_id: job.id, run_id: run.id, queue: "crawl" });
 }

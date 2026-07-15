@@ -253,6 +253,19 @@ Strict SEO Rules to Follow:
 
     console.log(`[runBlogGeneration] Finished generation for contentId ${contentId}`);
 
+    // Create successful blog generation notification
+    try {
+      await supabase.from("notifications").insert({
+        project_id: item.project_id,
+        title: "Blog generated successfully",
+        message: `Successfully generated blog: "${seoTitle}"!`,
+        type: "blog",
+        status: "unread"
+      } as never);
+    } catch (notifErr) {
+      console.warn("Failed to create blog success notification:", notifErr);
+    }
+
   } catch (err: any) {
     console.error(`[runBlogGeneration] Error during blog generation:`, err);
     await supabase
@@ -262,6 +275,26 @@ Strict SEO Rules to Follow:
         current_section: `Error occurred: ${err.message || String(err)}`,
       })
       .eq("id", contentId);
+
+    // Create failed blog generation notification
+    try {
+      const { data: item } = await supabase
+        .from("content_items")
+        .select("project_id, h1")
+        .eq("id", contentId)
+        .single();
+      if (item) {
+        await supabase.from("notifications").insert({
+          project_id: item.project_id,
+          title: "Blog generation failed",
+          message: `Failed to generate blog "${item.h1}": ${err.message || String(err)}`,
+          type: "blog",
+          status: "unread"
+        } as never);
+      }
+    } catch (notifErr) {
+      console.warn("Failed to create blog failure notification:", notifErr);
+    }
   }
 }
 
@@ -333,6 +366,25 @@ export async function POST(request: NextRequest) {
       await runSectionRegeneration(contentId, sectionHeading, currentMarkdown || "");
       return NextResponse.json({ ok: true, message: "Section regenerated successfully." });
     } else {
+      // Create initiated notification
+      const supabase = getSupabaseAdmin();
+      try {
+        const { data: item } = await supabase
+          .from("content_items")
+          .select("project_id, h1")
+          .eq("id", contentId)
+          .single();
+        if (item) {
+          await supabase.from("notifications").insert({
+            project_id: item.project_id,
+            title: "Blog generation started",
+            message: `Generation process started for blog: "${item.h1}"`,
+            type: "blog",
+            status: "unread"
+          } as never);
+        }
+      } catch (e) {}
+
       await runBlogGeneration(contentId, includeToc);
       return NextResponse.json({ ok: true, message: "Blog generation completed successfully." });
     }
