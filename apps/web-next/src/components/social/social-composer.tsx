@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useProjects } from "@/hooks/useProjects";
 import { toast } from "sonner";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -76,6 +76,15 @@ const platformConfigs = {
     icon: Twitter,
     avatarUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
     handle: "builditindia_ai"
+  },
+  pinterest: {
+    id: "pinterest",
+    name: "Pinterest",
+    color: "#BD081C",
+    bgClass: "from-red-600 to-rose-700",
+    icon: Pin,
+    avatarUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
+    handle: "Pinterest Board"
   }
 };
 
@@ -99,9 +108,24 @@ interface SocialComposerProps {
 export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime = "10:00" }: SocialComposerProps) {
   const { activeProject } = useProjects();
   const queryClient = useQueryClient();
+  const supabase = getSupabaseBrowserClient();
+
+  // Fetch Connected Accounts
+  const accountsQuery = useQuery({
+    queryKey: ["social_accounts", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("social_accounts")
+        .select("*")
+        .eq("project_id", activeProject!.id);
+      if (error) throw error;
+      return data;
+    }
+  });
 
   // Basic Composer states
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["facebook", "instagram"]);
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [isCustomPostEnabled, setIsCustomPostEnabled] = useState(false);
   
   // Dynamic captions
@@ -113,6 +137,14 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
     twitter: ""
   });
 
+  // Auto-select connected platforms
+  useEffect(() => {
+    if (accountsQuery.data && accountsQuery.data.length > 0) {
+      const connected = accountsQuery.data.map(acc => acc.platform);
+      setSelectedPlatforms(connected.filter(p => platformConfigs[p as keyof typeof platformConfigs] !== undefined));
+    }
+  }, [accountsQuery.data]);
+
   // Media array
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
 
@@ -122,6 +154,10 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
   const [ctaUrl, setCtaUrl] = useState("");
 
   const getPlatformHandle = (platform: string) => {
+    const connectedAccount = accountsQuery.data?.find(acc => acc.platform === platform);
+    if (connectedAccount) {
+      return connectedAccount.handle || connectedAccount.platform_account_id || "Connected";
+    }
     if (!activeProject) return platformConfigs[platform as keyof typeof platformConfigs]?.handle || "";
     const brandName = activeProject.brand_name || activeProject.name || "Brand";
     
@@ -134,6 +170,8 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
         return `${brandName} Company`;
       case "twitter":
         return `${brandName.toLowerCase().replace(/\s+/g, "")}_ai`;
+      case "pinterest":
+        return `${brandName} Board`;
       default:
         return brandName;
     }
@@ -273,7 +311,7 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
       platform: string;
       caption: string;
       image_url?: string;
-      scheduled_at: string;
+      scheduled_at: string | null;
     }) => {
       const response = await fetch("/api/social/posts", {
         method: "POST",
@@ -288,8 +326,8 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
     }
   });
 
-  // Schedule mutation
-  const handleSchedulePost = async () => {
+  // Schedule or Save Draft mutation
+  const handleSchedulePost = async (status: "draft" | "scheduled" = "scheduled") => {
     if (!activeProject) {
       toast.error("Please select a project first.");
       return;
@@ -299,8 +337,9 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
       return;
     }
 
-    const toastId = toast.loading("Scheduling post across selected channels...");
-    const scheduledDateTime = new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString();
+    const isDraft = status === "draft";
+    const toastId = toast.loading(isDraft ? "Saving post as draft..." : "Scheduling post across selected channels...");
+    const scheduledDateTime = isDraft ? null : new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString();
 
     try {
       for (const platform of selectedPlatforms) {
@@ -318,14 +357,16 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
       }
 
       toast.dismiss(toastId);
-      toast.success("Social Post Scheduled successfully!", {
-        description: `Scheduled for ${scheduleDate} at ${scheduleTime} across: ${selectedPlatforms.map(p => p.toUpperCase()).join(", ")}`
+      toast.success(isDraft ? "Draft saved successfully!" : "Social Post Scheduled successfully!", {
+        description: isDraft 
+          ? `Saved drafts across: ${selectedPlatforms.map(p => p.toUpperCase()).join(", ")}`
+          : `Scheduled for ${scheduleDate} at ${scheduleTime} across: ${selectedPlatforms.map(p => p.toUpperCase()).join(", ")}`
       });
       queryClient.invalidateQueries({ queryKey: ["social_posts", activeProject.id] });
       if (onBack) onBack();
     } catch (err: any) {
       toast.dismiss(toastId);
-      toast.error("Error scheduling post", { description: err.message });
+      toast.error(isDraft ? "Error saving draft" : "Error scheduling post", { description: err.message });
     }
   };
 
@@ -346,11 +387,17 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
           <p className="text-slate-500 text-xs mt-1">Compose and customize dynamic content across multiple social platforms simultaneously.</p>
         </div>
 
-        {/* Schedule button in header */}
+        {/* Schedule & Draft buttons in header */}
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-slate-400">Draft Status: <span className="text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full">Ready</span></span>
           <button
-            onClick={handleSchedulePost}
+            onClick={() => handleSchedulePost("draft")}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold py-2.5 px-4 rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            Save as Draft
+          </button>
+          <button
+            onClick={() => handleSchedulePost("scheduled")}
             className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-extrabold py-2.5 px-5 rounded-xl shadow-md shadow-violet-600/10 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Calendar className="w-4 h-4" />
@@ -1232,14 +1279,14 @@ export function SocialComposer({ onBack, initialDate = "2026-05-25", initialTime
           </button>
           
           <button 
-            onClick={() => toast.success("Draft saved in Solospider Assets!")}
+            onClick={() => handleSchedulePost("draft")}
             className="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold py-2.5 px-5 rounded-xl transition-all cursor-pointer"
           >
-            Finish Later
+            Save as Draft
           </button>
 
           <button
-            onClick={handleSchedulePost}
+            onClick={() => handleSchedulePost("scheduled")}
             className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-xs font-extrabold py-2.5 px-6 rounded-xl shadow-md shadow-violet-600/10 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
           >
             Schedule & Publish

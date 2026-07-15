@@ -31,10 +31,16 @@ import {
   Megaphone,
   Clapperboard,
   PlusCircle,
-  LayoutTemplate
+  LayoutTemplate,
+  Edit3,
+  AlertCircle,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  Link as LinkIcon
 } from "lucide-react";
 
-// Platform styling details — labels are now pulled from DB (no hardcoded handles)
+// Platform styling details
 const platformMeta: Record<string, { name: string; bg: string; color: string; bgColor: string; borderColor: string }> = {
   instagram: {
     name: "Instagram",
@@ -73,6 +79,14 @@ const platformMeta: Record<string, { name: string; bg: string; color: string; bg
   },
 };
 
+// Status badge config
+const statusConfig: Record<string, { label: string; color: string; bgColor: string; icon: React.ElementType }> = {
+  draft: { label: "Draft", color: "text-slate-600", bgColor: "bg-slate-100 border-slate-200", icon: Edit3 },
+  scheduled: { label: "Scheduled", color: "text-amber-700", bgColor: "bg-amber-50 border-amber-200", icon: Clock },
+  published: { label: "Published", color: "text-emerald-700", bgColor: "bg-emerald-50 border-emerald-200", icon: CheckCircle2 },
+  failed: { label: "Failed", color: "text-red-700", bgColor: "bg-red-50 border-red-200", icon: XCircle },
+};
+
 // Helper: get week start (Sunday) for a given date
 function getWeekStart(date: Date): Date {
   const d = new Date(date);
@@ -81,9 +95,12 @@ function getWeekStart(date: Date): Date {
   return d;
 }
 
-// Helper: format date as YYYY-MM-DD
+// Helper: format date as YYYY-MM-DD (local timezone)
 function toDateStr(date: Date): string {
-  return date.toISOString().split("T")[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 // Preset Content Ideas
@@ -109,25 +126,27 @@ export function SocialPlanner() {
 
   // Selected state for planner composer
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>(["instagram"]);
-  const [caption, setCaption] = useState("AI is transforming the way businesses market, engage, and grow. Smarter workflows. Better insights. Real results. 🚀 Are you ready to future-proof your marketing?");
+  const [caption, setCaption] = useState("");
   const [aiPrompt, setAiPrompt] = useState("");
   const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
-  const [hashtags, setHashtags] = useState<string[]>(["AI", "Marketing", "Growth"]);
+  const [hashtags, setHashtags] = useState<string[]>([]);
   const [ctaType, setCtaType] = useState("Learn More");
-  const [ctaUrl, setCtaUrl] = useState("https://solospider.ai/ai-marketing");
+  const [ctaUrl, setCtaUrl] = useState("");
   const [scheduleDate, setScheduleDate] = useState(toDateStr(new Date()));
   const [scheduleTime, setScheduleTime] = useState("10:00");
-  const [mediaList, setMediaList] = useState<string[]>([
-    "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&auto=format&fit=crop&q=60",
-    "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=500&auto=format&fit=crop&q=60",
-    "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&auto=format&fit=crop&q=60"
-  ]);
+  const [mediaList, setMediaList] = useState<string[]>([]);
   const [activeComposerTab, setActiveComposerTab] = useState<"create" | "drafts">("create");
   const [calendarViewMode, setCalendarViewMode] = useState<"week" | "month">("week");
   const [viewMode, setViewMode] = useState<"calendar" | "composer">("calendar");
   
   // Selected post details modal
   const [selectedPostDetails, setSelectedPostDetails] = useState<any>(null);
+  // Reschedule inline editor state
+  const [rescheduleDate, setRescheduleDate] = useState("");
+  const [rescheduleTime, setRescheduleTime] = useState("");
+  const [showRescheduleEditor, setShowRescheduleEditor] = useState(false);
+  // Delete confirmation
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch Connected Accounts status
   const accountsQuery = useQuery({
@@ -183,6 +202,47 @@ export function SocialPlanner() {
     },
     onError: (err: any) => {
       toast.error("Error scheduling post", { description: err.message });
+    }
+  });
+
+  // Mutation: Update post (reschedule, edit)
+  const updatePostMutation = useMutation({
+    mutationFn: async ({ postId, payload }: { postId: string; payload: Record<string, unknown> }) => {
+      const response = await fetch(`/api/social/posts/manage/${postId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to update post");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["social_posts", activeProject?.id] });
+    }
+  });
+
+  // Mutation: Delete post
+  const deletePostMutation = useMutation({
+    mutationFn: async (postId: string) => {
+      const response = await fetch(`/api/social/posts/manage/${postId}`, {
+        method: "DELETE"
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || "Failed to delete post");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["social_posts", activeProject?.id] });
+      setSelectedPostDetails(null);
+      toast.success("Post deleted successfully.");
+    },
+    onError: (err: any) => {
+      toast.error("Error deleting post", { description: err.message });
     }
   });
 
@@ -309,25 +369,18 @@ export function SocialPlanner() {
     return map;
   }, [accountsQuery.data]);
 
-  // Performance stats from connected accounts (real handles, simulated metrics for sandbox)
+  // Real performance data from connected accounts
   const connectedStats = React.useMemo(() => {
-    const allPlatforms = ["instagram", "facebook", "linkedin", "twitter", "pinterest"];
-    const fakeMetrics: Record<string, { reach: string; engRate: string; arrow: string; sparkline: number[] }> = {
-      instagram: { reach: "12.4K", engRate: "4.7%", arrow: "up", sparkline: [20, 35, 45, 30, 50, 75, 60] },
-      facebook:  { reach: "8.7K",  engRate: "3.6%", arrow: "up", sparkline: [10, 15, 25, 40, 35, 45, 55] },
-      linkedin:  { reach: "15.2K", engRate: "5.7%", arrow: "up", sparkline: [30, 45, 40, 60, 65, 80, 95] },
-      twitter:   { reach: "6.1K",  engRate: "3.2%", arrow: "down", sparkline: [40, 35, 30, 25, 28, 22, 20] },
-      pinterest: { reach: "3.8K",  engRate: "2.9%", arrow: "up", sparkline: [15, 20, 18, 30, 28, 35, 40] },
-    };
-    // Only show platforms that are actually connected
-    const connected = (accountsQuery.data || []).map(acc => acc.platform);
-    const platforms = connected;
-    return platforms.map(p => ({
-      platform: p,
-      handle: accountHandleMap[p] || "—",
-      ...(fakeMetrics[p] || { reach: "—", engRate: "—", arrow: "up", sparkline: [10, 20, 15, 25, 20, 30, 25] }),
+    const connected = accountsQuery.data || [];
+    return connected.map(acc => ({
+      platform: acc.platform,
+      handle: acc.handle || acc.platform_account_id || "—",
+      connectionStatus: acc.connection_status || "connected",
+      lastPublishAt: acc.last_publish_at || null,
+      lastPublishStatus: acc.last_publish_status || null,
+      lastPublishError: acc.last_publish_error || null,
     }));
-  }, [accountsQuery.data, accountHandleMap]);
+  }, [accountsQuery.data]);
 
   // Dynamic week days based on current navigation offset
   const daysOfWeek = React.useMemo(() => {
@@ -385,8 +438,96 @@ export function SocialPlanner() {
   // Use only real DB posts — no hardcoded fake defaults
   const allScheduledPosts = postsQuery.data || [];
 
-  // Real count from DB
+  // Real counts from DB
   const connectedCount = accountsQuery.data?.length ?? 0;
+  const scheduledPostsCount = allScheduledPosts.filter((p: any) => p.status === "scheduled").length;
+  const draftPostsCount = allScheduledPosts.filter((p: any) => p.status === "draft").length;
+  const publishedPostsCount = allScheduledPosts.filter((p: any) => p.status === "published").length;
+
+  // Compute best time to post from real published posts
+  const bestTimeToPost = React.useMemo(() => {
+    const published = allScheduledPosts.filter((p: any) => p.status === "published" && p.published_at);
+    if (published.length === 0) return null;
+    
+    // Count posts by hour
+    const hourCounts: Record<number, number> = {};
+    const dayCounts: Record<number, number> = {};
+    for (const p of published) {
+      const d = new Date(p.published_at);
+      const hour = d.getHours();
+      const day = d.getDay();
+      hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+      dayCounts[day] = (dayCounts[day] || 0) + 1;
+    }
+    
+    const bestHour = Object.entries(hourCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const bestDay = Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    
+    if (!bestHour) return null;
+    
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const h = parseInt(bestHour);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+    
+    return {
+      time: `${displayHour}:00 ${ampm}`,
+      day: dayNames[parseInt(bestDay || "0")] || "—",
+    };
+  }, [allScheduledPosts]);
+
+  // Handle reschedule
+  const handleReschedule = async () => {
+    if (!selectedPostDetails || !rescheduleDate || !rescheduleTime) return;
+    
+    const newScheduledAt = new Date(`${rescheduleDate}T${rescheduleTime}:00`).toISOString();
+    
+    try {
+      await updatePostMutation.mutateAsync({
+        postId: selectedPostDetails.id,
+        payload: { scheduled_at: newScheduledAt }
+      });
+      toast.success("Post rescheduled!", { description: `New schedule: ${rescheduleDate} at ${rescheduleTime}` });
+      setShowRescheduleEditor(false);
+      setSelectedPostDetails(null);
+    } catch (err: any) {
+      toast.error("Failed to reschedule", { description: err.message });
+    }
+  };
+
+  // Handle retry (failed → scheduled)
+  const handleRetry = async (post: any) => {
+    try {
+      await updatePostMutation.mutateAsync({
+        postId: post.id,
+        payload: { status: "scheduled" }
+      });
+      toast.success("Post queued for retry!", { description: "The worker will attempt to publish it again." });
+      setSelectedPostDetails(null);
+    } catch (err: any) {
+      toast.error("Failed to retry", { description: err.message });
+    }
+  };
+
+  // Handle delete
+  const handleDeletePost = async (postId: string) => {
+    deletePostMutation.mutate(postId);
+    setShowDeleteConfirm(false);
+  };
+
+  // Open post detail modal
+  const openPostModal = (post: any) => {
+    setSelectedPostDetails(post);
+    setShowRescheduleEditor(false);
+    setShowDeleteConfirm(false);
+    if (post.scheduled_at) {
+      const d = new Date(post.scheduled_at);
+      setRescheduleDate(toDateStr(d));
+      const hours = String(d.getHours()).padStart(2, "0");
+      const mins = String(d.getMinutes()).padStart(2, "0");
+      setRescheduleTime(`${hours}:${mins}`);
+    }
+  };
 
   if (viewMode === "composer") {
     return (
@@ -483,9 +624,9 @@ export function SocialPlanner() {
         </div>
       </div>
 
-      {/* 4 Cards Metrics Bar */}
+      {/* 4 Cards Metrics Bar — ALL REAL DATA */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Metric 1 */}
+        {/* Metric 1: Connected Accounts (real) */}
         <div 
           onClick={() => router.push("/app/en/settings/integrations")}
           className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
@@ -512,7 +653,7 @@ export function SocialPlanner() {
           </div>
         </div>
 
-        {/* Metric 2 */}
+        {/* Metric 2: Scheduled Posts (real count) */}
         <div 
           onClick={() => document.getElementById("calendar-grid")?.scrollIntoView({ behavior: "smooth" })}
           className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
@@ -524,18 +665,29 @@ export function SocialPlanner() {
           <div>
             <span className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Scheduled Posts</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black text-slate-800">{allScheduledPosts.length}</span>
-              <span className="bg-indigo-500/10 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                This Week <ArrowUpRight className="w-3 h-3 text-indigo-500" /> +18%
-              </span>
+              <span className="text-2xl font-black text-slate-800">{scheduledPostsCount}</span>
+              {draftPostsCount > 0 && (
+                <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {draftPostsCount} draft{draftPostsCount > 1 ? "s" : ""}
+                </span>
+              )}
+              {publishedPostsCount > 0 && (
+                <span className="bg-emerald-500/10 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                  {publishedPostsCount} published
+                </span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Metric 3 */}
+        {/* Metric 3: Engagement Rate (real — shows dash when no data) */}
         <div 
           onClick={() => {
-            toast.info("Brand engagement details: Instagram: 4.7% | Facebook: 3.6% | LinkedIn: 5.7%");
+            if (publishedPostsCount > 0) {
+              toast.info(`${publishedPostsCount} posts published. Connect Facebook Insights for detailed engagement data.`);
+            } else {
+              toast.info("No published posts yet. Schedule and publish posts to track engagement.");
+            }
           }}
           className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
         >
@@ -546,20 +698,23 @@ export function SocialPlanner() {
           <div>
             <span className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Engagement Rate</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl font-black text-slate-800">4.8%</span>
-              <span className="bg-pink-500/10 text-pink-600 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                +0.6% vs last 7d
+              <span className="text-2xl font-black text-slate-800">—</span>
+              <span className="text-[10px] font-semibold text-slate-400">
+                {publishedPostsCount > 0 ? "Connect Insights" : "No data yet"}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Metric 4 */}
+        {/* Metric 4: Best Time to Post (computed from real data or dash) */}
         <div 
           onClick={() => {
-            setScheduleDate("2026-07-22");
-            setScheduleTime("10:00");
-            toast.success("Social schedule parameter preset to recommended slot: Wednesday at 10:00 AM");
+            if (bestTimeToPost) {
+              setScheduleTime(bestTimeToPost.time.split(" ")[0].padStart(5, "0"));
+              toast.success(`Schedule preset to recommended slot: ${bestTimeToPost.day} at ${bestTimeToPost.time}`);
+            } else {
+              toast.info("Publish more posts to unlock best-time recommendations.");
+            }
           }}
           className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
         >
@@ -570,10 +725,21 @@ export function SocialPlanner() {
           <div>
             <span className="text-xs font-medium text-slate-400 uppercase tracking-wider block">Best Time to Post</span>
             <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-xl font-black text-slate-800">10:00 AM</span>
-              <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                Wednesday
-              </span>
+              {bestTimeToPost ? (
+                <>
+                  <span className="text-xl font-black text-slate-800">{bestTimeToPost.time}</span>
+                  <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                    {bestTimeToPost.day}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl font-black text-slate-800">—</span>
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    Needs published posts
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -617,17 +783,26 @@ export function SocialPlanner() {
 
                       {/* Days contents cells */}
                       {daysOfWeek.map((day) => {
-                        // Check if there are scheduled posts matching this time & day
+                        // Match posts for this cell
                         const matchingPosts = allScheduledPosts.filter((post: any) => {
+                          if (!post.scheduled_at && timeSlot === "All-day" && post.status === "draft") {
+                            // Draft posts with no schedule → show in All-day
+                            return true; // Will be filtered by date below
+                          }
                           if (!post.scheduled_at) return false;
-                          const dateMatch = post.scheduled_at.startsWith(day.dateStr);
+                          
+                          // Convert scheduled_at to local date string for comparison
+                          const postDate = new Date(post.scheduled_at);
+                          const postDateStr = toDateStr(postDate);
+                          const dateMatch = postDateStr === day.dateStr;
                           if (!dateMatch) return false;
                           if (timeSlot === "All-day") return false;
-                          // Match hour from time slot
+                          
+                          // Match hour from time slot using LOCAL time
                           const slotHour = timeSlot.includes("PM")
                             ? (parseInt(timeSlot) === 12 ? 12 : parseInt(timeSlot) + 12)
                             : (parseInt(timeSlot) === 12 ? 0 : parseInt(timeSlot));
-                          const postHour = new Date(post.scheduled_at).getUTCHours();
+                          const postHour = postDate.getHours();
                           return postHour === slotHour;
                         });
 
@@ -653,10 +828,11 @@ export function SocialPlanner() {
                             {/* Display post cards in cell */}
                             {matchingPosts.map((post: any) => {
                               const meta = platformMeta[post.platform as keyof typeof platformMeta] || platformMeta.instagram;
+                              const status = statusConfig[post.status] || statusConfig.draft;
                               return (
                                 <div
                                   key={post.id}
-                                  onClick={() => setSelectedPostDetails(post)}
+                                  onClick={() => openPostModal(post)}
                                   className="relative overflow-hidden rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm hover:shadow-md cursor-pointer hover:border-violet-300 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between h-full select-none"
                                 >
                                   {/* Glowing Left Platform Border Accent */}
@@ -667,8 +843,9 @@ export function SocialPlanner() {
                                   </p>
 
                                   <div className="flex items-center justify-between mt-2 pl-1 select-none">
-                                    <span className={`text-[9px] font-black uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded text-slate-500`}>
-                                      {post.scheduled_at.substring(11, 16) || "10:00"}
+                                    {/* Status badge */}
+                                    <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${status.bgColor} ${status.color}`}>
+                                      {status.label}
                                     </span>
                                     <div className={`w-4.5 h-4.5 rounded-full bg-gradient-to-tr ${meta.bg} flex items-center justify-center text-white text-[9px] font-extrabold uppercase shadow-sm`}>
                                       {post.platform[0]}
@@ -699,7 +876,15 @@ export function SocialPlanner() {
                 {/* 42-day calendar cells */}
                 <div className="grid grid-cols-7 grid-rows-6 divide-x divide-y divide-slate-100 border-t border-slate-100">
                   {monthDays.map((day) => {
-                    const matchingPosts = allScheduledPosts.filter((post: any) => post.scheduled_at?.startsWith(day.dateStr));
+                    const matchingPosts = allScheduledPosts.filter((post: any) => {
+                      if (!post.scheduled_at) return false;
+                      const postDateStr = toDateStr(new Date(post.scheduled_at));
+                      return postDateStr === day.dateStr;
+                    });
+                    // Also include drafts without schedule on today's cell
+                    const draftPosts = day.isToday ? allScheduledPosts.filter((p: any) => p.status === "draft" && !p.scheduled_at) : [];
+                    const allPosts = [...matchingPosts, ...draftPosts];
+
                     return (
                       <div
                         key={day.dateStr}
@@ -734,14 +919,15 @@ export function SocialPlanner() {
 
                         {/* List post indicators in cell */}
                         <div className="flex-1 overflow-y-auto max-h-[85px] no-scrollbar space-y-1.5">
-                          {matchingPosts.map((post: any) => {
+                          {allPosts.map((post: any) => {
                             const meta = platformMeta[post.platform as keyof typeof platformMeta] || platformMeta.instagram;
+                            const status = statusConfig[post.status] || statusConfig.draft;
                             return (
                               <div
                                 key={post.id}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedPostDetails(post);
+                                  openPostModal(post);
                                 }}
                                 className="flex items-center gap-1.5 bg-white border border-slate-200/80 rounded-xl px-2 py-1 cursor-pointer hover:border-violet-300 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-sm"
                               >
@@ -750,6 +936,9 @@ export function SocialPlanner() {
                                 </div>
                                 <span className="text-[9px] font-bold text-slate-700 truncate flex-1 leading-none select-none">
                                   {post.caption}
+                                </span>
+                                <span className={`text-[7px] font-bold uppercase px-1 py-0.5 rounded ${status.bgColor} ${status.color}`}>
+                                  {status.label}
                                 </span>
                               </div>
                             );
@@ -814,15 +1003,15 @@ export function SocialPlanner() {
               </button>
             </div>
 
-            {/* Recent Performance Analytics Grid */}
+            {/* Recent Performance — REAL DATA from social_accounts */}
             <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-emerald-500" />
-                  Recent Performance
+                  Connected Platforms
                 </h3>
                 <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md">
-                  Last 7 Days
+                  Real-time Status
                 </span>
               </div>
 
@@ -847,26 +1036,33 @@ export function SocialPlanner() {
                         </div>
                       </div>
 
-                      {/* Reach & Engagement stats */}
-                      <div className="flex items-center gap-5">
+                      {/* Real status info */}
+                      <div className="flex items-center gap-3">
                         <div className="text-right">
-                          <p className="text-xs font-black text-slate-800">{stat.reach}</p>
-                          <p className="text-[9px] font-bold text-emerald-500">Reach</p>
+                          <p className="text-[10px] font-bold text-slate-600">
+                            {stat.connectionStatus === "connected" ? (
+                              <span className="text-emerald-600 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Connected
+                              </span>
+                            ) : (
+                              <span className="text-amber-600">{stat.connectionStatus}</span>
+                            )}
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs font-black text-slate-800">{stat.engRate}</p>
-                          <p className="text-[9px] font-bold text-indigo-500">Engagement</p>
-                        </div>
-                        {/* Sparkline simulation using SVG */}
-                        <div className="w-12 h-6 flex items-center">
-                          <svg className="w-full h-full text-emerald-500" viewBox="0 0 100 50">
-                            <polyline
-                              fill="none"
-                              stroke={stat.arrow === "up" ? "#10B981" : "#EF4444"}
-                              strokeWidth="4"
-                              points={stat.sparkline.map((val, idx) => `${idx * 16},${50 - val}`).join(" ")}
-                            />
-                          </svg>
+                          {stat.lastPublishAt ? (
+                            <div>
+                              <p className="text-[9px] font-bold text-slate-500">
+                                Last: {new Date(stat.lastPublishAt).toLocaleDateString()}
+                              </p>
+                              <p className={`text-[9px] font-bold ${stat.lastPublishStatus === "success" ? "text-emerald-500" : "text-red-500"}`}>
+                                {stat.lastPublishStatus === "success" ? "✓ Success" : "✗ Failed"}
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-[9px] font-bold text-slate-300">No publishes yet</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -880,10 +1076,9 @@ export function SocialPlanner() {
         </div>
 
 
-
       </div>
 
-      {/* Selected Post Details Overlay Modal */}
+      {/* Selected Post Details Overlay Modal — FULL ACTIONS */}
       {selectedPostDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300">
           <div 
@@ -901,12 +1096,23 @@ export function SocialPlanner() {
                   <h4 className="text-sm font-extrabold text-slate-800 uppercase tracking-wide">
                     {platformMeta[selectedPostDetails.platform as keyof typeof platformMeta]?.name} Post
                   </h4>
-                  <p className="text-[10px] text-slate-400 font-medium">Scheduled publishing</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {(() => {
+                      const sc = statusConfig[selectedPostDetails.status] || statusConfig.draft;
+                      const StatusIcon = sc.icon;
+                      return (
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${sc.bgColor} ${sc.color}`}>
+                          <StatusIcon className="w-3 h-3" />
+                          {sc.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
 
               <button 
-                onClick={() => setSelectedPostDetails(null)}
+                onClick={() => { setSelectedPostDetails(null); setShowRescheduleEditor(false); setShowDeleteConfirm(false); }}
                 className="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-lg transition-colors text-xs font-bold px-3 border border-slate-200"
               >
                 Close
@@ -927,19 +1133,164 @@ export function SocialPlanner() {
               </p>
             </div>
 
-            {/* Bottom details status bar */}
+            {/* Error display for failed posts */}
+            {selectedPostDetails.status === "failed" && selectedPostDetails.publish_error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Publish Error</p>
+                  <p className="text-[11px] text-red-600 mt-0.5">{selectedPostDetails.publish_error}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Reschedule inline editor */}
+            {showRescheduleEditor && (
+              <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 space-y-3">
+                <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Reschedule Post</p>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="date"
+                    value={rescheduleDate}
+                    onChange={(e) => setRescheduleDate(e.target.value)}
+                    className="text-xs border border-indigo-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-semibold"
+                  />
+                  <input
+                    type="time"
+                    value={rescheduleTime}
+                    onChange={(e) => setRescheduleTime(e.target.value)}
+                    className="text-xs border border-indigo-200 rounded-lg px-3 py-2 bg-white text-slate-700 font-semibold"
+                  />
+                  <button
+                    onClick={handleReschedule}
+                    disabled={updatePostMutation.isPending}
+                    className="bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                  >
+                    {updatePostMutation.isPending ? "Saving..." : "Confirm"}
+                  </button>
+                  <button
+                    onClick={() => setShowRescheduleEditor(false)}
+                    className="text-xs text-slate-500 hover:text-slate-700 font-bold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Delete confirmation */}
+            {showDeleteConfirm && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+                <p className="text-xs font-bold text-red-700">Are you sure you want to delete this post? This cannot be undone.</p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleDeletePost(selectedPostDetails.id)}
+                    disabled={deletePostMutation.isPending}
+                    className="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                  >
+                    {deletePostMutation.isPending ? "Deleting..." : "Yes, Delete"}
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="text-xs text-slate-500 hover:text-slate-700 font-bold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Bottom details & action buttons */}
             <div className="flex items-center justify-between border-t border-slate-100 pt-4">
               <div>
-                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Scheduled for</span>
-                <span className="text-xs font-extrabold text-slate-700 mt-0.5 block">
-                  {new Date(selectedPostDetails.scheduled_at).toLocaleDateString()} at {new Date(selectedPostDetails.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
+                {selectedPostDetails.scheduled_at ? (
+                  <>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                      {selectedPostDetails.status === "published" ? "Published" : "Scheduled for"}
+                    </span>
+                    <span className="text-xs font-extrabold text-slate-700 mt-0.5 block">
+                      {new Date(selectedPostDetails.scheduled_at).toLocaleDateString()} at {new Date(selectedPostDetails.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Draft — not scheduled</span>
+                )}
               </div>
 
-              <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-amber-200 shadow-sm animate-pulse">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                Pending Queue
-              </span>
+              {/* Action buttons based on status */}
+              <div className="flex items-center gap-2">
+                {/* Draft or Scheduled: Edit, Reschedule, Delete */}
+                {(selectedPostDetails.status === "draft" || selectedPostDetails.status === "scheduled") && (
+                  <>
+                    <button
+                      onClick={() => setShowRescheduleEditor(!showRescheduleEditor)}
+                      className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                    >
+                      <Calendar className="w-3 h-3" />
+                      {selectedPostDetails.status === "draft" ? "Schedule" : "Reschedule"}
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                      className="text-[10px] font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
+                  </>
+                )}
+
+                {/* Published: View on Facebook */}
+                {selectedPostDetails.status === "published" && (
+                  <>
+                    {selectedPostDetails.publish_response?.permalink ? (
+                      <a
+                        href={selectedPostDetails.publish_response.permalink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        View on {platformMeta[selectedPostDetails.platform]?.name || "Platform"}
+                      </a>
+                    ) : selectedPostDetails.external_post_id ? (
+                      <a
+                        href={`https://www.facebook.com/${selectedPostDetails.external_post_id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        View on Facebook
+                      </a>
+                    ) : null}
+                    <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1.5 border border-emerald-200 shadow-sm">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Published
+                    </span>
+                  </>
+                )}
+
+                {/* Failed: Retry */}
+                {selectedPostDetails.status === "failed" && (
+                  <>
+                    <button
+                      onClick={() => handleRetry(selectedPostDetails)}
+                      disabled={updatePostMutation.isPending}
+                      className="text-[10px] font-bold text-amber-600 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 disabled:opacity-50"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      Retry Publish
+                    </button>
+                    <button
+                      onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                      className="text-[10px] font-bold text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

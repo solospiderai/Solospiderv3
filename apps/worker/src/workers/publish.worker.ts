@@ -103,6 +103,8 @@ async function publishToFacebookPage(params: {
   imageUrl: string | null;
   caption: string;
 }) {
+  let feedPostId: string;
+
   if (params.imageUrl) {
     console.log(`[PublishWorker] Uploading unpublished photo to Facebook page ${params.pageId}`);
     // Step 1: Upload the photo as unpublished
@@ -140,9 +142,7 @@ async function publishToFacebookPage(params: {
       throw new Error(`Facebook Page timeline post failed: ${JSON.stringify(json)}`);
     }
 
-    return {
-      postId: String(json.id),
-    };
+    feedPostId = String(json.id);
   } else {
     // Text-only post
     const res = await fetch(`https://graph.facebook.com/v20.0/${params.pageId}/feed`, {
@@ -159,11 +159,30 @@ async function publishToFacebookPage(params: {
       throw new Error(`Facebook Page publish failed: ${JSON.stringify(json)}`);
     }
 
-    return {
-      postId: String(json.id),
-    };
+    feedPostId = String(json.id);
   }
+
+  // Step 3: Fetch the permalink for the published post
+  let permalink: string | null = null;
+  try {
+    const plRes = await fetch(
+      `https://graph.facebook.com/v20.0/${feedPostId}?fields=permalink_url&access_token=${params.accessToken}`
+    );
+    const plJson = await plRes.json() as any;
+    if (plRes.ok && plJson?.permalink_url) {
+      permalink = plJson.permalink_url;
+      console.log(`[PublishWorker] Facebook permalink: ${permalink}`);
+    }
+  } catch (plErr: any) {
+    console.warn(`[PublishWorker] Could not fetch permalink: ${plErr.message}`);
+  }
+
+  return {
+    postId: feedPostId,
+    permalink,
+  };
 }
+
 
 async function publishToLinkedIn(params: {
   accessToken: string;
@@ -474,6 +493,7 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
         ...publishMeta,
         mode: publishMode,
         external_post_id: result.postId,
+        permalink: result.permalink,
       };
     } else if (scheduledPost.platform === "linkedin" && publishToken && socialAccount.platform_account_id) {
       const result = await publishToLinkedIn({
