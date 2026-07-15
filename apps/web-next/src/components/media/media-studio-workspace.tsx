@@ -583,31 +583,10 @@ export function MediaStudioWorkspace() {
       toast.error("Failed to delete asset from database");
     }
   };
-
-  const handleDownloadAsset = async (url: string, format: string) => {
-    try {
-      toast.info("Downloading file locally...");
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      
-      const fileExt = url.toLowerCase().includes(".mp4") ? "mp4" : "png";
-      link.download = `solospider_asset_${Date.now()}.${fileExt}`;
-      
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-      toast.success("Download completed successfully!");
-    } catch (error) {
-      console.error("Failed to download image locally:", error);
-      // Fallback: Open in new tab
-      window.open(url, "_blank");
-    }
+  const handleDownloadAsset = (url: string) => {
+    toast.info("Downloading file locally...");
+    window.location.href = `/api/media/download?url=${encodeURIComponent(url)}`;
   };
-
   const handleUpdateCaption = async (id: string, newCaption: string) => {
     try {
       const supabase = getSupabaseBrowserClient();
