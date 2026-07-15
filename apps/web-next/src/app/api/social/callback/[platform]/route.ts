@@ -7,6 +7,15 @@ interface RouteContext {
   params: Promise<{ platform: string }>;
 }
 
+/** Pretty platform names for the success HTML page */
+const platformDisplayNames: Record<string, string> = {
+  linkedin: "LinkedIn",
+  twitter: "X (Twitter)",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  pinterest: "Pinterest",
+};
+
 export async function GET(request: NextRequest, { params }: RouteContext) {
   const supabase = await getSupabaseServerClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -51,6 +60,10 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     let platformAccountId = "mock_id";
     let handle = "Mock User";
     let isMock = false;
+    // Extra fields for Meta platforms (Facebook / Instagram)
+    let metaPageId: string | null = null;
+    let tokenExpiresAt: string | null = null;
+    let metaIgUserId: string | null = null;
 
     if (platform === "linkedin") {
       const clientExists = env.LINKEDIN_CLIENT_ID && env.LINKEDIN_CLIENT_SECRET && env.LINKEDIN_REDIRECT_URI;
@@ -203,17 +216,106 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         handle = "@Insta_SandboxUser";
         isMock = true;
       }
+
     } else if (platform === "facebook") {
-      const hasConfig = process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET && process.env.FACEBOOK_REDIRECT_URI;
+      // ─── REAL FACEBOOK OAUTH FLOW ────────────────────────────────────────
+      const hasConfig = env.FACEBOOK_CLIENT_ID && env.FACEBOOK_CLIENT_SECRET && env.FACEBOOK_REDIRECT_URI;
+
       if (hasConfig) {
-        const tokenResponse = await fetch(`https://graph.facebook.com/v18.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(process.env.FACEBOOK_REDIRECT_URI || "")}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${code}`);
-        const tokenData = await tokenResponse.json();
-        if (!tokenResponse.ok) {
-          throw new Error(`Facebook OAuth error: ${tokenData.error?.message || "Unknown error"}`);
+        // Step 1: Exchange authorization code for a short-lived user access token
+        console.log(`[SocialCallback] Facebook: Exchanging code for short-lived user token`);
+        const tokenUrl = new URL("https://graph.facebook.com/v20.0/oauth/access_token");
+        tokenUrl.searchParams.set("client_id", env.FACEBOOK_CLIENT_ID || "");
+        tokenUrl.searchParams.set("client_secret", env.FACEBOOK_CLIENT_SECRET || "");
+        tokenUrl.searchParams.set("redirect_uri", env.FACEBOOK_REDIRECT_URI || "");
+        tokenUrl.searchParams.set("code", code);
+
+        const tokenResponse = await fetch(tokenUrl.toString());
+        const tokenData = await tokenResponse.json() as any;
+        if (!tokenResponse.ok || !tokenData?.access_token) {
+          throw new Error(`Facebook OAuth error: ${tokenData?.error?.message || JSON.stringify(tokenData)}`);
         }
-        accessToken = tokenData.access_token;
-        platformAccountId = "fb_unknown";
-        handle = "Facebook Page";
+
+        const shortLivedUserToken = tokenData.access_token;
+        console.log(`[SocialCallback] Facebook: Got short-lived user token`);
+
+        // Step 2: Exchange short-lived user token for a long-lived user token
+        console.log(`[SocialCallback] Facebook: Exchanging for long-lived user token`);
+        const llTokenUrl = new URL("https://graph.facebook.com/v20.0/oauth/access_token");
+        llTokenUrl.searchParams.set("grant_type", "fb_exchange_token");
+        llTokenUrl.searchParams.set("client_id", env.FACEBOOK_CLIENT_ID || "");
+        llTokenUrl.searchParams.set("client_secret", env.FACEBOOK_CLIENT_SECRET || "");
+        llTokenUrl.searchParams.set("fb_exchange_token", shortLivedUserToken);
+
+        const llTokenResponse = await fetch(llTokenUrl.toString());
+        const llTokenData = await llTokenResponse.json() as any;
+
+        let longLivedUserToken = shortLivedUserToken; // fallback to short-lived if exchange fails
+        if (llTokenResponse.ok && llTokenData?.access_token) {
+          longLivedUserToken = llTokenData.access_token;
+          const expiresInSec = Number(llTokenData.expires_in || 0);
+          if (expiresInSec > 0) {
+            tokenExpiresAt = new Date(Date.now() + expiresInSec * 1000).toISOString();
+          }
+          console.log(`[SocialCallback] Facebook: Got long-lived user token (expires in ${llTokenData.expires_in}s)`);
+        } else {
+          console.warn(`[SocialCallback] Facebook: Long-lived token exchange failed, using short-lived token. Response: ${JSON.stringify(llTokenData)}`);
+        }
+
+        // Step 3: Fetch user's Facebook Pages
+        console.log(`[SocialCallback] Facebook: Fetching user's Pages`);
+        const pagesUrl = new URL("https://graph.facebook.com/v20.0/me/accounts");
+        pagesUrl.searchParams.set("access_token", longLivedUserToken);
+        pagesUrl.searchParams.set("fields", "id,name,access_token,category,picture");
+
+        const pagesResponse = await fetch(pagesUrl.toString());
+        const pagesData = await pagesResponse.json() as any;
+
+        if (!pagesResponse.ok) {
+          console.error(`[SocialCallback] Facebook: Failed to fetch pages: ${JSON.stringify(pagesData)}`);
+          throw new Error(`Facebook Pages fetch failed: ${pagesData?.error?.message || "Unknown error"}`);
+        }
+
+        const pages = pagesData?.data || [];
+        console.log(`[SocialCallback] Facebook: Found ${pages.length} Page(s)`);
+
+        if (pages.length === 0) {
+          // User has no Pages — they need to create one or grant page permissions
+          throw new Error(
+            "No Facebook Pages found on your account. To publish posts, you need a Facebook Page. " +
+            "Please create a Facebook Page first, then reconnect."
+          );
+        }
+
+        // Use the first Page (for now — could add page picker UI later)
+        const selectedPage = pages[0];
+        // The Page Access Token from /me/accounts using a long-lived user token
+        // is already a long-lived page access token that never expires
+        accessToken = selectedPage.access_token;
+        metaPageId = selectedPage.id;
+        platformAccountId = selectedPage.id;
+        handle = selectedPage.name || "Facebook Page";
+        // Page access tokens derived from long-lived user tokens don't expire
+        tokenExpiresAt = null;
+
+        console.log(`[SocialCallback] Facebook: Connected Page "${handle}" (ID: ${metaPageId})`);
+
+        // Step 4 (Optional): Check if page has an Instagram Business account linked
+        try {
+          const igCheckUrl = new URL(`https://graph.facebook.com/v20.0/${metaPageId}`);
+          igCheckUrl.searchParams.set("fields", "instagram_business_account");
+          igCheckUrl.searchParams.set("access_token", accessToken);
+
+          const igCheckRes = await fetch(igCheckUrl.toString());
+          const igCheckData = await igCheckRes.json() as any;
+          if (igCheckData?.instagram_business_account?.id) {
+            metaIgUserId = igCheckData.instagram_business_account.id;
+            console.log(`[SocialCallback] Facebook: Found linked Instagram Business Account: ${metaIgUserId}`);
+          }
+        } catch (igErr: any) {
+          console.warn(`[SocialCallback] Facebook: Could not check Instagram Business account: ${igErr.message}`);
+        }
+
       } else {
         console.log(`[SocialCallback] Developer Mode: No Facebook config. Seeding mock connection.`);
         accessToken = "fb_real_token_stub";
@@ -221,6 +323,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         handle = "Facebook Sandbox Page";
         isMock = true;
       }
+
     } else if (platform === "pinterest") {
       const hasConfig = process.env.PINTEREST_CLIENT_ID && process.env.PINTEREST_CLIENT_SECRET && process.env.PINTEREST_REDIRECT_URI;
       if (hasConfig) {
@@ -324,6 +427,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: `Unsupported platform: ${platform}` }, { status: 400 });
     }
 
+    // ─── SAVE TO DATABASE ───────────────────────────────────────────────
     const adminClient = getSupabaseAdminClient();
 
     // Check if record already exists to avoid upsert constraint requirement
@@ -334,16 +438,24 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       .eq("platform", platform)
       .maybeSingle();
 
+    // Build the record payload — include meta fields if present
+    const accountPayload: Record<string, unknown> = {
+      handle,
+      access_token: accessToken,
+      platform_account_id: platformAccountId,
+      connection_status: "connected",
+    };
+
+    // Store Meta-specific fields when available
+    if (metaPageId) accountPayload.meta_page_id = metaPageId;
+    if (tokenExpiresAt) accountPayload.token_expires_at = tokenExpiresAt;
+    if (metaIgUserId) accountPayload.meta_ig_user_id = metaIgUserId;
+
     let dbError = null;
     if (existingAccount) {
       const { error: updateError } = await adminClient
         .from("social_accounts")
-        .update({
-          handle,
-          access_token: accessToken,
-          platform_account_id: platformAccountId,
-          connection_status: "connected",
-        })
+        .update(accountPayload)
         .eq("id", existingAccount.id);
       dbError = updateError;
     } else {
@@ -352,15 +464,14 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         .insert({
           project_id: projectId,
           platform,
-          handle,
-          access_token: accessToken,
-          platform_account_id: platformAccountId,
-          connection_status: "connected",
+          ...accountPayload,
         });
       dbError = insertError;
     }
 
     if (dbError) throw dbError;
+
+    const displayName = platformDisplayNames[platform] || platform;
 
     return new NextResponse(
       `<html>
@@ -368,17 +479,19 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
           <title>Connection Successful</title>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 50px; background-color: #f8fafc; color: #1e293b; }
-            .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 450px; margin: 0 auto; border: 1px border #e2e8f0; }
+            .card { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 450px; margin: 0 auto; border: 1px solid #e2e8f0; }
             h1 { color: #10b981; font-size: 24px; margin-bottom: 10px; }
             p { font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 20px; }
             .badge { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: 11px; font-weight: bold; background: #e0f2fe; color: #0369a1; text-transform: uppercase; margin-bottom: 15px; }
+            .meta-info { font-size: 11px; color: #94a3b8; margin-top: 8px; }
           </style>
         </head>
         <body>
           <div class="card">
             <h1>Connection Successful!</h1>
             ${isMock ? `<div class="badge">Sandbox Mode</div>` : ""}
-            <p>Your ${platform === "linkedin" ? "LinkedIn" : "X (Twitter)"} account <strong>${handle}</strong> has been successfully linked to your project.</p>
+            <p>Your <strong>${displayName}</strong> account <strong>${handle}</strong> has been successfully linked to your project.</p>
+            ${metaPageId ? `<p class="meta-info">Page ID: ${metaPageId}${metaIgUserId ? ` · Instagram ID: ${metaIgUserId}` : ""}</p>` : ""}
             <p>You can close this window now.</p>
             <script>
               setTimeout(function() {

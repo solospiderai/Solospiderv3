@@ -66,13 +66,19 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     }
 
     const env = getServerEnv();
+    console.log(`[SocialConnect] Platform: ${platform}`);
+    console.log(`[SocialConnect] env.FACEBOOK_CLIENT_ID: "${env.FACEBOOK_CLIENT_ID}"`);
+    console.log(`[SocialConnect] env.FACEBOOK_REDIRECT_URI: "${env.FACEBOOK_REDIRECT_URI}"`);
+    
+    // NextResponse.redirect() requires absolute URLs — derive origin from the request
+    const origin = request.nextUrl.origin;
     let oauthUrl = "";
 
     switch (platform) {
       case "linkedin": {
         const clientExists = env.LINKEDIN_CLIENT_ID && env.LINKEDIN_CLIENT_SECRET && env.LINKEDIN_REDIRECT_URI;
         if (!clientExists) {
-          oauthUrl = `/api/social/callback/linkedin?code=mock_code&state=${projectId}`;
+          oauthUrl = `${origin}/api/social/callback/linkedin?code=mock_code&state=${projectId}`;
         } else {
           oauthUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${env.LINKEDIN_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.LINKEDIN_REDIRECT_URI || "")}&state=${projectId}&scope=w_member_social`;
         }
@@ -81,7 +87,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       case "twitter": {
         const clientExists = env.TWITTER_CLIENT_ID && env.TWITTER_CLIENT_SECRET && env.TWITTER_REDIRECT_URI;
         if (!clientExists) {
-          oauthUrl = `/api/social/callback/twitter?code=mock_code&state=${projectId}`;
+          oauthUrl = `${origin}/api/social/callback/twitter?code=mock_code&state=${projectId}`;
         } else {
           oauthUrl = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${env.TWITTER_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.TWITTER_REDIRECT_URI || "")}&state=${projectId}&scope=tweet.read%20tweet.write%20users.read&code_challenge=challenge_verifier_code_challenge_verifier_code_challenge_verifier_code&code_challenge_method=plain`;
         }
@@ -90,7 +96,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       case "instagram": {
         const clientExists = env.INSTAGRAM_CLIENT_ID && env.INSTAGRAM_REDIRECT_URI;
         if (!clientExists) {
-          oauthUrl = `/api/social/callback/instagram?code=mock_code&state=${projectId}`;
+          oauthUrl = `${origin}/api/social/callback/instagram?code=mock_code&state=${projectId}`;
         } else {
           oauthUrl = `https://api.instagram.com/oauth/authorize?client_id=${env.INSTAGRAM_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.INSTAGRAM_REDIRECT_URI || "")}&scope=user_profile,user_media&response_type=code&state=${projectId}`;
         }
@@ -99,16 +105,18 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       case "facebook": {
         const clientExists = env.FACEBOOK_CLIENT_ID && env.FACEBOOK_REDIRECT_URI;
         if (!clientExists) {
-          oauthUrl = `/api/social/callback/facebook?code=mock_code&state=${projectId}`;
+          oauthUrl = `${origin}/api/social/callback/facebook?code=mock_code&state=${projectId}`;
         } else {
-          oauthUrl = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${env.FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.FACEBOOK_REDIRECT_URI || "")}&scope=pages_manage_posts,pages_read_engagement&state=${projectId}`;
+          // Requesting page permissions now that the Meta app has the use case.
+          const scopes = "public_profile,pages_manage_posts,pages_read_engagement,pages_show_list";
+          oauthUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${env.FACEBOOK_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.FACEBOOK_REDIRECT_URI || "")}&scope=${encodeURIComponent(scopes)}&state=${projectId}`;
         }
         break;
       }
       case "pinterest": {
         const clientExists = env.PINTEREST_CLIENT_ID && env.PINTEREST_REDIRECT_URI;
         if (!clientExists) {
-          oauthUrl = `/api/social/callback/pinterest?code=mock_code&state=${projectId}`;
+          oauthUrl = `${origin}/api/social/callback/pinterest?code=mock_code&state=${projectId}`;
         } else {
           oauthUrl = `https://www.pinterest.com/oauth/?consumer_id=${env.PINTEREST_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.PINTEREST_REDIRECT_URI || "")}&response_type=code&scope=user_accounts:read,boards:read,boards:write,pins:read,pins:write&state=${projectId}`;
         }
@@ -123,4 +131,3 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to initiate oauth" }, { status: 500 });
   }
 }
-
