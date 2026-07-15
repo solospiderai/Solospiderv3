@@ -24,10 +24,10 @@ export const MarketingFooter = () => {
               <Link href="/changelog" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Changelog</Link>
               <Link href="/roadmap" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Roadmap</Link>
               <Link href="/#hero" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Free SEO Audit Tool</Link>
+              <Link href="/free-tools/geo-analysis" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Free GEO Analysis Tool</Link>
             </div>
           </div>
 
-          <div>
             <h6 className="font-display text-[17px] font-extrabold tracking-[.02em] uppercase pb-1.5" style={{ color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '24px' }}>Use Cases</h6>
             <div className="flex flex-col gap-[11px] text-[14px]">
               <Link href="/use-cases/agencies" className="text-white/65 hover:text-[#c5a3ff] transition-colors">For Digital Agencies</Link>
