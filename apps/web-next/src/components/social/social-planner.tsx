@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { SocialComposer } from "./social-composer";
 import { useProjects } from "@/hooks/useProjects";
@@ -94,6 +95,7 @@ const contentIdeas = [
 
 export function SocialPlanner() {
   const { activeProject } = useProjects();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const supabase = getSupabaseBrowserClient();
 
@@ -351,6 +353,33 @@ export function SocialPlanner() {
     return `${fmt(currentWeekStart)} – ${fmt(end)}, ${year}`;
   }, [currentWeekStart]);
 
+  const currentMonth = React.useMemo(() => currentWeekStart.getMonth(), [currentWeekStart]);
+  const currentYear = React.useMemo(() => currentWeekStart.getFullYear(), [currentWeekStart]);
+
+  const monthLabel = React.useMemo(() => {
+    return currentWeekStart.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  }, [currentWeekStart]);
+
+  const monthDays = React.useMemo(() => {
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+    const startDayOfGrid = new Date(firstDayOfMonth);
+    startDayOfGrid.setDate(1 - firstDayOfMonth.getDay());
+    
+    const arr = [];
+    const temp = new Date(startDayOfGrid);
+    for (let i = 0; i < 42; i++) {
+      arr.push({
+        date: new Date(temp),
+        dateStr: toDateStr(temp),
+        dayNum: String(temp.getDate()),
+        isCurrentMonth: temp.getMonth() === currentMonth,
+        isToday: toDateStr(temp) === toDateStr(new Date()),
+      });
+      temp.setDate(temp.getDate() + 1);
+    }
+    return arr;
+  }, [currentMonth, currentYear]);
+
   const timeSlots = ["All-day", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM"];
 
   // Use only real DB posts — no hardcoded fake defaults
@@ -387,7 +416,7 @@ export function SocialPlanner() {
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-4 text-xs font-semibold text-slate-700 select-none">{weekLabel}</span>
+            <span className="px-4 text-xs font-semibold text-slate-700 select-none">{calendarViewMode === "week" ? weekLabel : monthLabel}</span>
             <button
               onClick={() => setWeekOffset(o => o + 1)}
               className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
@@ -457,7 +486,10 @@ export function SocialPlanner() {
       {/* 4 Cards Metrics Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Metric 1 */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md transition-all duration-200 flex items-center gap-4 relative overflow-hidden group">
+        <div 
+          onClick={() => router.push("/app/en/settings/integrations")}
+          className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-violet-600"></div>
           <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center text-violet-600 group-hover:scale-110 transition-transform duration-200">
             <Users className="w-5.5 h-5.5" />
@@ -481,7 +513,10 @@ export function SocialPlanner() {
         </div>
 
         {/* Metric 2 */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md transition-all duration-200 flex items-center gap-4 relative overflow-hidden group">
+        <div 
+          onClick={() => document.getElementById("calendar-grid")?.scrollIntoView({ behavior: "smooth" })}
+          className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-indigo-600"></div>
           <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform duration-200">
             <Calendar className="w-5.5 h-5.5" />
@@ -498,7 +533,12 @@ export function SocialPlanner() {
         </div>
 
         {/* Metric 3 */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md transition-all duration-200 flex items-center gap-4 relative overflow-hidden group">
+        <div 
+          onClick={() => {
+            toast.info("Brand engagement details: Instagram: 4.7% | Facebook: 3.6% | LinkedIn: 5.7%");
+          }}
+          className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-pink-600"></div>
           <div className="w-12 h-12 rounded-xl bg-pink-50 flex items-center justify-center text-pink-600 group-hover:scale-110 transition-transform duration-200">
             <Activity className="w-5.5 h-5.5" />
@@ -515,7 +555,14 @@ export function SocialPlanner() {
         </div>
 
         {/* Metric 4 */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md transition-all duration-200 flex items-center gap-4 relative overflow-hidden group">
+        <div 
+          onClick={() => {
+            setScheduleDate("2026-07-22");
+            setScheduleTime("10:00");
+            toast.success("Social schedule parameter preset to recommended slot: Wednesday at 10:00 AM");
+          }}
+          className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-[0_2px_8px_rgba(15,23,42,0.03)] hover:shadow-md cursor-pointer hover:scale-[1.02] hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 flex items-center gap-4 relative overflow-hidden group"
+        >
           <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
           <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform duration-200">
             <Clock className="w-5.5 h-5.5" />
@@ -535,103 +582,185 @@ export function SocialPlanner() {
       {/* Main Feature Layout Block */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Interactive Week Calendar Grid (Takes full width of container) */}
-        <div className="lg:col-span-12 space-y-6">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-            {/* Calendar Column headers for Days */}
-            <div className="grid grid-cols-8 border-b border-slate-100 bg-slate-50/50">
-              <div className="p-3 border-r border-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase">
-                TIME
-              </div>
-              {daysOfWeek.map((day) => (
-                <div key={day.label} className="p-3 border-r border-slate-100 last:border-r-0 flex flex-col items-center">
-                  <span className="text-[10px] font-bold text-slate-400 tracking-wider">{day.label}</span>
-                  <span className={`text-base font-black mt-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-                    day.isToday ? "bg-violet-600 text-white shadow-[0_4px_10px_rgba(124,58,237,0.3)] scale-105" : "text-slate-700"
-                  }`}>
-                    {day.dayNum}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Calendar Rows */}
-            <div className="divide-y divide-slate-100">
-              {timeSlots.map((timeSlot) => (
-                <div key={timeSlot} className="grid grid-cols-8 min-h-[90px] group transition-colors duration-150">
-                  {/* Time label */}
-                  <div className="p-2 border-r border-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 bg-slate-50/30">
-                    {timeSlot}
+        {/* Interactive Calendar Grid (Takes full width of container) */}
+        <div id="calendar-grid" className="lg:col-span-12 space-y-6">
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden transition-all duration-300">
+            
+            {calendarViewMode === "week" ? (
+              // --- WEEK VIEW ---
+              <>
+                {/* Calendar Column headers for Days */}
+                <div className="grid grid-cols-8 border-b border-slate-100 bg-slate-50/50">
+                  <div className="p-3 border-r border-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase">
+                    TIME
                   </div>
+                  {daysOfWeek.map((day) => (
+                    <div key={day.label} className="p-3 border-r border-slate-100 last:border-r-0 flex flex-col items-center">
+                      <span className="text-[10px] font-bold text-slate-400 tracking-wider">{day.label}</span>
+                      <span className={`text-base font-black mt-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                        day.isToday ? "bg-violet-600 text-white shadow-[0_4px_10px_rgba(124,58,237,0.3)] scale-105" : "text-slate-700"
+                      }`}>
+                        {day.dayNum}
+                      </span>
+                    </div>
+                  ))}
+                </div>
 
-                  {/* Days contents cells */}
-                  {daysOfWeek.map((day) => {
-                    // Check if there are scheduled posts matching this time & day
-                    const matchingPosts = allScheduledPosts.filter((post: any) => {
-                      if (!post.scheduled_at) return false;
-                      const dateMatch = post.scheduled_at.startsWith(day.dateStr);
-                      if (!dateMatch) return false;
-                      if (timeSlot === "All-day") return false;
-                      // Match hour from time slot
-                      const slotHour = timeSlot.includes("PM")
-                        ? (parseInt(timeSlot) === 12 ? 12 : parseInt(timeSlot) + 12)
-                        : (parseInt(timeSlot) === 12 ? 0 : parseInt(timeSlot));
-                      const postHour = new Date(post.scheduled_at).getUTCHours();
-                      return postHour === slotHour;
-                    });
+                {/* Calendar Rows */}
+                <div className="divide-y divide-slate-100">
+                  {timeSlots.map((timeSlot) => (
+                    <div key={timeSlot} className="grid grid-cols-8 min-h-[90px] group transition-colors duration-150">
+                      {/* Time label */}
+                      <div className="p-2 border-r border-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-500 bg-slate-50/30">
+                        {timeSlot}
+                      </div>
 
-                    return (
-                      <div 
-                        key={`${day.label}-${timeSlot}`} 
-                        className="p-1 border-r border-slate-100 last:border-r-0 relative hover:bg-slate-50/50 flex flex-col gap-1 transition-colors group/cell min-h-[90px]"
-                      >
-                        {/* Plus hover shortcut inside cell */}
-                        <button 
-                          onClick={() => {
-                            setScheduleDate(day.dateStr);
-                            const cleanTime = timeSlot === "All-day" ? "10:00" : timeSlot.split(" ")[0];
-                            setScheduleTime(cleanTime.padStart(5, "0"));
-                            setViewMode("composer");
-                            toast.info(`Set composer target to ${day.dateStr} at ${timeSlot}`);
-                          }}
-                          className="absolute bottom-1 right-1 p-1 bg-white border border-slate-200 rounded-lg shadow-sm text-slate-500 opacity-0 group-hover/cell:opacity-100 hover:text-violet-600 transition-all hover:scale-105 active:scale-[0.93] z-10"
-                        >
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
+                      {/* Days contents cells */}
+                      {daysOfWeek.map((day) => {
+                        // Check if there are scheduled posts matching this time & day
+                        const matchingPosts = allScheduledPosts.filter((post: any) => {
+                          if (!post.scheduled_at) return false;
+                          const dateMatch = post.scheduled_at.startsWith(day.dateStr);
+                          if (!dateMatch) return false;
+                          if (timeSlot === "All-day") return false;
+                          // Match hour from time slot
+                          const slotHour = timeSlot.includes("PM")
+                            ? (parseInt(timeSlot) === 12 ? 12 : parseInt(timeSlot) + 12)
+                            : (parseInt(timeSlot) === 12 ? 0 : parseInt(timeSlot));
+                          const postHour = new Date(post.scheduled_at).getUTCHours();
+                          return postHour === slotHour;
+                        });
 
-                        {/* Display post cards in cell */}
-                        {matchingPosts.map((post: any) => {
-                          const meta = platformMeta[post.platform as keyof typeof platformMeta] || platformMeta.instagram;
-                          return (
-                            <div
-                              key={post.id}
-                              onClick={() => setSelectedPostDetails(post)}
-                              className="relative overflow-hidden rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm hover:shadow-md cursor-pointer hover:border-violet-300 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between h-full select-none"
+                        return (
+                          <div 
+                            key={`${day.label}-${timeSlot}`} 
+                            className="p-1 border-r border-slate-100 last:border-r-0 relative hover:bg-slate-50/50 flex flex-col gap-1 transition-colors group/cell min-h-[90px]"
+                          >
+                            {/* Plus hover shortcut inside cell */}
+                            <button 
+                              onClick={() => {
+                                setScheduleDate(day.dateStr);
+                                const cleanTime = timeSlot === "All-day" ? "10:00" : timeSlot.split(" ")[0];
+                                setScheduleTime(cleanTime.padStart(5, "0"));
+                                setViewMode("composer");
+                                toast.info(`Set composer target to ${day.dateStr} at ${timeSlot}`);
+                              }}
+                              className="absolute bottom-1 right-1 p-1 bg-white border border-slate-200 rounded-lg shadow-sm text-slate-500 opacity-0 group-hover/cell:opacity-100 hover:text-violet-600 transition-all hover:scale-105 active:scale-[0.93] z-10"
                             >
-                              {/* Glowing Left Platform Border Accent */}
-                              <div className={`absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b ${meta.bg}`}></div>
-                              
-                              <p className="text-[11px] font-semibold text-slate-700 leading-snug line-clamp-2 pl-1 select-none">
-                                {post.caption}
-                              </p>
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
 
-                              <div className="flex items-center justify-between mt-2 pl-1 select-none">
-                                <span className={`text-[9px] font-black uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded text-slate-500`}>
-                                  {post.scheduled_at.substring(11, 16) || "10:00"}
-                                </span>
-                                <div className={`w-4.5 h-4.5 rounded-full bg-gradient-to-tr ${meta.bg} flex items-center justify-center text-white text-[9px] font-extrabold uppercase shadow-sm`}>
+                            {/* Display post cards in cell */}
+                            {matchingPosts.map((post: any) => {
+                              const meta = platformMeta[post.platform as keyof typeof platformMeta] || platformMeta.instagram;
+                              return (
+                                <div
+                                  key={post.id}
+                                  onClick={() => setSelectedPostDetails(post)}
+                                  className="relative overflow-hidden rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm hover:shadow-md cursor-pointer hover:border-violet-300 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col justify-between h-full select-none"
+                                >
+                                  {/* Glowing Left Platform Border Accent */}
+                                  <div className={`absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b ${meta.bg}`}></div>
+                                  
+                                  <p className="text-[11px] font-semibold text-slate-700 leading-snug line-clamp-2 pl-1 select-none">
+                                    {post.caption}
+                                  </p>
+
+                                  <div className="flex items-center justify-between mt-2 pl-1 select-none">
+                                    <span className={`text-[9px] font-black uppercase tracking-wider bg-slate-100 px-1.5 py-0.5 rounded text-slate-500`}>
+                                      {post.scheduled_at.substring(11, 16) || "10:00"}
+                                    </span>
+                                    <div className={`w-4.5 h-4.5 rounded-full bg-gradient-to-tr ${meta.bg} flex items-center justify-center text-white text-[9px] font-extrabold uppercase shadow-sm`}>
+                                      {post.platform[0]}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )) /* closed timeslots loop */}
+                </div>
+              </>
+            ) : (
+              // --- MONTH VIEW ---
+              <>
+                {/* Month headers (Sun - Sat) */}
+                <div className="grid grid-cols-7 border-b border-slate-100 bg-slate-50/50">
+                  {["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"].map((label) => (
+                    <div key={label} className="p-3 border-r border-slate-100 last:border-r-0 flex items-center justify-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      {label}
+                    </div>
+                  ))}
+                </div>
+
+                {/* 42-day calendar cells */}
+                <div className="grid grid-cols-7 grid-rows-6 divide-x divide-y divide-slate-100 border-t border-slate-100">
+                  {monthDays.map((day) => {
+                    const matchingPosts = allScheduledPosts.filter((post: any) => post.scheduled_at?.startsWith(day.dateStr));
+                    return (
+                      <div
+                        key={day.dateStr}
+                        className={`p-2 min-h-[110px] flex flex-col gap-1 relative group/month-cell hover:bg-slate-50/30 transition-colors select-none ${
+                          day.isCurrentMonth ? "bg-white" : "bg-slate-50/20"
+                        }`}
+                      >
+                        {/* Day indicator details */}
+                        <div className="flex items-center justify-between pb-1">
+                          <span className={`text-[10px] font-black tracking-wide ${
+                            day.isCurrentMonth ? "text-slate-800" : "text-slate-300"
+                          } ${
+                            day.isToday ? "bg-violet-600 text-white w-5 h-5 rounded-full flex items-center justify-center shadow-md shadow-violet-600/10 scale-105" : ""
+                          }`}>
+                            {day.dayNum}
+                          </span>
+
+                          {/* Plus hover shortcut in Month view */}
+                          <button
+                            onClick={() => {
+                              setScheduleDate(day.dateStr);
+                              setScheduleTime("10:00");
+                              setViewMode("composer");
+                              toast.info(`Set target schedule date to ${day.dateStr}`);
+                            }}
+                            className="p-1 bg-white border border-slate-200 rounded-lg text-slate-400 opacity-0 group-hover/month-cell:opacity-100 hover:text-violet-600 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                            title="Schedule Post"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* List post indicators in cell */}
+                        <div className="flex-1 overflow-y-auto max-h-[85px] no-scrollbar space-y-1.5">
+                          {matchingPosts.map((post: any) => {
+                            const meta = platformMeta[post.platform as keyof typeof platformMeta] || platformMeta.instagram;
+                            return (
+                              <div
+                                key={post.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPostDetails(post);
+                                }}
+                                className="flex items-center gap-1.5 bg-white border border-slate-200/80 rounded-xl px-2 py-1 cursor-pointer hover:border-violet-300 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-sm"
+                              >
+                                <div className={`w-4 h-4 rounded-lg bg-gradient-to-tr ${meta.bg} flex items-center justify-center text-white text-[8px] font-black uppercase`}>
                                   {post.platform[0]}
                                 </div>
+                                <span className="text-[9px] font-bold text-slate-700 truncate flex-1 leading-none select-none">
+                                  {post.caption}
+                                </span>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
 
           {/* Bottom Columns: Content Ideas & Recent Performance */}

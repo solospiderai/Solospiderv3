@@ -1417,7 +1417,7 @@ export function MediaStudioWorkspace() {
                       </button>
 
                       <button
-                        onClick={() => handleDownloadAsset(asset.url, asset.format)}
+                        onClick={() => handleDownloadAsset(asset.url)}
                         className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-50 hover:text-slate-700 transition-colors"
                         title="Download locally"
                       >

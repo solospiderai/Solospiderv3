@@ -103,33 +103,66 @@ async function publishToFacebookPage(params: {
   imageUrl: string | null;
   caption: string;
 }) {
-  let endpoint = `https://graph.facebook.com/v20.0/${params.pageId}/feed`;
-  const bodyParams = new URLSearchParams({
-    access_token: params.accessToken,
-  });
-
   if (params.imageUrl) {
-    endpoint = `https://graph.facebook.com/v20.0/${params.pageId}/photos`;
-    bodyParams.set("url", params.imageUrl);
-    bodyParams.set("caption", params.caption);
+    console.log(`[PublishWorker] Uploading unpublished photo to Facebook page ${params.pageId}`);
+    // Step 1: Upload the photo as unpublished
+    const uploadRes = await fetch(`https://graph.facebook.com/v20.0/${params.pageId}/photos`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        url: params.imageUrl,
+        published: "false",
+        access_token: params.accessToken,
+      }),
+    });
+
+    const uploadJson = await uploadRes.json() as any;
+    if (!uploadRes.ok || !uploadJson?.id) {
+      throw new Error(`Facebook photo upload failed: ${JSON.stringify(uploadJson)}`);
+    }
+
+    const photoId = String(uploadJson.id);
+    console.log(`[PublishWorker] Successfully uploaded photo ID: ${photoId}. Publishing to feed...`);
+
+    // Step 2: Publish feed story with attached_media
+    const res = await fetch(`https://graph.facebook.com/v20.0/${params.pageId}/feed`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        message: params.caption,
+        attached_media: JSON.stringify([{ media_fbid: photoId }]),
+        access_token: params.accessToken,
+      }),
+    });
+
+    const json = await res.json() as any;
+    if (!res.ok || !json?.id) {
+      throw new Error(`Facebook Page timeline post failed: ${JSON.stringify(json)}`);
+    }
+
+    return {
+      postId: String(json.id),
+    };
   } else {
-    bodyParams.set("message", params.caption);
+    // Text-only post
+    const res = await fetch(`https://graph.facebook.com/v20.0/${params.pageId}/feed`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        message: params.caption,
+        access_token: params.accessToken,
+      }),
+    });
+
+    const json = await res.json() as any;
+    if (!res.ok || !json?.id) {
+      throw new Error(`Facebook Page publish failed: ${JSON.stringify(json)}`);
+    }
+
+    return {
+      postId: String(json.id),
+    };
   }
-
-  const res = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: bodyParams,
-  });
-
-  const json = await res.json() as any;
-  if (!res.ok || !(json?.id || json?.post_id)) {
-    throw new Error(`Facebook Page publish failed: ${JSON.stringify(json)}`);
-  }
-
-  return {
-    postId: String(json.id || json.post_id),
-  };
 }
 
 async function publishToLinkedIn(params: {
