@@ -295,10 +295,38 @@ export default function GeoAnalysisPage() {
           background-image: linear-gradient(rgba(180, 96, 255, 0.018) 1px, transparent 1px),
                             linear-gradient(90deg, rgba(180, 96, 255, 0.018) 1px, transparent 1px);
         }
+
+        /* ===== PDF / Print Styles ===== */
+        @media print {
+          /* Hide navbar, footer, hero input section, FAQ, wizard, and print button */
+          nav,
+          .geo-hero-section,
+          .geo-faq-section,
+          .geo-footer-section,
+          .geo-print-btn,
+          .geo-cta-section,
+          [data-wizard-modal] {
+            display: none !important;
+          }
+          /* Remove backgrounds and shadows for clean PDF */
+          body, html {
+            background: #fff !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          * {
+            box-shadow: none !important;
+          }
+          /* Ensure results section fills the page */
+          #results-section {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+          }
+        }
       `}</style>
 
       {/* Main hero background section */}
-      <section className="relative z-10 w-full blueprint-grid">
+      <section className="relative z-10 w-full blueprint-grid geo-hero-section">
         <div className="grid w-full grid-cols-1 lg:grid-cols-[1fr_10fr_1fr] xl:grid-cols-[1fr_1fr_10fr_1fr_1fr] bg-[var(--bg-2)]/30">
           <div className="hidden xl:block" />
           <div className="hidden lg:block border-r border-[var(--line)]/40" />
@@ -399,7 +427,7 @@ export default function GeoAnalysisPage() {
               </div>
               <button 
                 onClick={() => window.print()}
-                className="self-start sm:self-center border border-[var(--line)] hover:bg-[var(--bg-2)] bg-[var(--panel)] px-4.5 py-2.5 rounded-xl text-xs font-extrabold tracking-wide transition-all active:scale-97 flex items-center gap-2 cursor-pointer text-[var(--ink-2)] shadow-sm"
+                className="geo-print-btn self-start sm:self-center border border-[var(--line)] hover:bg-[var(--bg-2)] bg-[var(--panel)] px-4.5 py-2.5 rounded-xl text-xs font-extrabold tracking-wide transition-all active:scale-97 flex items-center gap-2 cursor-pointer text-[var(--ink-2)] shadow-sm"
               >
                 <Printer className="w-3.5 h-3.5" />
                 Save Report
@@ -813,6 +841,7 @@ export default function GeoAnalysisPage() {
       )}
 
       {/* FAQs Section */}
+      <div className="geo-faq-section">
       {renderSectionWrapper(
         <div className="px-6 py-16 sm:px-12 lg:px-16">
           <div className="text-center mb-16">
@@ -930,8 +959,10 @@ export default function GeoAnalysisPage() {
         </div>,
         true
       )}
+      </div>
 
       {/* Explore Free Tools Section */}
+      <div className="geo-cta-section">
       {renderSectionWrapper(
         <div className="px-6 py-16 sm:px-12 lg:px-16">
           <div className="flex items-center justify-between mb-12">
@@ -971,15 +1002,20 @@ export default function GeoAnalysisPage() {
         </div>,
         true
       )}
+      </div>
 
-      <MarketingFooter />
+      <div className="geo-footer-section">
+        <MarketingFooter />
+      </div>
 
       {/* SoloSpider Setup Wizard Modal (Links all checker buttons/cards to actual functionality) */}
-      <AeoWizardModal 
-        isOpen={isWizardOpen} 
-        onClose={() => setIsWizardOpen(false)} 
-        initialDomain={wizardDomain} 
-      />
+      <div data-wizard-modal>
+        <AeoWizardModal 
+          isOpen={isWizardOpen} 
+          onClose={() => setIsWizardOpen(false)} 
+          initialDomain={wizardDomain} 
+        />
+      </div>
     </div>
   );
 }
