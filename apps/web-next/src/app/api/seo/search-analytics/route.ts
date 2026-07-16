@@ -149,12 +149,29 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 5. Query Search Analytics (Date-level dimensions for sparklines)
+    // 5. Query Search Analytics with dynamic dates based on timeRange
+    const timeRange = searchParams.get("timeRange") || "30";
+    
+    // GSC data usually has a 2-day lag, so we query up to 2 days ago for robustness
     const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const endDate = new Date();
+    endDate.setDate(today.getDate() - 2);
+
+    const startDate = new Date();
+    if (timeRange === "today") {
+      startDate.setDate(today.getDate() - 2);
+    } else if (timeRange === "90") {
+      startDate.setDate(today.getDate() - 92);
+    } else if (timeRange === "30") {
+      startDate.setDate(today.getDate() - 32);
+    } else {
+      // Last 7 days fallback
+      startDate.setDate(today.getDate() - 9);
+    }
 
     const formatDate = (d: Date) => d.toISOString().split("T")[0];
+    const startDateStr = formatDate(startDate);
+    const endDateStr = formatDate(endDate);
 
     const analyticsRes = await fetch(
       `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(matchedSiteUrl)}/searchAnalytics/query`,
@@ -165,8 +182,8 @@ export async function GET(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          startDate: formatDate(thirtyDaysAgo),
-          endDate: formatDate(new Date(today.setDate(today.getDate() - 1))),
+          startDate: startDateStr,
+          endDate: endDateStr,
           dimensions: ["date"],
           rowLimit: 100,
         }),
@@ -190,8 +207,8 @@ export async function GET(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          startDate: formatDate(thirtyDaysAgo),
-          endDate: formatDate(new Date(new Date().setDate(new Date().getDate() - 1))),
+          startDate: startDateStr,
+          endDate: endDateStr,
           dimensions: ["query"],
           rowLimit: 25,
         }),

@@ -59,10 +59,10 @@ export function BacklinksWorkspace() {
 
   // Query Google Search Console connection status
   const gscQuery = useQuery({
-    queryKey: ["search_analytics", activeProject?.id],
+    queryKey: ["search_analytics", activeProject?.id, "30"],
     enabled: Boolean(activeProject?.id),
     queryFn: async () => {
-      const res = await fetch(`/api/seo/search-analytics?projectId=${activeProject!.id}`);
+      const res = await fetch(`/api/seo/search-analytics?projectId=${activeProject!.id}&timeRange=30`);
       if (!res.ok) throw new Error("Failed to load search console metrics");
       return res.json();
     }

@@ -31,10 +31,10 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
 
   // Query Google Search Console connection status
   const gscQuery = useQuery({
-    queryKey: ["search_analytics", activeProject?.id],
+    queryKey: ["search_analytics", activeProject?.id, timeRange],
     enabled: Boolean(activeProject?.id),
     queryFn: async () => {
-      const res = await fetch(`/api/seo/search-analytics?projectId=${activeProject!.id}`);
+      const res = await fetch(`/api/seo/search-analytics?projectId=${activeProject!.id}&timeRange=${timeRange}`);
       if (!res.ok) throw new Error("Failed to load search console metrics");
       return res.json();
     }
