@@ -103,10 +103,10 @@ export async function GET(request: NextRequest) {
     const lowerHtml = html.toLowerCase();
 
     // Check for Privacy Policy
-    const hasPrivacyPolicy = /href="[^"]*privacy[^"]*"/i.test(html) || /privacy policy/i.test(html);
+    const hasPrivacyPolicy = /href="[^"]*privacy[^"]*"/i.test(html);
 
     // Check for Terms of Service
-    const hasTermsOfService = /href="[^"]*(terms|tos|terms-of-service)[^"]*"/i.test(html) || /terms of service|terms & conditions/i.test(html);
+    const hasTermsOfService = /href="[^"]*(terms|tos|terms-of-service|terms-and-conditions)[^"]*"/i.test(html);
 
     // Check for Schema Organization
     const hasOrganizationSchema = /type="application\/ld\+json"[^>]*>[\s\S]*?"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/i.test(html) ||
