@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
                                   /type="application\/ld\+json"[^>]*>[\s\S]*?"Organization"[\s\S]*?<\/script>/i.test(html);
 
     // Check for Twitter Card
-    const hasTwitterCard = /<meta[^>]*(name|property)="twitter:card"/i.test(html) || /name="twitter:/i.test(html);
+    const hasTwitterCard = /<meta[^>]*(name|property)="twitter:card"/i.test(html);
 
     // Check for Copyright
     const hasCopyright = /(©|copyright)/i.test(html);
@@ -228,6 +228,31 @@ ${crawlFailed ? `IMPORTANT NOTE: The crawler was blocked or unable to reach the 
 INSTRUCTIONS:
 Calculate a score from 0 to 100 for each of the 4 categories (Experience, Expertise, Authority, Trust) based on the content quality and technical checklist.
 Also, output the corrected/final technical checklist. 
+
+CRITICAL SCORING BENCHMARKS & PENALIZATION RULES:
+1. Experience (0-100):
+   - Start from a baseline of 50.
+   - Set max 100 only if there is explicit, verified firsthand experience (e.g. custom original images, real-world case studies, product test videos, first-person reviews).
+   - If the site relies heavily on stock images or generic text descriptions without direct proof of experience, the score MUST be capped at 50.
+2. Expertise (0-100):
+   - Start from a baseline of 50.
+   - Set max 100 only if there are explicit author credentials, editor bios, professional certifications, or deep specialized technical articles.
+   - If there is no "About Us" page detailing the expertise of the team, or no author biographies, the score MUST be capped at 50.
+3. Authoritativeness (0-100):
+   - Start from a baseline of 10.
+   - Add points ONLY for verified off-page brand footprints:
+     * +15 for verified active LinkedIn company page (linkedin=true)
+     * +15 for verified active X handle (x=true)
+     * +15 for verified YouTube channel (youtube=true)
+     * +15 for Crunchbase listing (crunchbase=true)
+     * +15 for G2/Capterra/Trustpilot profiles
+     * +15 for Organization schema (organizationSchema=true)
+   - If the site has zero social/GEO profiles present (linkedin=false, x=false, youtube=false, crunchbase=false, g2=false, capterra=false, trustpilot=false), the score MUST be between 10 and 20. Do NOT exceed 20.
+4. Trustworthiness (0-100):
+   - Start from a baseline of 30.
+   - Add +10 for SSL (ssl=true), +15 for Privacy Policy (privacyPolicy=true), +15 for Terms of Service (termsOfService=true), +10 for copyright (copyright=true), +10 for contact details (contactDetails=true), +10 for organization schema.
+   - If major legal/contact items or schema are missing, or if the brand lacks external verified profiles, cap the score at 50.
+
 CRITICAL RULE FOR CHECKLIST:
 - If the crawler successfully crawled the site (crawlFailed=false), you must trust the crawler's detections. Do NOT set any social/GEO platform fields (like linkedin, x, youtube, reddit, trustpilot, g2, capterra, crunchbase) to true unless the crawler detected them as true OR you have absolute, high-confidence verified knowledge that this specific brand officially operates that profile.
 - For small local/regional sites, do not assume standard profiles exist if the crawler did not detect them.
