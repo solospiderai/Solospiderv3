@@ -499,23 +499,66 @@ export default function GeoAnalysisPage() {
                 const issuesCount = category.missing.length;
                 const passedCount = category.working.length;
 
+                // Category details definition
+                const catDetails = {
+                  experience: {
+                    title: "Experience",
+                    subtitle: "First-hand experience with the topic",
+                    icon: UserCheck,
+                    iconColor: "text-indigo-500 bg-indigo-500/10"
+                  },
+                  expertise: {
+                    title: "Expertise",
+                    subtitle: "Demonstrated knowledge and qualifications",
+                    icon: Award,
+                    iconColor: "text-violet-500 bg-violet-500/10"
+                  },
+                  authority: {
+                    title: "Authority",
+                    subtitle: "Recognition and reputation in the field",
+                    icon: BookOpen,
+                    iconColor: "text-emerald-500 bg-emerald-500/10"
+                  },
+                  trust: {
+                    title: "Trust",
+                    subtitle: "Security, transparency, and safety",
+                    icon: ShieldCheck,
+                    iconColor: "text-purple-500 bg-purple-500/10"
+                  }
+                }[key as "experience" | "expertise" | "authority" | "trust"] || {
+                  title: key,
+                  subtitle: "",
+                  icon: HelpCircle,
+                  iconColor: "text-gray-500 bg-gray-500/10"
+                };
+
+                const Icon = catDetails.icon;
+
                 return (
                   <div key={key} className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl overflow-hidden shadow-xs">
                     {/* Header trigger */}
                     <button 
                       onClick={() => setOpenCategory(isOpen ? null : key)}
-                      className="w-full px-6 py-5 flex items-center justify-between hover:bg-[var(--bg-2)]/30 transition-all text-left cursor-pointer border-0"
+                      className="w-full px-6 py-5 flex items-start gap-4 hover:bg-[var(--bg-2)]/30 transition-all text-left cursor-pointer border-0 bg-transparent"
                     >
-                      <div className="flex items-center gap-4">
-                        <h4 className="text-base font-black capitalize text-[var(--ink)]">{key}</h4>
-                        <span className={`text-sm font-extrabold ${getScoreColor(category.score)}`}>{category.score}/100</span>
-                        <span className="text-[10px] text-[var(--muted)] font-bold hidden sm:inline">{category.passedCount}/{category.totalCount} signals passed</span>
+                      <div className={`w-10 h-10 rounded-full ${catDetails.iconColor} flex items-center justify-center shrink-0 mt-0.5`}>
+                        <Icon className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${getScoreBadgeColor(category.status)}`}>
-                          {category.status}
-                        </span>
-                        {isOpen ? <ChevronUp className="w-4 h-4 text-[var(--muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--muted)]" />}
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span className="text-base font-black text-[var(--ink)]">{catDetails.title}</span>
+                            <span className={`text-sm font-extrabold ${getScoreColor(category.score)}`}>{category.score}/100</span>
+                            <span className="text-[10px] text-[var(--muted)] font-bold">{category.passedCount}/{category.totalCount} signals passed</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${getScoreBadgeColor(category.status)}`}>
+                              {category.status}
+                            </span>
+                            {isOpen ? <ChevronUp className="w-4 h-4 text-[var(--muted)]" /> : <ChevronDown className="w-4 h-4 text-[var(--muted)]" />}
+                          </div>
+                        </div>
+                        <p className="text-[11px] font-bold text-[var(--muted)] mt-1.5">{catDetails.subtitle}</p>
                       </div>
                     </button>
 

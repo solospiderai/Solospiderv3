@@ -233,6 +233,11 @@ CRITICAL RULE FOR CHECKLIST:
 - For small local/regional sites, do not assume standard profiles exist if the crawler did not detect them.
 - If the crawler failed (crawlFailed=true), use your general brand knowledge to fill in the checklist logically.
 
+CRITICAL RULE FOR CATEGORIES:
+- For each of the 4 categories (experience, expertise, authority, trust), evaluate exactly 6 specific quality signals.
+- Therefore, the sum of items in the 'working' array and the 'missing' array MUST equal exactly 6 (so 'totalCount' is always exactly 6).
+- 'passedCount' MUST exactly equal the length of the 'working' array.
+
 Return ONLY a valid JSON object matching this schema (do not include markdown syntax outside of the JSON block):
 {
   "checklist": {
