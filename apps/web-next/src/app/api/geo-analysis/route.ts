@@ -134,15 +134,15 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    // Check social & GEO Platforms
-    const hasG2 = /g2\.com/i.test(html);
-    const hasReddit = /reddit\.com/i.test(html);
-    const hasCapterra = /capterra\.com/i.test(html);
-    const hasLinkedIn = /linkedin\.com/i.test(html);
-    const hasCrunchbase = /crunchbase\.com/i.test(html);
-    const hasTrustPilot = /trustpilot\.com/i.test(html);
-    const hasX = /(twitter\.com|x\.com)/i.test(html);
-    const hasYouTube = /youtube\.com/i.test(html);
+    // Check social & GEO Platforms (refined to require profile/channel slugs and exclude sharing endpoints)
+    const hasG2 = /g2\.com\/products\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasReddit = /reddit\.com\/(r|user|u)\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasCapterra = /capterra\.com\/p\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasLinkedIn = /linkedin\.com\/(company|in|showcase)\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasCrunchbase = /crunchbase\.com\/(organization|person)\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasTrustPilot = /trustpilot\.com\/review\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasX = /(twitter\.com|x\.com)\/(?!(share|intent|tweet|widgets))[a-zA-Z0-9_]{1,15}/i.test(html);
+    const hasYouTube = /youtube\.com\/(channel|c|user|@|show)\/[a-zA-Z0-9_-]+/i.test(html) || /youtu\.be\//i.test(html);
 
     const checklist = {
       ssl: isSsl,
@@ -227,7 +227,11 @@ ${crawlFailed ? `IMPORTANT NOTE: The crawler was blocked or unable to reach the 
 
 INSTRUCTIONS:
 Calculate a score from 0 to 100 for each of the 4 categories (Experience, Expertise, Authority, Trust) based on the content quality and technical checklist.
-Also, output the corrected/final technical checklist based on your general knowledge of this brand and website footprint. If the crawler failed or was blocked (crawlFailed=${crawlFailed}), use your knowledge of the brand "${hostname}" to fill in the checklist.
+Also, output the corrected/final technical checklist. 
+CRITICAL RULE FOR CHECKLIST:
+- If the crawler successfully crawled the site (crawlFailed=false), you must trust the crawler's detections. Do NOT set any social/GEO platform fields (like linkedin, x, youtube, reddit, trustpilot, g2, capterra, crunchbase) to true unless the crawler detected them as true OR you have absolute, high-confidence verified knowledge that this specific brand officially operates that profile.
+- For small local/regional sites, do not assume standard profiles exist if the crawler did not detect them.
+- If the crawler failed (crawlFailed=true), use your general brand knowledge to fill in the checklist logically.
 
 Return ONLY a valid JSON object matching this schema (do not include markdown syntax outside of the JSON block):
 {
