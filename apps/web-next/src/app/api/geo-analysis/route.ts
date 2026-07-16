@@ -204,7 +204,12 @@ INSTRUCTIONS:
 For each of the 4 E-E-A-T categories, evaluate 6 standard check questions and decide PASS or FAIL for each one.
 Also, output the corrected/final technical checklist.
 
-IMPORTANT CONTEXT: The HTML snippet provided is only a partial server-side fetch (not a full browser render). Many modern sites use client-side rendering (React, Next.js, Angular) so the snippet may be minimal even for large, legitimate websites. DO NOT penalize a site just because the crawled snippet is short. Instead, ALWAYS combine the crawled data with your own knowledge of the brand/domain.
+STRICT EVALUATION RULES:
+- You MUST be strict when deciding PASS or FAIL. A check only passes if there is CLEAR, SPECIFIC, EXPLICIT evidence in the crawled HTML content or metadata provided above.
+- Do NOT pass a check based on assumptions, inferences, or your general knowledge of the brand. Only pass it if the crawled snippet contains direct textual evidence.
+- If the crawled snippet is short (SPA/client-rendered), that means less evidence is available, so FEWER checks should pass — not more.
+- When in doubt, FAIL the check. It is better to be strict and fail a borderline check than to be generous and pass it.
+- Example: "Are specific anecdotes or testimonials provided?" should ONLY pass if the snippet contains actual testimonial text with names/quotes — not just because "the brand probably has testimonials somewhere."
 
 SCORING RULE:
 - The score for each category is calculated automatically as: score = Math.round((passedCount / 6) * 100)
@@ -213,9 +218,8 @@ SCORING RULE:
 
 CRITICAL RULE FOR CHECKLIST:
 - Use the crawler detections as your starting point for the checklist values.
-- You MAY override crawler results to true ONLY if you have high-confidence knowledge that the brand genuinely operates that profile (e.g., you know for a fact that a company has an official LinkedIn page even though the crawler didn't find a link on their homepage).
-- You MAY override crawler results to true for core items like aboutUs, contactDetails, and socialLinks if the brand is well-known and you know these exist even though the crawled HTML snippet didn't contain them.
-- For completely unknown, small, or obscure sites, stick strictly to what the crawler found.
+- Do NOT override any crawler results. Stick strictly to what the crawler detected.
+- The only exception is for globally famous brands (e.g. Google, Amazon, Apple, Swiggy, Zomato) where you have absolute certainty that a platform profile exists.
 
 CRITICAL RULE FOR CATEGORIES:
 - You must evaluate exactly the following 6 standard check questions for each of the 4 categories:
