@@ -59,8 +59,24 @@ export function TrafficChart({ timeRange }: TrafficChartProps) {
   }, [(activeProject as any)?.brand_description]);
 
   const chartData = useMemo(() => {
+    if (gscConnected && Array.isArray(gscQuery.data?.sparklineTraffic)) {
+      return gscQuery.data.sparklineTraffic.map((pt: any) => {
+        let formattedDate = pt.date;
+        try {
+          const d = new Date(pt.date);
+          if (!isNaN(d.getTime())) {
+            formattedDate = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+          }
+        } catch {}
+        return {
+          name: formattedDate,
+          organic: pt.value || 0,
+          paid: 0,
+        };
+      });
+    }
     return getTrafficChartData(activeProject?.domain || "", pageCount, timeRange, realTrafficData);
-  }, [activeProject?.domain, pageCount, timeRange, realTrafficData]);
+  }, [activeProject?.domain, pageCount, timeRange, realTrafficData, gscConnected, gscQuery.data]);
 
   const rangeLabel = timeRange === "today" 
     ? "Today" 

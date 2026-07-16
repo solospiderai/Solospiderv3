@@ -233,6 +233,23 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     },
   });
 
+  // Query backlinks submissions count
+  const backlinksQuery = useQuery({
+    queryKey: ["backlinks_count", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { count, error } = await supabase
+        .from("backlink_submissions" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", activeProject!.id)
+        .eq("status", "active");
+      
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
   // Query AEO analysis for AI Visibility Score
   const aeoAnalysisQuery = useQuery({
     queryKey: ["aeo_analysis", activeProject?.id],
@@ -395,36 +412,46 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
     return 0.233; // 7 days fallback
   }, [timeRange]);
 
-  const trafficNum = estimated.organicTraffic;
+  const trafficNum = gscConnected ? (gscQuery.data?.organicTraffic ?? 0) : estimated.organicTraffic;
   const trafficValue = trafficNum >= 1000000 
     ? (trafficNum / 1000000).toFixed(1) + "M"
     : trafficNum >= 1000 
       ? (trafficNum / 1000).toFixed(1) + "K" 
       : trafficNum.toString();
 
-  const impressionsNum = Math.round(trafficNum * 4.5);
+  const impressionsNum = gscConnected ? (gscQuery.data?.impressions ?? 0) : Math.round(trafficNum * 4.5);
   const impressionsValue = impressionsNum >= 1000000 
     ? (impressionsNum / 1000000).toFixed(1) + "M"
     : impressionsNum >= 1000 
       ? (impressionsNum / 1000).toFixed(1) + "K" 
       : impressionsNum.toString();
 
-  const backlinksNum = Math.round(estimated.backlinks * multiplier);
+  const backlinksNum = gscConnected ? (backlinksQuery.data ?? 0) : Math.round(estimated.backlinks * multiplier);
   const backlinksValue = backlinksNum >= 1000 
     ? (backlinksNum / 1000).toFixed(1) + "K" 
     : backlinksNum.toString();
 
   const sparklineTraffic = useMemo(() => {
+    if (gscConnected && Array.isArray(gscQuery.data?.sparklineTraffic)) {
+      return gscQuery.data.sparklineTraffic;
+    }
     return estimated.sparklineTraffic.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
-  }, [estimated.sparklineTraffic, multiplier]);
+  }, [estimated.sparklineTraffic, multiplier, gscConnected, gscQuery.data]);
 
   const sparklineImpressions = useMemo(() => {
+    if (gscConnected && Array.isArray(gscQuery.data?.sparklineImpressions)) {
+      return gscQuery.data.sparklineImpressions;
+    }
     return estimated.sparklineImpressions.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
-  }, [estimated.sparklineImpressions, multiplier]);
+  }, [estimated.sparklineImpressions, multiplier, gscConnected, gscQuery.data]);
 
   const sparklineBacklinks = useMemo(() => {
+    if (gscConnected) {
+      // Return a flat active curve matching current actual count for backlinks
+      return Array(7).fill(null).map((_, idx) => ({ date: `${7 - idx} days ago`, value: backlinksNum }));
+    }
     return estimated.sparklineBacklinks.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
-  }, [estimated.sparklineBacklinks, multiplier]);
+  }, [estimated.sparklineBacklinks, multiplier, gscConnected, backlinksNum]);
   const aeoScore = aeoAnalysisQuery.data?.overall_score ?? 0;
   const aeoSubtitle = aeoScore >= 80 ? "Optimized" : aeoScore >= 50 ? "Moderate" : aeoScore > 0 ? "Poor" : "No Data";
   const aeoColor = aeoScore >= 80 ? "#f97316" : aeoScore >= 50 ? "#3b82f6" : aeoScore > 0 ? "#ef4444" : "#94a3b8";
