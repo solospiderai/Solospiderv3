@@ -97,7 +97,7 @@ export default function GeoAnalysisPage() {
     setAnalyzing(true);
     setError(null);
     try {
-      const res = await fetch(`/api/free-tools/geo-analysis?url=${encodeURIComponent(urlInput.trim())}`);
+      const res = await fetch(`/api/geo-analysis?url=${encodeURIComponent(urlInput.trim())}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to analyze URL.");
