@@ -201,41 +201,15 @@ WEBSITE METADATA:
 ${crawlFailed ? `IMPORTANT NOTE: The crawler was blocked or unable to reach the page. Please evaluate the brand/website "${hostname}" using your general knowledge of this brand and its digital presence. If you do not know this specific brand, generate plausible rating points based on standard industry expectations for this domain.` : `NOTE: The crawled HTML was ${html.length} characters long. ${html.length < 5000 ? "This is quite short, indicating the site likely uses client-side rendering (React/Next.js/SPA). The content above may not represent the full site. Use your knowledge of this brand/domain to supplement." : "This appears to be a server-rendered page with substantial content."}`}
 
 INSTRUCTIONS:
-Calculate a score from 0 to 100 for each of the 4 categories (Experience, Expertise, Authority, Trust) based on the content quality and technical checklist.
-Also, output the corrected/final technical checklist. 
+For each of the 4 E-E-A-T categories, evaluate 6 standard check questions and decide PASS or FAIL for each one.
+Also, output the corrected/final technical checklist.
 
 IMPORTANT CONTEXT: The HTML snippet provided is only a partial server-side fetch (not a full browser render). Many modern sites use client-side rendering (React, Next.js, Angular) so the snippet may be minimal even for large, legitimate websites. DO NOT penalize a site just because the crawled snippet is short. Instead, ALWAYS combine the crawled data with your own knowledge of the brand/domain.
 
-SCORING GUIDELINES:
-1. Experience (0-100): Measures firsthand, real-world experience signals.
-   - Consider: Does the brand/site operate a real product or service? Do they have user reviews, testimonials, case studies, original photos, or real-world usage evidence?
-   - If you recognize this as a real operating business/service (e.g. e-commerce, SaaS, food delivery, etc.), start at 65-75 and adjust based on the depth of experience signals.
-   - Only score below 40 if the site appears to be purely template/placeholder content with zero evidence of real operation.
-
-2. Expertise (0-100): Measures demonstrated knowledge and qualifications.
-   - Consider: Does the site show subject-matter depth? Are there detailed product descriptions, technical documentation, blog posts, About Us pages with team credentials, or industry-specific content?
-   - If the site has an About Us page (aboutUs=true) with team/company info, start at 65+.
-   - If the site shows clear domain specialization (e.g. a food delivery platform showing restaurant menus, a SaaS showing feature docs), score 70+.
-   - Only score below 40 for sites with zero content depth and no About page.
-
-3. Authoritativeness (0-100): Measures external recognition, reputation, and brand footprint.
-   - Base the score primarily on the number of verified external platform presences:
-     * Each present platform (LinkedIn, X, YouTube, Crunchbase, G2, Capterra, Trustpilot, Reddit) adds roughly 8-12 points.
-     * Organization schema adds 5-10 points.
-   - A site with 0 external profiles should score 15-25.
-   - A site with 3-4 profiles should score 50-70.
-   - A site with 5+ profiles should score 75-95.
-   - If you recognize this as a well-known brand (nationally/globally recognized), score at least 80 regardless of what the crawler found.
-
-4. Trustworthiness (0-100): Measures security, transparency, and safety signals.
-   - SSL (ssl=true): +10-15 points
-   - About Us page: +10-15 points
-   - Contact Details: +10-15 points
-   - Social Links: +5-10 points
-   - Organization Schema: +5-10 points
-   - Privacy Policy / Terms (inferred from content): +5-10 points
-   - A basic site with SSL + contact + about should score at least 55-65.
-   - A well-established brand with all trust signals should score 80-95.
+SCORING RULE:
+- The score for each category is calculated automatically as: score = Math.round((passedCount / 6) * 100)
+- You do NOT need to calculate the score yourself. Just set passedCount to the number of checks that passed (length of the 'working' array). Set score to 0 as a placeholder — the server will override it.
+- Set status to "Poor" if passedCount <= 1, "Needs Work" if passedCount <= 3, "Good" if passedCount >= 4.
 
 CRITICAL RULE FOR CHECKLIST:
 - Use the crawler detections as your starting point for the checklist values.
@@ -382,6 +356,26 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
     }
 
     const finalChecklist = parsedData.checklist || checklist;
+
+    // Deterministic scoring: score = Math.round((passedCount / 6) * 100)
+    // This matches SnowSEO's exact formula
+    const categoryKeys = ["experience", "expertise", "authority", "trust"] as const;
+    for (const key of categoryKeys) {
+      const cat = parsedData.categories?.[key];
+      if (cat) {
+        const passed = Array.isArray(cat.working) ? cat.working.length : 0;
+        const total = 6;
+        cat.passedCount = passed;
+        cat.totalCount = total;
+        cat.score = Math.round((passed / total) * 100);
+        cat.status = passed <= 1 ? "Poor" : passed <= 3 ? "Needs Work" : "Good";
+        // Also override the top-level scores
+        if (parsedData.scores) {
+          parsedData.scores[key] = cat.score;
+        }
+      }
+    }
+
     const finalAnalysis = {
       scores: parsedData.scores,
       categories: parsedData.categories
