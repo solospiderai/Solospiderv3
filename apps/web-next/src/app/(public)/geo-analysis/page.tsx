@@ -1017,22 +1017,22 @@ export default function GeoAnalysisPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* 1st Card: llms.txt Generator */}
-            <div 
-              onClick={() => setIsLlmTxtOpen(true)}
-              className="bg-[var(--bg-2)]/30 border border-[var(--line)]/50 rounded-2xl p-6 hover:border-[var(--primary)]/20 hover:bg-[var(--panel)] transition-all duration-300 group flex flex-col justify-between h-56 shadow-xs cursor-pointer"
+            {/* 1st Card: AI Media Studio */}
+            <Link 
+              href="/app/en/media-studio"
+              className="bg-[var(--bg-2)]/30 border border-[var(--line)]/50 rounded-2xl p-6 hover:border-[var(--primary)]/20 hover:bg-[var(--panel)] transition-all duration-300 group flex flex-col justify-between h-56 shadow-xs cursor-pointer no-underline text-inherit"
             >
               <div>
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center mb-4">
                   <FileText className="w-4.5 h-4.5" />
                 </div>
-                <h3 className="font-bold text-base text-[var(--ink)] mb-2">llms.txt Generator</h3>
-                <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">Generate robot-friendly markdown sitemaps for LLM search engines and AI agents.</p>
+                <h3 className="font-bold text-base text-[var(--ink)] mb-2">AI Media Studio</h3>
+                <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">Design custom visual assets, social media graphics, and thumbnails tailored for your brand presence.</p>
               </div>
               <div className="flex items-center gap-1 text-xs font-black text-[var(--primary)] uppercase tracking-widest mt-4">
-                Launch Generator <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                Launch Media Studio <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
-            </div>
+            </Link>
 
             {/* 2nd Card: SEO Audit Tool */}
             <div 
@@ -1050,29 +1050,29 @@ export default function GeoAnalysisPage() {
                   <Award className="w-4.5 h-4.5" />
                 </div>
                 <h3 className="font-bold text-base text-[var(--ink)] mb-2">SEO Audit Tool</h3>
-                <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">Analyze on-page SEO issues, titles, descriptions, and headers to index correctly.</p>
+                <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">Analyze on-page SEO issues, metadata headers, sitemaps, and indexing readiness instantly.</p>
               </div>
               <div className="flex items-center gap-1 text-xs font-black text-[var(--primary)] uppercase tracking-widest mt-4">
                 Run Free Audit <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
             </div>
 
-            {/* 3rd Card: JSON-LD Schema Generator */}
-            <div 
-              onClick={() => setIsJsonLdOpen(true)}
-              className="bg-[var(--bg-2)]/30 border border-[var(--line)]/50 rounded-2xl p-6 hover:border-[var(--primary)]/20 hover:bg-[var(--panel)] transition-all duration-300 group flex flex-col justify-between h-56 shadow-xs cursor-pointer"
+            {/* 3rd Card: Integrations */}
+            <Link 
+              href="/integrations"
+              className="bg-[var(--bg-2)]/30 border border-[var(--line)]/50 rounded-2xl p-6 hover:border-[var(--primary)]/20 hover:bg-[var(--panel)] transition-all duration-300 group flex flex-col justify-between h-56 shadow-xs cursor-pointer no-underline text-inherit"
             >
               <div>
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center mb-4">
-                  <FileCode className="w-4.5 h-4.5" />
+                  <Link2 className="w-4.5 h-4.5" />
                 </div>
-                <h3 className="font-bold text-base text-[var(--ink)] mb-2">JSON-LD Schema Generator</h3>
-                <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">Build Schema.org JSON-LD scripts to secure rich snippets and AI search citations.</p>
+                <h3 className="font-bold text-base text-[var(--ink)] mb-2">CMS &amp; API Integrations</h3>
+                <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">Connect Shopify, WordPress, and custom APIs to publish updates automatically.</p>
               </div>
               <div className="flex items-center gap-1 text-xs font-black text-[var(--primary)] uppercase tracking-widest mt-4">
-                Create Schema <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                Manage Integrations <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
               </div>
-            </div>
+            </Link>
           </div>
         </div>,
         true
@@ -1082,332 +1082,6 @@ export default function GeoAnalysisPage() {
       <div className="geo-footer-section">
         <MarketingFooter />
       </div>
-
-      {/* -------------------- FREE TOOL 1: llms.txt MODAL -------------------- */}
-      {isLlmTxtOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-6 text-left relative">
-            <button 
-              onClick={() => setIsLlmTxtOpen(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-[var(--ink)] font-bold text-sm bg-[var(--bg-2)] hover:bg-[var(--line)] border-0 px-3 py-1.5 rounded-full cursor-pointer transition-all"
-            >
-              ✕ Close
-            </button>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">FREE GEO UTILITY</span>
-              <h3 className="text-xl sm:text-2xl font-black text-[var(--ink)] mt-1">llms.txt Generator</h3>
-              <p className="text-xs text-[var(--muted)] mt-1 font-semibold">
-                Generate a machine-readable markdown map to help LLMs and AI crawlers correctly parse and cite your brand.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Brand Name</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. SoloSpider" 
-                  value={llmBrandName} 
-                  onChange={e => setLlmBrandName(e.target.value)}
-                  className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Short Description</label>
-                <input 
-                  type="text" 
-                  placeholder="e.g. AI-powered search optimization platform" 
-                  value={llmDescription} 
-                  onChange={e => setLlmDescription(e.target.value)}
-                  className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                />
-              </div>
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Core Products / Offerings (1 per line)</label>
-                <textarea 
-                  rows={2}
-                  placeholder="- GEO Analysis Tool: Evaluates E-E-A-T scores&#10;- AEO Tracking Dashboard: Monitors brand mentions in ChatGPT" 
-                  value={llmCoreProduct} 
-                  onChange={e => setLlmCoreProduct(e.target.value)}
-                  className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60 font-mono"
-                />
-              </div>
-              <div className="sm:col-span-2 space-y-1">
-                <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Primary Use Cases (1 per line)</label>
-                <textarea 
-                  rows={2}
-                  placeholder="- Optimize websites for AI search engines&#10;- Secure citations in Perplexity search results" 
-                  value={llmUseCases} 
-                  onChange={e => setLlmUseCases(e.target.value)}
-                  className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60 font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Markdown Output */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider">Generated llms.txt</span>
-                <button 
-                  onClick={() => {
-                    const txt = `# ${llmBrandName || 'Brand Name'}\n\n> ${llmDescription || 'Short description'}\n\n## Core Products\n${llmCoreProduct || '- Product 1'}\n\n## Primary Use Cases\n${llmUseCases || '- Use case 1'}`;
-                    navigator.clipboard.writeText(txt);
-                    setCopiedLlm(true);
-                    setTimeout(() => setCopiedLlm(false), 2000);
-                  }}
-                  className="flex items-center gap-1.5 text-[10px] font-black text-[var(--primary)] hover:brightness-110 border-0 bg-transparent cursor-pointer"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  {copiedLlm ? "Copied!" : "Copy Code"}
-                </button>
-              </div>
-              <pre className="p-4 bg-slate-950 text-slate-100 border border-slate-800 rounded-2xl text-[10.5px] font-mono leading-relaxed overflow-x-auto max-h-48 scrollbar-thin select-all">
-                <code>{`# ${llmBrandName || 'Brand Name'}
-
-> ${llmDescription || 'A brief summary of the project/website, highlighting primary capabilities.'}
-
-## Core Products & Services
-${llmCoreProduct || '- List your key services, widgets, or features here.'}
-
-## Primary Use Cases
-${llmUseCases || '- Detail what users achieve using your tools or platforms.'}`}</code>
-              </pre>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* -------------------- FREE TOOL 2: JSON-LD MODAL -------------------- */}
-      {isJsonLdOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in">
-          <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-6 text-left relative">
-            <button 
-              onClick={() => setIsJsonLdOpen(false)}
-              className="absolute top-6 right-6 text-slate-400 hover:text-[var(--ink)] font-bold text-sm bg-[var(--bg-2)] hover:bg-[var(--line)] border-0 px-3 py-1.5 rounded-full cursor-pointer transition-all"
-            >
-              ✕ Close
-            </button>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">FREE GEO UTILITY</span>
-              <h3 className="text-xl sm:text-2xl font-black text-[var(--ink)] mt-1">JSON-LD Schema Generator</h3>
-              <p className="text-xs text-[var(--muted)] mt-1 font-semibold">
-                Generate valid Schema.org JSON-LD scripts to feed rich search cards and improve crawler indexing.
-              </p>
-            </div>
-
-            {/* Type selector */}
-            <div className="flex gap-2 p-1 bg-[var(--bg-2)] rounded-xl border border-[var(--line)] self-start w-fit">
-              {(["Organization", "Article", "FAQPage"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setSchemaType(t)}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer border-0 ${schemaType === t ? "bg-[var(--panel)] text-[var(--primary)] shadow-sm" : "bg-transparent text-[var(--muted)] hover:text-[var(--ink)]"}`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-
-            {/* Dynamic Inputs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {schemaType === "Organization" && (
-                <>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Organization Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. SoloSpider Inc." 
-                      value={schemaOrgName} 
-                      onChange={e => setSchemaOrgName(e.target.value)}
-                      className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Website URL</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. https://www.solospider.ai" 
-                      value={schemaOrgUrl} 
-                      onChange={e => setSchemaOrgUrl(e.target.value)}
-                      className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                    />
-                  </div>
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Logo URL</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. https://www.solospider.ai/logo.png" 
-                      value={schemaOrgLogo} 
-                      onChange={e => setSchemaOrgLogo(e.target.value)}
-                      className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                    />
-                  </div>
-                </>
-              )}
-
-              {schemaType === "Article" && (
-                <>
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Article Headline</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. The Ultimate Guide to GEO in 2026" 
-                      value={schemaArticleTitle} 
-                      onChange={e => setSchemaArticleTitle(e.target.value)}
-                      className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Author Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Alex Johnson" 
-                      value={schemaArticleAuthor} 
-                      onChange={e => setSchemaArticleAuthor(e.target.value)}
-                      className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider block">Publisher Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. SoloSpider Blog" 
-                      value={schemaArticlePublisher} 
-                      onChange={e => setSchemaArticlePublisher(e.target.value)}
-                      className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs font-bold text-[var(--ink)] focus:outline-none focus:border-[var(--primary)]/60"
-                    />
-                  </div>
-                </>
-              )}
-
-              {schemaType === "FAQPage" && (
-                <>
-                  <div className="sm:col-span-2 space-y-3.5">
-                    <div className="space-y-1.5 p-3.5 bg-[var(--bg-2)]/60 border border-[var(--line)] rounded-2xl">
-                      <span className="text-[9px] font-black text-[var(--muted)] uppercase tracking-wider block">Question 1</span>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. What is GEO?" 
-                        value={schemaFaqQ1} 
-                        onChange={e => setSchemaFaqQ1(e.target.value)}
-                        className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold text-[var(--ink)] focus:outline-none"
-                      />
-                      <span className="text-[9px] font-black text-[var(--muted)] uppercase tracking-wider block mt-2">Answer 1</span>
-                      <textarea 
-                        rows={2}
-                        placeholder="e.g. Generative Engine Optimization..." 
-                        value={schemaFaqA1} 
-                        onChange={e => setSchemaFaqA1(e.target.value)}
-                        className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold text-[var(--ink)] focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="space-y-1.5 p-3.5 bg-[var(--bg-2)]/60 border border-[var(--line)] rounded-2xl">
-                      <span className="text-[9px] font-black text-[var(--muted)] uppercase tracking-wider block">Question 2</span>
-                      <input 
-                        type="text" 
-                        placeholder="e.g. How do I improve E-E-A-T?" 
-                        value={schemaFaqQ2} 
-                        onChange={e => setSchemaFaqQ2(e.target.value)}
-                        className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold text-[var(--ink)] focus:outline-none"
-                      />
-                      <span className="text-[9px] font-black text-[var(--muted)] uppercase tracking-wider block mt-2">Answer 2</span>
-                      <textarea 
-                        rows={2}
-                        placeholder="e.g. By providing testimonials, citations, and author bios..." 
-                        value={schemaFaqA2} 
-                        onChange={e => setSchemaFaqA2(e.target.value)}
-                        className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3 py-2 text-xs font-bold text-[var(--ink)] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Schema Script Output */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-[var(--ink-2)] uppercase tracking-wider">Generated JSON-LD Tag</span>
-                <button 
-                  onClick={() => {
-                    let textVal = "";
-                    if (schemaType === "Organization") {
-                      textVal = `<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Organization",\n  "name": "${schemaOrgName || 'Brand Name'}",\n  "url": "${schemaOrgUrl || 'https://domain.com'}",\n  "logo": "${schemaOrgLogo || 'https://domain.com/logo.png'}"\n}\n</script>`;
-                    } else if (schemaType === "Article") {
-                      textVal = `<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "${schemaArticleTitle || 'Article Title'}",\n  "author": {\n    "@type": "Person",\n    "name": "${schemaArticleAuthor || 'Author Name'}"\n  },\n  "publisher": {\n    "@type": "Organization",\n    "name": "${schemaArticlePublisher || 'Publisher Name'}"\n  }\n}\n</script>`;
-                    } else {
-                      textVal = `<script type="application/ld+json">\n{\n  "@context": "https://schema.org",\n  "@type": "FAQPage",\n  "mainEntity": [\n    {\n      "@type": "Question",\n      "name": "${schemaFaqQ1 || 'Question 1?'}",\n      "acceptedAnswer": {\n        "@type": "Answer",\n        "text": "${schemaFaqA1 || 'Answer 1.'}"\n      }\n    },\n    {\n      "@type": "Question",\n      "name": "${schemaFaqQ2 || 'Question 2?'}",\n      "acceptedAnswer": {\n        "@type": "Answer",\n        "text": "${schemaFaqA2 || 'Answer 2.'}"\n      }\n    }\n  ]\n}\n</script>`;
-                    }
-                    navigator.clipboard.writeText(textVal);
-                    setCopiedSchema(true);
-                    setTimeout(() => setCopiedSchema(false), 2000);
-                  }}
-                  className="flex items-center gap-1.5 text-[10px] font-black text-[var(--primary)] hover:brightness-110 border-0 bg-transparent cursor-pointer"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  {copiedSchema ? "Copied!" : "Copy Code"}
-                </button>
-              </div>
-              <pre className="p-4 bg-slate-950 text-slate-100 border border-slate-800 rounded-2xl text-[10.5px] font-mono leading-relaxed overflow-x-auto max-h-48 scrollbar-thin select-all">
-                <code>
-                  {schemaType === "Organization" && 
-`<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "${schemaOrgName || 'Organization Name'}",
-  "url": "${schemaOrgUrl || 'https://www.example.com'}",
-  "logo": "${schemaOrgLogo || 'https://www.example.com/logo.png'}"
-}
-</script>`}
-                  {schemaType === "Article" && 
-`<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Article",
-  "headline": "${schemaArticleTitle || 'Article Headline'}",
-  "author": {
-    "@type": "Person",
-    "name": "${schemaArticleAuthor || 'Author Name'}"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "${schemaArticlePublisher || 'Publisher Name'}"
-  }
-}
-</script>`}
-                  {schemaType === "FAQPage" && 
-`<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "${schemaFaqQ1 || 'First Question?'}",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "${schemaFaqA1 || 'Response description.'}"
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "${schemaFaqQ2 || 'Second Question?'}",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "${schemaFaqA2 || 'Response description.'}"
-      }
-    }
-  ]
-}
-</script>`}
-                </code>
-              </pre>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* SoloSpider Setup Wizard Modal (Links all checker buttons/cards to actual functionality) */}
       <div data-wizard-modal>
