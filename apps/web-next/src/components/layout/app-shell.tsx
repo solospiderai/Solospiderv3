@@ -489,14 +489,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <main className="flex-1 flex flex-col min-h-screen min-w-0 bg-transparent">
         {/* Top Header Bar with Notifications */}
         {activeProject && (
-          <header className="h-16 bg-white border-b border-slate-200/80 px-4 md:px-8 flex items-center justify-between sticky top-0 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-black text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200/50 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Active: <span className="text-slate-700">{activeProject.domain || "Workspace"}</span>
-              </span>
-            </div>
-            
+          <header className="h-16 bg-white border-b border-slate-200/80 px-4 md:px-8 flex items-center justify-end sticky top-0 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
             <div className="flex items-center gap-4">
               <NotificationCenter />
             </div>

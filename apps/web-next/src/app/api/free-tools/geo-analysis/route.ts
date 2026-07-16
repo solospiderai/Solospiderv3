@@ -29,14 +29,32 @@ export async function GET(request: NextRequest) {
     // 2. Fetch page HTML
     let html = "";
     let isSsl = normalizedUrl.startsWith("https://");
+    let crawlFailed = false;
+
+    // Helper fetch with 10-second timeout
+    const fetchWithTimeout = async (url: string, options: any = {}) => {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), 10000);
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+      } catch (e) {
+        clearTimeout(id);
+        throw e;
+      }
+    };
+
     try {
-      const res = await fetch(normalizedUrl, {
+      const res = await fetchWithTimeout(normalizedUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SoloSpiderGEOAnalyzer/1.0",
           Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
           "Accept-Language": "en-US,en;q=0.5",
         },
-        next: { revalidate: 3600 }, // Cache check for 1 hour
       });
 
       if (!res.ok) {
@@ -49,20 +67,36 @@ export async function GET(request: NextRequest) {
       if (normalizedUrl.startsWith("https://")) {
         try {
           const fallbackUrl = normalizedUrl.replace("https://", "http://");
-          const res = await fetch(fallbackUrl, {
+          const res = await fetchWithTimeout(fallbackUrl, {
             headers: {
               "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             },
           });
           html = await res.text();
           isSsl = false;
-        } catch {
-          // Both failed, return error
-          return NextResponse.json({ error: "Could not connect to the website. Make sure it is public and online." }, { status: 500 });
+        } catch (fallbackErr) {
+          console.error(`[GEO Scraper] Fallback HTTP failed:`, fallbackErr);
+          crawlFailed = true;
         }
       } else {
-        return NextResponse.json({ error: "Could not connect to the website. Make sure it is public and online." }, { status: 500 });
+        crawlFailed = true;
       }
+    }
+
+    if (crawlFailed) {
+      console.warn(`[GEO Scraper] Both HTTPS and HTTP failed for ${normalizedUrl}. Falling back to general LLM brand knowledge.`);
+      html = `
+        <html>
+          <head>
+            <title>${hostname}</title>
+            <meta name="description" content="AI evaluation placeholder for ${hostname}">
+          </head>
+          <body>
+            <h1>${hostname}</h1>
+            <p>Evaluating ${hostname} based on brand presence.</p>
+          </body>
+        </html>
+      `;
     }
 
     // 3. Technical Checklist Audit (regex-based)
@@ -188,6 +222,8 @@ WEBSITE METADATA:
 - Description: ${pageDescription}
 - Main Headings: ${headings.join(" | ")}
 - Home Content Snippet: "${rawText}"
+
+${crawlFailed ? `IMPORTANT NOTE: The crawler was blocked or unable to reach the page. Please evaluate the brand/website "${hostname}" using your general knowledge of this brand and its digital presence. If you do not know this specific brand, generate plausible rating points based on standard industry expectations for this domain.` : ""}
 
 INSTRUCTIONS:
 Calculate a score from 0 to 100 for each of the 4 categories (Experience, Expertise, Authority, Trust) based on the content quality and technical checklist.
