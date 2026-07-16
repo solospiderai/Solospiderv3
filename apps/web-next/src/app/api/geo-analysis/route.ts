@@ -244,12 +244,46 @@ CRITICAL RULE FOR CHECKLIST:
 - For completely unknown, small, or obscure sites, stick strictly to what the crawler found.
 
 CRITICAL RULE FOR CATEGORIES:
-- For each of the 4 categories (experience, expertise, authority, trust), evaluate exactly 6 specific quality signals.
-- Therefore, the sum of items in the 'working' array and the 'missing' array MUST equal exactly 6 (so 'totalCount' is always exactly 6).
+- You must evaluate exactly the following 6 standard check questions for each of the 4 categories:
+
+  EXPERIENCE check questions:
+  1. "Does it reflect first-hand experience with personal narration?"
+  2. "Are original photos/videos/screenshots present?"
+  3. "Does it discuss challenges faced, lessons learned, or practical advice?"
+  4. "Are specific anecdotes or testimonials provided?"
+  5. "Is there evidence of active participation in the subject?"
+  6. "Is the experience clearly relevant to the topic?"
+
+  EXPERTISE check questions:
+  1. "Is the creator's/company's expertise explicitly mentioned?"
+  2. "Does it display specialized technical knowledge and use terminology correctly?"
+  3. "Is the content structured systematically and recently updated?"
+  4. "Are sources cited to support claims?"
+  5. "Are methodologies detailed with examples or case studies?"
+  6. "Does it avoid factual errors and contribute new knowledge?"
+
+  AUTHORITY check questions:
+  1. "Is the brand widely recognized or cited by other authoritative sources?"
+  2. "Is it recommended by experts or featured in reputable media?"
+  3. "Does it have a long-standing reputation or evidence of awards?"
+  4. "Is there a significant following, engagement, or institutional acknowledgment?"
+  5. "Does it host exclusive content or have official partnerships?"
+  6. "Is the name synonymous with the topic?"
+
+  TRUST check questions:
+  1. "Are unsubstantiated claims avoided with transparent purpose/mission?"
+  2. "Are conflicts of interest disclosed?"
+  3. "Are errors corrected transparently?"
+  4. "Are contact info, privacy policies, and TOS accessible?"
+  5. "Is the site secure (HTTPS) and professionally designed?"
+  6. "Is the content free of hate, bias, and excessive ads?"
+
+- For each category, distribute all 6 questions between the 'working' and 'missing' arrays depending on whether they pass or fail.
+- The sum of items in the 'working' array and the 'missing' array MUST equal exactly 6 (so 'totalCount' is always exactly 6).
 - 'passedCount' MUST exactly equal the length of the 'working' array.
-- The 'working' items should describe specific positive signals found or known to exist.
-- The 'missing' items should describe specific gaps or improvements needed.
-- The 'improve' array should provide actionable recommendations.
+- For 'working' items, set 'question' to the exact check question string, and set 'details' to a string starting with "Found: " followed by the positive evidence you found.
+- For 'missing' items, set 'question' to the exact check question string, and set 'details' to a description of the gap or missing details.
+- Provide 3-5 high-quality actionable improvement recommendations in the 'improve' array.
 
 Return ONLY a valid JSON object matching this schema (do not include markdown syntax outside of the JSON block):
 {
@@ -280,36 +314,36 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
       "passedCount": number,
       "totalCount": number,
       "status": "Poor" | "Needs Work" | "Good",
-      "working": [string, string, ...],
-      "missing": [string, string, ...],
-      "improve": [string, string, ...]
+      "working": [{"question": string, "details": string}, ...],
+      "missing": [{"question": string, "details": string}, ...],
+      "improve": [string, ...]
     },
     "expertise": {
       "score": number,
       "passedCount": number,
       "totalCount": number,
       "status": "Poor" | "Needs Work" | "Good",
-      "working": [string, string, ...],
-      "missing": [string, string, ...],
-      "improve": [string, string, ...]
+      "working": [{"question": string, "details": string}, ...],
+      "missing": [{"question": string, "details": string}, ...],
+      "improve": [string, ...]
     },
     "authority": {
       "score": number,
       "passedCount": number,
       "totalCount": number,
       "status": "Poor" | "Needs Work" | "Good",
-      "working": [string, string, ...],
-      "missing": [string, string, ...],
-      "improve": [string, string, ...]
+      "working": [{"question": string, "details": string}, ...],
+      "missing": [{"question": string, "details": string}, ...],
+      "improve": [string, ...]
     },
     "trust": {
       "score": number,
       "passedCount": number,
       "totalCount": number,
       "status": "Poor" | "Needs Work" | "Good",
-      "working": [string, string, ...],
-      "missing": [string, string, ...],
-      "improve": [string, string, ...]
+      "working": [{"question": string, "details": string}, ...],
+      "missing": [{"question": string, "details": string}, ...],
+      "improve": [string, ...]
     }
   }
 }`;

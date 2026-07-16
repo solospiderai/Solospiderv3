@@ -29,13 +29,18 @@ import {
   FileCode
 } from "lucide-react";
 
+interface EeatSignal {
+  question: string;
+  details: string;
+}
+
 interface EeatCategory {
   score: number;
   passedCount: number;
   totalCount: number;
   status: "Poor" | "Needs Work" | "Good";
-  working: string[];
-  missing: string[];
+  working: EeatSignal[];
+  missing: EeatSignal[];
   improve: string[];
 }
 
@@ -657,28 +662,30 @@ export default function GeoAnalysisPage() {
                         {activeTab === "summary" && (
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                             <div>
-                              <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-450 mb-3 flex items-center gap-1.5">
-                                <CheckCircle className="w-3.5 h-3.5" />
+                              <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-450 mb-3 flex items-center gap-1.5 font-bold">
+                                <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                                 What's Working
                               </h5>
-                              <ul className="space-y-2">
+                              <ul className="space-y-3.5">
                                 {category.working.map((item, idx) => (
-                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-2.5 border-l border-emerald-500/30 font-medium">
-                                    {item}
+                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-3.5 border-l-2 border-emerald-500/30 font-medium">
+                                    <strong className="block text-[var(--ink)] mb-0.5">{item.question}</strong>
+                                    <span className="text-[var(--muted)]">{item.details}</span>
                                   </li>
                                 ))}
                               </ul>
                             </div>
 
                             <div>
-                              <h5 className="text-[10px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 mb-3 flex items-center gap-1.5">
-                                <XCircle className="w-3.5 h-3.5" />
+                              <h5 className="text-[10px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 mb-3 flex items-center gap-1.5 font-bold">
+                                <XCircle className="w-3.5 h-3.5 text-rose-500" />
                                 What's Missing
                               </h5>
-                              <ul className="space-y-2">
+                              <ul className="space-y-3.5">
                                 {category.missing.map((item, idx) => (
-                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-2.5 border-l border-rose-500/30 font-medium">
-                                    {item}
+                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-3.5 border-l-2 border-rose-500/30 font-medium">
+                                    <strong className="block text-[var(--ink)] mb-0.5">{item.question}</strong>
+                                    <span className="text-[var(--muted)]">{item.details}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -687,19 +694,25 @@ export default function GeoAnalysisPage() {
                         )}
 
                         {activeTab === "issues" && (
-                          <div className="mb-6">
-                            <h5 className="text-[10px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 mb-3 flex items-center gap-1.5">
-                              <XCircle className="w-3.5 h-3.5" />
+                          <div className="mb-6 space-y-4">
+                            <h5 className="text-[10px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 mb-3 flex items-center gap-1.5 font-bold">
+                              <XCircle className="w-3.5 h-3.5 text-rose-500" />
                               Identified Issues
                             </h5>
                             {issuesCount > 0 ? (
-                              <ul className="space-y-3">
+                              <div className="space-y-3">
                                 {category.missing.map((item, idx) => (
-                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-3 border-l-2 border-rose-500 font-medium">
-                                    {item}
-                                  </li>
+                                  <div key={idx} className="flex gap-4 items-start p-4 bg-rose-500/[0.02] border border-rose-500/10 rounded-2xl">
+                                    <div className="w-5 h-5 rounded-full bg-rose-100 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
+                                      {idx + 1}
+                                    </div>
+                                    <div>
+                                      <h6 className="text-xs font-black text-[var(--ink)] mb-1">{item.question}</h6>
+                                      <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">{item.details}</p>
+                                    </div>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             ) : (
                               <p className="text-xs text-[var(--muted)] italic">No issues detected for this category.</p>
                             )}
@@ -707,19 +720,25 @@ export default function GeoAnalysisPage() {
                         )}
 
                         {activeTab === "passed" && (
-                          <div className="mb-6">
-                            <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-450 mb-3 flex items-center gap-1.5">
-                              <CheckCircle className="w-3.5 h-3.5" />
+                          <div className="mb-6 space-y-4">
+                            <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-450 mb-3 flex items-center gap-1.5 font-bold">
+                              <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                               Passed Signals
                             </h5>
                             {passedCount > 0 ? (
-                              <ul className="space-y-3">
+                              <div className="space-y-3">
                                 {category.working.map((item, idx) => (
-                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-3 border-l-2 border-emerald-500 font-medium">
-                                    {item}
-                                  </li>
+                                  <div key={idx} className="flex gap-4 items-start p-4 bg-emerald-500/[0.01] border border-emerald-500/10 rounded-2xl">
+                                    <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5">
+                                      {idx + 1}
+                                    </div>
+                                    <div>
+                                      <h6 className="text-xs font-black text-[var(--ink)] mb-1">{item.question}</h6>
+                                      <p className="text-xs text-[var(--muted)] leading-relaxed font-semibold">{item.details}</p>
+                                    </div>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             ) : (
                               <p className="text-xs text-[var(--muted)] italic">No passed signals detected for this category.</p>
                             )}
