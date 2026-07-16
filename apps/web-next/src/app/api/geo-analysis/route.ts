@@ -231,12 +231,13 @@ CRITICAL SCORING BENCHMARKS & PENALIZATION RULES:
 CRITICAL RULE FOR CHECKLIST:
 - If the crawler successfully crawled the site (crawlFailed=false), you must trust the crawler's detections. Do NOT set any social/GEO platform fields (like linkedin, x, youtube, reddit, trustpilot, g2, capterra, crunchbase) to true unless the crawler detected them as true OR you have absolute, high-confidence verified knowledge that this specific brand officially operates that profile.
 - For small local/regional sites, do not assume standard profiles exist if the crawler did not detect them.
-- If the crawler failed (crawlFailed=true), use your general brand knowledge to fill in the checklist logically.
+- If the crawler failed (crawlFailed=true) OR if the site is a well-known major brand (such as swiggy.com, instagram.com, zomato.com) and the crawled snippet is extremely minimal, you MUST use your general knowledge of this brand to set the checklist fields to true for platforms you know they officially operate (e.g. Swiggy has an active YouTube, LinkedIn, X, etc.).
 
 CRITICAL RULE FOR CATEGORIES:
 - For each of the 4 categories (experience, expertise, authority, trust), evaluate exactly 6 specific quality signals.
 - Therefore, the sum of items in the 'working' array and the 'missing' array MUST equal exactly 6 (so 'totalCount' is always exactly 6).
 - 'passedCount' MUST exactly equal the length of the 'working' array.
+- MAJOR BRAND EXCEPTION: Do NOT apply the local-site penalties or caps to major household names, leading platforms, or high-authority national brands (e.g., Swiggy, Instagram, Zomato). Even if the crawled snippet is minimal or blocked, you must score them highly (Experience: 80-95, Expertise: 85-95, Authority: 85-95, Trust: 90-98) based on their true real-world standing, using your prior knowledge.
 
 Return ONLY a valid JSON object matching this schema (do not include markdown syntax outside of the JSON block):
 {
