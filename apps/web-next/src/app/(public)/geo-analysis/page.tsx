@@ -874,35 +874,37 @@ export default function GeoAnalysisPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Sidebar list of tools (leads directly to Setup Wizard dialog) */}
-            <div className="lg:col-span-4 bg-[var(--bg-2)]/60 border border-[var(--line)]/50 rounded-2xl p-4 flex flex-col gap-1 shadow-xs">
-              <span className="text-[10px] font-black text-[var(--muted)] px-4 py-1.5 uppercase tracking-wider block">Tools Navigation</span>
-              {[
-                { name: "Domain Rating Checker", icon: Award },
-                { name: "SEO Audit Suite", icon: Activity },
-                { name: "Page Speed Analyzer", icon: Activity },
-                { name: "Keyword Research Tool", icon: Search },
-                { name: "Backlink Auditor", icon: Link2 },
-                { name: "XML Sitemap Generator", icon: FileCode },
-                { name: "Sitemap Finder & Indexer", icon: FileCode },
-                { name: "Sitemap Quality Validator", icon: FileCode }
-              ].map((tool, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={handleLaunchWizard}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--ink-2)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 cursor-pointer transition-all flex items-center justify-between group"
-                >
-                  <span className="flex items-center gap-2 font-semibold">
-                    <tool.icon className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--primary)]" />
-                    {tool.name}
-                  </span>
-                  <ChevronRight className="w-3 h-3 text-[var(--muted)] group-hover:translate-x-0.5 transition-transform" />
-                </div>
-              ))}
+            {/* Sidebar list of tools — sticky */}
+            <div className="lg:col-span-4 lg:sticky lg:top-24 self-start">
+              <div className="bg-[var(--bg-2)]/60 border border-[var(--line)]/50 rounded-2xl p-4 flex flex-col gap-1 shadow-xs">
+                <span className="text-[10px] font-black text-[var(--muted)] px-4 py-1.5 uppercase tracking-wider block">Tools Navigation</span>
+                {[
+                  { name: "Domain Rating Checker", icon: Award },
+                  { name: "SEO Audit Suite", icon: Activity },
+                  { name: "Page Speed Analyzer", icon: Activity },
+                  { name: "Keyword Research Tool", icon: Search },
+                  { name: "Backlink Auditor", icon: Link2 },
+                  { name: "XML Sitemap Generator", icon: FileCode },
+                  { name: "Sitemap Finder & Indexer", icon: FileCode },
+                  { name: "Sitemap Quality Validator", icon: FileCode }
+                ].map((tool, idx) => (
+                  <div 
+                    key={idx} 
+                    onClick={handleLaunchWizard}
+                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--ink-2)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 cursor-pointer transition-all flex items-center justify-between group"
+                  >
+                    <span className="flex items-center gap-2 font-semibold">
+                      <tool.icon className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--primary)]" />
+                      {tool.name}
+                    </span>
+                    <ChevronRight className="w-3 h-3 text-[var(--muted)] group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Expandable FAQs Accordions */}
-            <div className="lg:col-span-8 space-y-3.5">
+            {/* Expandable FAQs Accordions — scrollable */}
+            <div className="lg:col-span-8 lg:max-h-[600px] lg:overflow-y-auto lg:pr-2 space-y-3.5" style={{ scrollbarWidth: 'thin', scrollbarColor: 'var(--line) transparent' }}>
               {[
                 {
                   q: "What is GEO (Generative Engine Optimization)?",
