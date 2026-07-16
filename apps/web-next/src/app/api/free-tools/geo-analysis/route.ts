@@ -198,7 +198,7 @@ export async function GET(request: NextRequest) {
     const systemPrompt = `You are a Google Search Quality Rater and GEO (Generative Engine Optimization) expert.
 Evaluate the following website details and text content against Google's official E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) guidelines.
 
-TECHNICAL AUDIT CHECKLIST FOUND ON SITE:
+CRAWLER DETECTED CHECKLIST (INITIAL ESTIMATES):
 - SSL Active: ${checklist.ssl}
 - Privacy Policy Page: ${checklist.privacyPolicy}
 - Terms of Service Page: ${checklist.termsOfService}
@@ -227,14 +227,28 @@ ${crawlFailed ? `IMPORTANT NOTE: The crawler was blocked or unable to reach the 
 
 INSTRUCTIONS:
 Calculate a score from 0 to 100 for each of the 4 categories (Experience, Expertise, Authority, Trust) based on the content quality and technical checklist.
-Provide exactly:
-1. "Working" points (positive signals)
-2. "Missing" points (weaknesses or missing signals)
-3. "Recommendations" (how to improve)
-For each of the categories.
+Also, output the corrected/final technical checklist based on your general knowledge of this brand and website footprint. If the crawler failed or was blocked (crawlFailed=${crawlFailed}), use your knowledge of the brand "${hostname}" to fill in the checklist.
 
 Return ONLY a valid JSON object matching this schema (do not include markdown syntax outside of the JSON block):
 {
+  "checklist": {
+    "ssl": boolean,
+    "privacyPolicy": boolean,
+    "termsOfService": boolean,
+    "organizationSchema": boolean,
+    "twitterCard": boolean,
+    "copyright": boolean,
+    "contactDetails": boolean,
+    "internalLinks": boolean,
+    "g2": boolean,
+    "reddit": boolean,
+    "capterra": boolean,
+    "linkedin": boolean,
+    "crunchbase": boolean,
+    "trustpilot": boolean,
+    "x": boolean,
+    "youtube": boolean
+  },
   "scores": {
     "experience": number (0-100),
     "expertise": number (0-100),
@@ -314,6 +328,12 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
       throw new Error("Failed to generate structured E-E-A-T results.");
     }
 
+    const finalChecklist = parsedData.checklist || checklist;
+    const finalAnalysis = {
+      scores: parsedData.scores,
+      categories: parsedData.categories
+    };
+
     return NextResponse.json({
       url: normalizedUrl,
       domain: hostname,
@@ -322,8 +342,8 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
         day: "numeric",
         year: "numeric",
       }),
-      checklist,
-      analysis: parsedData,
+      checklist: finalChecklist,
+      analysis: finalAnalysis,
     });
   } catch (error: any) {
     console.error("[GEO Audit API] Error:", error);
