@@ -102,37 +102,18 @@ export async function GET(request: NextRequest) {
     // 3. Technical Checklist Audit (regex-based)
     const lowerHtml = html.toLowerCase();
 
-    // Check for Privacy Policy
-    const hasPrivacyPolicy = /href="[^"]*privacy[^"]*"/i.test(html);
+    // Check for About Us Page
+    const hasAboutUs = /href="[^"]*(about|about-us|aboutus)[^"]*"/i.test(html) || /about us/i.test(html);
 
-    // Check for Terms of Service
-    const hasTermsOfService = /href="[^"]*(terms|tos|terms-of-service|terms-and-conditions)[^"]*"/i.test(html);
+    // Check for Contact Details
+    const hasContactDetails = /href="mailto:/i.test(html) || /href="tel:/i.test(html) || /contact us|contact details/i.test(html) || /href="[^"]*contact[^"]*"/i.test(html);
 
     // Check for Schema Organization
     const hasOrganizationSchema = /type="application\/ld\+json"[^>]*>[\s\S]*?"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/i.test(html) ||
                                   /type="application\/ld\+json"[^>]*>[\s\S]*?"Organization"[\s\S]*?<\/script>/i.test(html);
 
-    // Check for Twitter Card
-    const hasTwitterCard = /<meta[^>]*(name|property)="twitter:card"/i.test(html);
-
-    // Check for Copyright
-    const hasCopyright = /(©|copyright)/i.test(html);
-
-    // Check for Contact Details
-    const hasContactDetails = /href="mailto:/i.test(html) || /href="tel:/i.test(html) || /contact us|contact details/i.test(html) || /href="[^"]*contact[^"]*"/i.test(html);
-
-    // Check for Internal Links
-    const linkMatches = html.match(/href="([^"]*)"/gi) || [];
-    let internalLinksCount = 0;
-    linkMatches.forEach((linkStr) => {
-      const match = linkStr.match(/href="([^"]*)"/i);
-      if (match && match[1]) {
-        const href = match[1];
-        if (href.startsWith("/") || href.includes(hostname)) {
-          internalLinksCount++;
-        }
-      }
-    });
+    // Check for general Social Links (Facebook, Instagram, etc. excluding GEO platforms which are checked separately)
+    const hasSocialLinks = /(facebook\.com|instagram\.com|pinterest\.com|tiktok\.com)\/[a-zA-Z0-9_-]+/i.test(html);
 
     // Check social & GEO Platforms (refined to require profile/channel slugs and exclude sharing endpoints)
     const hasG2 = /g2\.com\/products\/[a-zA-Z0-9_-]+/i.test(html);
@@ -146,13 +127,10 @@ export async function GET(request: NextRequest) {
 
     const checklist = {
       ssl: isSsl,
-      privacyPolicy: hasPrivacyPolicy,
-      termsOfService: hasTermsOfService,
-      organizationSchema: hasOrganizationSchema,
-      twitterCard: hasTwitterCard,
-      copyright: hasCopyright,
+      aboutUs: hasAboutUs,
       contactDetails: hasContactDetails,
-      internalLinks: internalLinksCount > 3,
+      socialLinks: hasSocialLinks,
+      organizationSchema: hasOrganizationSchema,
       g2: hasG2,
       reddit: hasReddit,
       capterra: hasCapterra,
@@ -200,13 +178,10 @@ Evaluate the following website details and text content against Google's officia
 
 CRAWLER DETECTED CHECKLIST (INITIAL ESTIMATES):
 - SSL Active: ${checklist.ssl}
-- Privacy Policy Page: ${checklist.privacyPolicy}
-- Terms of Service Page: ${checklist.termsOfService}
-- Organization Schema: ${checklist.organizationSchema}
-- Twitter Card Meta: ${checklist.twitterCard}
-- Copyright Notice: ${checklist.copyright}
+- About Us Page: ${checklist.aboutUs}
 - Contact Details: ${checklist.contactDetails}
-- Solid Internal Links: ${checklist.internalLinks}
+- Social Links: ${checklist.socialLinks}
+- Organization Schema: ${checklist.organizationSchema}
 - GEO Platform references linked:
   * G2: ${checklist.g2}
   * Reddit: ${checklist.reddit}
@@ -250,7 +225,7 @@ CRITICAL SCORING BENCHMARKS & PENALIZATION RULES:
    - If the site has zero social/GEO profiles present (linkedin=false, x=false, youtube=false, crunchbase=false, g2=false, capterra=false, trustpilot=false), the score MUST be between 10 and 20. Do NOT exceed 20.
 4. Trustworthiness (0-100):
    - Start from a baseline of 30.
-   - Add +10 for SSL (ssl=true), +15 for Privacy Policy (privacyPolicy=true), +15 for Terms of Service (termsOfService=true), +10 for copyright (copyright=true), +10 for contact details (contactDetails=true), +10 for organization schema.
+   - Add +10 for SSL (ssl=true), +15 for About Us Page (aboutUs=true), +15 for Contact Details (contactDetails=true), +10 for Social Links (socialLinks=true), +10 for Organization Schema (organizationSchema=true).
    - If major legal/contact items or schema are missing, or if the brand lacks external verified profiles, cap the score at 50.
 
 CRITICAL RULE FOR CHECKLIST:
@@ -262,13 +237,10 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
 {
   "checklist": {
     "ssl": boolean,
-    "privacyPolicy": boolean,
-    "termsOfService": boolean,
-    "organizationSchema": boolean,
-    "twitterCard": boolean,
-    "copyright": boolean,
+    "aboutUs": boolean,
     "contactDetails": boolean,
-    "internalLinks": boolean,
+    "socialLinks": boolean,
+    "organizationSchema": boolean,
     "g2": boolean,
     "reddit": boolean,
     "capterra": boolean,

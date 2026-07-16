@@ -45,13 +45,10 @@ interface AnalysisResult {
   updatedAt: string;
   checklist: {
     ssl: boolean;
-    privacyPolicy: boolean;
-    termsOfService: boolean;
-    organizationSchema: boolean;
-    twitterCard: boolean;
-    copyright: boolean;
+    aboutUs: boolean;
     contactDetails: boolean;
-    internalLinks: boolean;
+    socialLinks: boolean;
+    organizationSchema: boolean;
     g2: boolean;
     reddit: boolean;
     capterra: boolean;
@@ -84,6 +81,7 @@ export default function GeoAnalysisPage() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>("expertise");
+  const [subTabs, setSubTabs] = useState<Record<string, "summary" | "issues" | "passed">>({});
   
   // Custom Wizard Dialog state to make all cards & buttons work
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -391,30 +389,29 @@ export default function GeoAnalysisPage() {
                 </h3>
                 {renderRadarChart(result.analysis.scores)}
               </div>
-
               {/* Individual Score cards */}
               <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { name: "Expertise", score: result.analysis.scores.expertise, icon: Award, label: "Professional trust" },
-                  { name: "Experience", score: result.analysis.scores.experience, icon: UserCheck, label: "First-hand signals" },
-                  { name: "Authoritativeness", score: result.analysis.scores.authority, icon: BookOpen, label: "Platform influence" },
-                  { name: "Trustworthiness", score: result.analysis.scores.trust, icon: ShieldCheck, label: "Safety & privacy" },
+                  { name: "Expertise", score: result.analysis.scores.expertise, icon: Award, label: "Expertise", iconColor: "text-violet-500 bg-violet-500/10" },
+                  { name: "Experience", score: result.analysis.scores.experience, icon: UserCheck, label: "Experience", iconColor: "text-indigo-500 bg-indigo-500/10" },
+                  { name: "Authoritativeness", score: result.analysis.scores.authority, icon: BookOpen, label: "Authoritativeness", iconColor: "text-emerald-500 bg-emerald-500/10" },
+                  { name: "Trustworthiness", score: result.analysis.scores.trust, icon: ShieldCheck, label: "Trustworthiness", iconColor: "text-purple-500 bg-purple-500/10" },
                 ].map((item, idx) => {
                   const Icon = item.icon;
                   return (
                     <div key={idx} className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 flex flex-col justify-between shadow-xs">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)] block">{item.name}</span>
-                          <span className="text-[10px] font-bold text-[var(--muted)]/80">{item.label}</span>
+                      <div>
+                        <div className={`w-10 h-10 rounded-xl ${item.iconColor} flex items-center justify-center mb-4`}>
+                          <Icon className="w-5 h-5" />
                         </div>
-                        <div className="p-2.5 rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
-                          <Icon className="w-4 h-4" />
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-4xl font-black text-[var(--ink)]">{item.score}</span>
+                          <span className="text-slate-400 font-bold text-sm">/100</span>
                         </div>
                       </div>
-                      <div className="mt-8 flex items-baseline gap-1">
-                        <span className={`text-4.5xl font-black ${getScoreColor(item.score)}`}>{item.score}</span>
-                        <span className="text-[var(--muted)] font-bold text-sm">/100</span>
+                      <div className="mt-4 flex items-center gap-1 text-[11px] font-bold text-[var(--muted)]">
+                        <HelpCircle className="w-3.5 h-3.5 opacity-60" />
+                        {item.label}
                       </div>
                     </div>
                   );
@@ -423,79 +420,85 @@ export default function GeoAnalysisPage() {
             </div>
 
             {/* Technical Checklist */}
-            <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 md:p-8 mb-12 shadow-xs">
-              <div className="mb-6">
-                <h3 className="text-lg font-black text-[var(--ink)]">Technical Audit Checklist</h3>
-                <p className="text-xs font-bold text-[var(--muted)]">Essential structured parameters required to demonstrate website safety and AI citation-readiness</p>
-              </div>
+            {(() => {
+              const checklistItems = [
+                { label: "SSL Certificate", present: result.checklist.ssl },
+                { label: "About Us Page", present: result.checklist.aboutUs },
+                { label: "Contact Details", present: result.checklist.contactDetails },
+                { label: "Social Links", present: result.checklist.socialLinks },
+                { label: "Organization Schema", present: result.checklist.organizationSchema },
+                { label: "GEO Platform: G2", present: result.checklist.g2 },
+                { label: "GEO Platform: Reddit", present: result.checklist.reddit },
+                { label: "GEO Platform: Capterra", present: result.checklist.capterra },
+                { label: "GEO Platform: LinkedIn", present: result.checklist.linkedin },
+                { label: "GEO Platform: CrunchBase", present: result.checklist.crunchbase },
+                { label: "GEO Platform: TrustPilot", present: result.checklist.trustpilot },
+                { label: "GEO Platform: X (Twitter)", present: result.checklist.x },
+                { label: "GEO Platform: YouTube", present: result.checklist.youtube },
+              ];
+              const missingCount = checklistItems.filter(item => !item.present).length;
+              const foundCount = checklistItems.filter(item => item.present).length;
 
-              {/* Missing Details Grid */}
-              <div className="mb-8">
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] mb-4">Missing details / Weak Signals</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {[
-                    { label: "Privacy Policy Page", present: result.checklist.privacyPolicy },
-                    { label: "Terms of Service", present: result.checklist.termsOfService },
-                    { label: "Schema.org Organization", present: result.checklist.organizationSchema },
-                    { label: "Twitter Card Meta", present: result.checklist.twitterCard },
-                    { label: "Linked G2 reviews", present: result.checklist.g2 },
-                    { label: "Active Reddit handles", present: result.checklist.reddit },
-                    { label: "Linked Capterra Profile", present: result.checklist.capterra },
-                    { label: "Verified LinkedIn company page", present: result.checklist.linkedin },
-                    { label: "Active CrunchBase listing", present: result.checklist.crunchbase },
-                    { label: "Verifiable TrustPilot link", present: result.checklist.trustpilot },
-                    { label: "Active X (Twitter) handle", present: result.checklist.x },
-                    { label: "Official YouTube Channel", present: result.checklist.youtube },
-                  ]
-                    .filter(item => !item.present)
-                    .map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-[var(--bg-2)]/40 border border-[var(--line)]/50 rounded-xl px-4 py-3">
-                        <span className="text-xs font-bold text-[var(--ink-2)]">{item.label}</span>
-                        <span className="rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200/50 dark:border-rose-500/20 px-2.5 py-0.5 text-[9px] font-black text-rose-500 dark:text-rose-400 uppercase">Missing</span>
+              return (
+                <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 md:p-8 mb-12 shadow-xs">
+                  <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-black text-[var(--ink)]">Technical Audit</h3>
+                        <span className="bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-black rounded-full px-2.5 py-0.5">{missingCount}</span>
+                        <span className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black rounded-full px-2.5 py-0.5">{foundCount}</span>
                       </div>
-                    ))}
-                </div>
-              </div>
+                      <p className="text-xs font-bold text-[var(--muted)] mt-1">Essential metrics for search and user experience</p>
+                    </div>
+                  </div>
 
-              {/* Details Found */}
-              <div>
-                <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] mb-4">Details Found / Active Signals</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                  {[
-                    { label: "SSL (HTTPS Mode)", present: result.checklist.ssl },
-                    { label: "Contact Details / Handles", present: result.checklist.contactDetails },
-                    { label: "Copyright Declarations", present: result.checklist.copyright },
-                    { label: "Comprehensive Internal Links", present: result.checklist.internalLinks },
-                    { label: "Privacy Policy Page", present: result.checklist.privacyPolicy },
-                    { label: "Terms of Service", present: result.checklist.termsOfService },
-                    { label: "Schema.org Organization", present: result.checklist.organizationSchema },
-                    { label: "Twitter Card Meta", present: result.checklist.twitterCard },
-                    { label: "Linked G2 reviews", present: result.checklist.g2 },
-                    { label: "Active Reddit handles", present: result.checklist.reddit },
-                    { label: "Linked Capterra Profile", present: result.checklist.capterra },
-                    { label: "Verified LinkedIn company page", present: result.checklist.linkedin },
-                    { label: "Active CrunchBase listing", present: result.checklist.crunchbase },
-                    { label: "Verifiable TrustPilot link", present: result.checklist.trustpilot },
-                    { label: "Active X (Twitter) handle", present: result.checklist.x },
-                    { label: "Official YouTube Channel", present: result.checklist.youtube },
-                  ]
-                    .filter(item => item.present)
-                    .map((item, idx) => (
-                      <div key={idx} className="flex justify-between items-center bg-[var(--bg-2)]/40 border border-[var(--line)]/50 rounded-xl px-4 py-3">
-                        <span className="text-xs font-bold text-[var(--ink-2)]">{item.label}</span>
-                        <span className="rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/30 dark:border-emerald-500/20 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase">Present</span>
+                  {/* Missing Details Grid */}
+                  {missingCount > 0 && (
+                    <div className="mb-8">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] mb-4">Missing details</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {checklistItems
+                          .filter(item => !item.present)
+                          .map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center bg-[var(--bg-2)]/40 border border-[var(--line)]/50 rounded-xl px-4 py-3">
+                              <span className="text-xs font-bold text-[var(--ink-2)]">{item.label}</span>
+                              <span className="rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200/50 dark:border-rose-500/20 px-2.5 py-0.5 text-[9px] font-black text-rose-500 dark:text-rose-450 uppercase">Missing</span>
+                            </div>
+                          ))}
                       </div>
-                    ))}
+                    </div>
+                  )}
+
+                  {/* Details Found */}
+                  {foundCount > 0 && (
+                    <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--muted)] mb-4">Details found</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {checklistItems
+                          .filter(item => item.present)
+                          .map((item, idx) => (
+                            <div key={idx} className="flex justify-between items-center bg-[var(--bg-2)]/40 border border-[var(--line)]/50 rounded-xl px-4 py-3">
+                              <span className="text-xs font-bold text-[var(--ink-2)]">{item.label}</span>
+                              <span className="rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/30 dark:border-emerald-500/20 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 dark:text-emerald-450 uppercase">Present</span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
+              );
+            })()}
 
             {/* Detailed Accordions for E-E-A-T */}
             <div className="space-y-4">
-              <h3 className="text-lg font-black text-[var(--ink)] mb-4">Detailed Signal Analysis</h3>
+              <h3 className="text-lg font-black text-[var(--ink)] mb-4">Detailed Analysis</h3>
 
               {Object.entries(result.analysis.categories).map(([key, category]) => {
                 const isOpen = openCategory === key;
+                const activeTab = subTabs[key] || "summary";
+                const issuesCount = category.missing.length;
+                const passedCount = category.working.length;
+
                 return (
                   <div key={key} className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl overflow-hidden shadow-xs">
                     {/* Header trigger */}
@@ -506,7 +509,7 @@ export default function GeoAnalysisPage() {
                       <div className="flex items-center gap-4">
                         <h4 className="text-base font-black capitalize text-[var(--ink)]">{key}</h4>
                         <span className={`text-sm font-extrabold ${getScoreColor(category.score)}`}>{category.score}/100</span>
-                        <span className="text-[10px] text-[var(--muted)] font-bold hidden sm:inline">{category.passedCount}/{category.totalCount} checks passed</span>
+                        <span className="text-[10px] text-[var(--muted)] font-bold hidden sm:inline">{category.passedCount}/{category.totalCount} signals passed</span>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase ${getScoreBadgeColor(category.status)}`}>
@@ -519,51 +522,129 @@ export default function GeoAnalysisPage() {
                     {/* Content */}
                     {isOpen && (
                       <div className="px-6 pb-8 pt-4 border-t border-[var(--line)] animate-fade-in-up">
-                        {/* Working & Missing side-by-side */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                          <div>
-                            <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-450 mb-3 flex items-center gap-1.5">
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              What's Working
-                            </h5>
-                            <ul className="space-y-2">
-                              {category.working.map((item, idx) => (
-                                <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-2.5 border-l border-emerald-500/30 font-medium">
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                        {/* Sub Tabs navigation matching SnowSEO */}
+                        <div className="flex gap-6 border-b border-[var(--line)]/50 mb-6">
+                          <button
+                            onClick={() => setSubTabs(prev => ({ ...prev, [key]: "summary" }))}
+                            className={`pb-2.5 text-xs font-black tracking-wider uppercase border-b-2 transition-all cursor-pointer border-0 bg-transparent ${
+                              activeTab === "summary"
+                                ? "border-[var(--primary)] text-[var(--primary)]"
+                                : "border-transparent text-[var(--muted)] hover:text-[var(--ink)]"
+                            }`}
+                          >
+                            Summary
+                          </button>
+                          <button
+                            onClick={() => setSubTabs(prev => ({ ...prev, [key]: "issues" }))}
+                            className={`pb-2.5 text-xs font-black tracking-wider uppercase border-b-2 transition-all cursor-pointer border-0 bg-transparent ${
+                              activeTab === "issues"
+                                ? "border-[var(--primary)] text-[var(--primary)]"
+                                : "border-transparent text-[var(--muted)] hover:text-[var(--ink)]"
+                            }`}
+                          >
+                            Issues ({issuesCount})
+                          </button>
+                          <button
+                            onClick={() => setSubTabs(prev => ({ ...prev, [key]: "passed" }))}
+                            className={`pb-2.5 text-xs font-black tracking-wider uppercase border-b-2 transition-all cursor-pointer border-0 bg-transparent ${
+                              activeTab === "passed"
+                                ? "border-[var(--primary)] text-[var(--primary)]"
+                                : "border-transparent text-[var(--muted)] hover:text-[var(--ink)]"
+                            }`}
+                          >
+                            Passed ({passedCount})
+                          </button>
+                        </div>
 
-                          <div>
+                        {/* Tab Content */}
+                        {activeTab === "summary" && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                              <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-450 mb-3 flex items-center gap-1.5">
+                                <CheckCircle className="w-3.5 h-3.5" />
+                                What's Working
+                              </h5>
+                              <ul className="space-y-2">
+                                {category.working.map((item, idx) => (
+                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-2.5 border-l border-emerald-500/30 font-medium">
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div>
+                              <h5 className="text-[10px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 mb-3 flex items-center gap-1.5">
+                                <XCircle className="w-3.5 h-3.5" />
+                                What's Missing
+                              </h5>
+                              <ul className="space-y-2">
+                                {category.missing.map((item, idx) => (
+                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-2.5 border-l border-rose-500/30 font-medium">
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeTab === "issues" && (
+                          <div className="mb-6">
                             <h5 className="text-[10px] font-black uppercase tracking-wider text-rose-500 dark:text-rose-450 mb-3 flex items-center gap-1.5">
                               <XCircle className="w-3.5 h-3.5" />
-                              What's Missing
+                              Identified Issues
                             </h5>
-                            <ul className="space-y-2">
-                              {category.missing.map((item, idx) => (
-                                <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-2.5 border-l border-rose-500/30 font-medium">
+                            {issuesCount > 0 ? (
+                              <ul className="space-y-3">
+                                {category.missing.map((item, idx) => (
+                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-3 border-l-2 border-rose-500 font-medium">
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-xs text-[var(--muted)] italic">No issues detected for this category.</p>
+                            )}
+                          </div>
+                        )}
+
+                        {activeTab === "passed" && (
+                          <div className="mb-6">
+                            <h5 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-450 mb-3 flex items-center gap-1.5">
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              Passed Signals
+                            </h5>
+                            {passedCount > 0 ? (
+                              <ul className="space-y-3">
+                                {category.working.map((item, idx) => (
+                                  <li key={idx} className="text-xs text-[var(--ink-2)] leading-relaxed pl-3 border-l-2 border-emerald-500 font-medium">
+                                    {item}
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-xs text-[var(--muted)] italic">No passed signals detected for this category.</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* How to Improve */}
+                        {category.improve && category.improve.length > 0 && (
+                          <div className="bg-[var(--primary)]/[0.03] border border-[var(--primary)]/10 rounded-2xl p-5">
+                            <h5 className="text-[10px] font-black uppercase tracking-wider text-[var(--primary)] mb-3 flex items-center gap-1.5">
+                              <HelpCircle className="w-3.5 h-3.5" />
+                              How to Improve
+                            </h5>
+                            <ol className="space-y-2.5 list-decimal list-inside text-xs text-[var(--ink-2)] leading-relaxed font-medium">
+                              {category.improve.map((item, idx) => (
+                                <li key={idx} className="pl-1">
                                   {item}
                                 </li>
                               ))}
-                            </ul>
+                            </ol>
                           </div>
-                        </div>
-
-                        {/* How to Improve */}
-                        <div className="bg-[var(--primary)]/[0.03] border border-[var(--primary)]/10 rounded-2xl p-5">
-                          <h5 className="text-[10px] font-black uppercase tracking-wider text-[var(--primary)] mb-3 flex items-center gap-1.5">
-                            <HelpCircle className="w-3.5 h-3.5" />
-                            Actionable Optimization Steps
-                          </h5>
-                          <ol className="space-y-2.5 list-decimal list-inside text-xs text-[var(--ink-2)] leading-relaxed font-medium">
-                            {category.improve.map((item, idx) => (
-                              <li key={idx} className="pl-1">
-                                {item}
-                              </li>
-                            ))}
-                          </ol>
-                        </div>
+                        )}
                       </div>
                     )}
                   </div>
