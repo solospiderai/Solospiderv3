@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
@@ -82,6 +82,32 @@ export default function GeoAnalysisPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>("expertise");
   const [subTabs, setSubTabs] = useState<Record<string, "summary" | "issues" | "passed">>({});
+  
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = window.localStorage.getItem("solospider_theme");
+      const nextDark = saved === "dark";
+      setIsDark(nextDark);
+      if (nextDark) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextDark = !isDark;
+    setIsDark(nextDark);
+    window.localStorage.setItem("solospider_theme", nextDark ? "dark" : "light");
+    if (nextDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
   
   // Custom Wizard Dialog state to make all cards & buttons work
   const [isWizardOpen, setIsWizardOpen] = useState(false);
@@ -230,7 +256,7 @@ export default function GeoAnalysisPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--ink)] overflow-x-hidden font-sans selection:bg-purple-500/20 selection:text-purple-650 transition-colors duration-300">
-      <MarketingNavbar />
+      <MarketingNavbar isDark={isDark} onToggleTheme={toggleTheme} onOpenWizard={handleLaunchWizard} />
 
       <style>{`
         @keyframes fadeInUp {
