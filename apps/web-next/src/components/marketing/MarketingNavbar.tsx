@@ -122,12 +122,12 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
               Blog
             </button>
 
-            <button 
-              onClick={onOpenWizard} 
-              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-normal bg-transparent text-[14px]"
+            <Link 
+              href="/geo-analysis"
+              className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-normal text-[14px]"
             >
-              SEO Audit
-            </button>
+              GEO Analytics
+            </Link>
           </div>
           
           <div className="hidden md:flex items-center gap-[14px]">
@@ -179,9 +179,9 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
           <button onClick={() => { setMobileMenuOpen(false); onOpenWizard?.(); }} className="text-left text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer bg-transparent font-semibold">
             Blog
           </button>
-          <button onClick={() => { setMobileMenuOpen(false); onOpenWizard?.(); }} className="text-left text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer bg-transparent font-semibold">
-            SEO Audit
-          </button>
+          <Link href="/geo-analysis" className="text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer font-semibold" onClick={() => setMobileMenuOpen(false)}>
+            GEO Analytics
+          </Link>
           <div className="flex flex-col gap-3 mt-4">
             <div className="flex items-center justify-between py-2 px-1 border-b border-dashed border-[var(--line)]">
               <span className="text-xs text-slate-500 font-bold">Theme</span>
