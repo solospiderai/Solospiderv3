@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { MarketingNavbar } from "@/components/marketing/MarketingNavbar";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
+import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
 import { 
   CheckCircle, 
   XCircle, 
@@ -83,6 +84,10 @@ export default function GeoAnalysisPage() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>("expertise");
+  
+  // Custom Wizard Dialog state to make all cards & buttons work
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardDomain, setWizardDomain] = useState("");
 
   // Handle running the audit
   const handleAnalyze = async (e: React.FormEvent) => {
@@ -108,6 +113,12 @@ export default function GeoAnalysisPage() {
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  // Click handler to launch SoloSpider Project setup wizard
+  const handleLaunchWizard = () => {
+    setWizardDomain(urlInput.trim() || "");
+    setIsWizardOpen(true);
   };
 
   // Helper to draw Radar Chart dynamically using custom SVG
@@ -160,14 +171,14 @@ export default function GeoAnalysisPage() {
           {/* Filled Data Polygon */}
           <polygon 
             points={polygonPointsStr} 
-            className="animate-draw-polygon fill-orange-500/15 dark:fill-orange-500/25 stroke-orange-500" 
+            className="animate-draw-polygon fill-violet-500/15 dark:fill-violet-500/25 stroke-violet-550 dark:stroke-violet-400" 
             strokeWidth="3" 
             strokeLinejoin="round"
           />
 
           {/* Data Vertices Points */}
           {points.map((p, idx) => (
-            <circle key={idx} cx={p.x} cy={p.y} r="5" className="fill-orange-500 stroke-white dark:stroke-[#09070f]" strokeWidth="2" />
+            <circle key={idx} cx={p.x} cy={p.y} r="5" className="fill-violet-600 dark:fill-violet-400 stroke-white dark:stroke-[#09070f]" strokeWidth="2" />
           ))}
         </svg>
       </div>
@@ -220,7 +231,7 @@ export default function GeoAnalysisPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09070f] text-slate-900 dark:text-white overflow-x-hidden font-sans selection:bg-orange-500/20 selection:text-orange-600 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-55 dark:bg-[#09070f] text-slate-900 dark:text-white overflow-x-hidden font-sans selection:bg-violet-500/20 selection:text-violet-650 transition-colors duration-300">
       <MarketingNavbar />
 
       <style>{`
@@ -252,8 +263,8 @@ export default function GeoAnalysisPage() {
           animation: drawPolygon 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
         .blueprint-grid {
-          background-image: linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
-                            linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+          background-image: linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
           background-size: 24px 24px;
         }
         .dark .blueprint-grid {
@@ -269,12 +280,12 @@ export default function GeoAnalysisPage() {
           <div className="hidden lg:block border-r border-slate-200/40 dark:border-slate-800/10" />
           <div className="w-full min-w-0 px-4 sm:px-8 py-20 lg:py-24 max-w-5xl mx-auto">
             {/* Breadcrumb */}
-            <nav className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-semibold text-slate-405 dark:text-slate-500 mb-8 animate-fade-in-up">
+            <nav className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-semibold text-slate-400 dark:text-slate-500 mb-8 animate-fade-in-up">
               <Link href="/" className="hover:text-slate-600 dark:hover:text-slate-350 transition-colors">Home</Link>
               <span>/</span>
               <span className="hover:text-slate-600 dark:hover:text-slate-350 cursor-pointer">Free Tools</span>
               <span>/</span>
-              <span className="text-orange-500 dark:text-orange-400 font-extrabold">GEO Analysis</span>
+              <span className="text-violet-600 dark:text-violet-400 font-extrabold">GEO Analysis</span>
             </nav>
 
             {/* Tool Icon Visual */}
@@ -282,10 +293,10 @@ export default function GeoAnalysisPage() {
               <div 
                 className="relative z-10 rounded-[36px] bg-white dark:bg-[#130f26] p-5 shadow-xl border border-slate-200/50 dark:border-slate-800/40"
                 style={{
-                  boxShadow: '0 20px 40px -15px rgba(249, 115, 22, 0.12), 0 0 50px 10px rgba(249, 115, 22, 0.05)'
+                  boxShadow: '0 20px 40px -15px rgba(139, 92, 246, 0.12), 0 0 50px 10px rgba(139, 92, 246, 0.05)'
                 }}
               >
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center shadow-md">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-650 text-white flex items-center justify-center shadow-md">
                   <Compass className="h-9.5 w-9.5 animate-pulse" />
                 </div>
               </div>
@@ -294,9 +305,9 @@ export default function GeoAnalysisPage() {
             {/* Title & Sub */}
             <div className="text-center max-w-3xl mx-auto mb-12 animate-fade-in-up">
               <h1 className="text-4xl md:text-5.5xl font-black tracking-tight leading-[1.1] text-slate-900 dark:text-white mb-5">
-                Free <span className="text-orange-500 dark:text-orange-400">GEO Analysis</span> Tool
+                Free <span className="text-violet-600 dark:text-violet-400">GEO Analysis</span> Tool
               </h1>
-              <p className="text-slate-505 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-medium">
+              <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-medium">
                 Analyze your website's Experience, Expertise, Authoritativeness, and Trustworthiness signals. Get instant E-E-A-T reports and actionable recommendations to optimize for AI engines.
               </p>
             </div>
@@ -306,27 +317,27 @@ export default function GeoAnalysisPage() {
               <div className="mb-2 flex items-center justify-between px-3 text-[11px] font-bold text-slate-400 dark:text-slate-500 tracking-wider">
                 <span>EEAT CRAWLER ACTIVE</span>
                 <span>
-                  <span className="text-orange-500 dark:text-orange-400">5</span>/5 FREE CHECKS LEFT
+                  <span className="text-violet-600 dark:text-violet-400">5</span>/5 FREE CHECKS LEFT
                 </span>
               </div>
               
               <form onSubmit={handleAnalyze} className="relative z-10">
-                <div className="flex flex-col sm:flex-row gap-3 rounded-2xl bg-white dark:bg-[#120f24] border border-slate-200 dark:border-slate-800/80 p-2 sm:rounded-full shadow-lg shadow-slate-100 dark:shadow-none focus-within:border-orange-500/50 dark:focus-within:border-orange-500/50 transition-all duration-205">
+                <div className="flex flex-col sm:flex-row gap-3 rounded-2xl bg-white dark:bg-[#120f24] border border-slate-200 dark:border-slate-800/80 p-2 sm:rounded-full shadow-lg shadow-slate-100 dark:shadow-none focus-within:border-violet-500/50 dark:focus-within:border-violet-500/50 transition-all duration-200">
                   <div className="flex-1 flex items-center px-4 py-2 sm:py-0">
-                    <span className="select-none font-bold text-slate-400 dark:text-slate-500 text-sm">https://</span>
+                    <span className="select-none font-bold text-slate-400 dark:text-slate-550 text-sm">https://</span>
                     <input 
                       type="text" 
                       placeholder="example.com" 
                       value={urlInput}
                       onChange={(e) => setUrlInput(e.target.value)}
                       disabled={analyzing}
-                      className="w-full bg-transparent ml-1.5 text-slate-800 dark:text-white text-sm font-bold placeholder-slate-400 focus:outline-none"
+                      className="w-full bg-transparent ml-1.5 text-slate-850 dark:text-white text-sm font-bold placeholder-slate-400 focus:outline-none"
                     />
                   </div>
                   <button 
                     type="submit"
                     disabled={analyzing || !urlInput.trim()}
-                    className="w-full sm:w-auto rounded-xl sm:rounded-full bg-orange-500 hover:bg-orange-600 active:scale-[0.98] px-7 py-3 text-sm font-black tracking-wide text-white transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-orange-500/10"
+                    className="w-full sm:w-auto rounded-xl sm:rounded-full bg-violet-600 hover:bg-violet-700 active:scale-[0.98] px-7 py-3 text-sm font-black tracking-wide text-white transition-all disabled:opacity-50 disabled:scale-100 flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-violet-650/10"
                   >
                     {analyzing ? (
                       <>
@@ -362,17 +373,17 @@ export default function GeoAnalysisPage() {
             {/* Results Title Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-slate-200/60 dark:border-slate-800/40">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-orange-500 dark:text-orange-400">AUDIT COMPLETED</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-violet-650 dark:text-violet-400">AUDIT COMPLETED</span>
                 <h2 className="text-2xl font-black text-slate-800 dark:text-white mt-1">GEO Analysis Results</h2>
-                <div className="flex items-center gap-2 mt-1 text-xs font-semibold text-slate-405 dark:text-slate-500">
-                  <span className="text-slate-600 dark:text-slate-355">{result.domain}</span>
+                <div className="flex items-center gap-2 mt-1 text-xs font-semibold text-slate-400 dark:text-slate-500">
+                  <span className="text-slate-600 dark:text-slate-350">{result.domain}</span>
                   <span>•</span>
                   <span>Checked: {result.updatedAt}</span>
                 </div>
               </div>
               <button 
                 onClick={() => window.print()}
-                className="self-start sm:self-center border border-slate-200 dark:border-slate-800 hover:bg-slate-105 dark:hover:bg-slate-800 bg-white dark:bg-[#130f24] px-4.5 py-2.5 rounded-xl text-xs font-extrabold tracking-wide transition-all active:scale-97 flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 shadow-sm"
+                className="self-start sm:self-center border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 bg-white dark:bg-[#130f24] px-4.5 py-2.5 rounded-xl text-xs font-extrabold tracking-wide transition-all active:scale-97 flex items-center gap-2 cursor-pointer text-slate-600 dark:text-slate-300 shadow-sm"
               >
                 <Printer className="w-3.5 h-3.5" />
                 Save Report
@@ -403,9 +414,9 @@ export default function GeoAnalysisPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block">{item.name}</span>
-                          <span className="text-[10px] font-bold text-slate-400/80 dark:text-slate-500/80">{item.label}</span>
+                          <span className="text-[10px] font-bold text-slate-400/85 dark:text-slate-500/80">{item.label}</span>
                         </div>
-                        <div className="p-2.5 rounded-xl bg-orange-500/10 text-orange-500 dark:text-orange-400">
+                        <div className="p-2.5 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400">
                           <Icon className="w-4 h-4" />
                         </div>
                       </div>
@@ -422,8 +433,8 @@ export default function GeoAnalysisPage() {
             {/* Technical Checklist */}
             <div className="bg-white dark:bg-[#0e0c1f] border border-slate-200/60 dark:border-slate-800/30 rounded-3xl p-6 md:p-8 mb-12 shadow-xs">
               <div className="mb-6">
-                <h3 className="text-lg font-black text-slate-800 dark:text-white">Technical Audit Checklist</h3>
-                <p className="text-xs font-bold text-slate-405 dark:text-slate-500">Essential structured parameters required to demonstrate website safety and AI citation-readiness</p>
+                <h3 className="text-lg font-black text-slate-850 dark:text-white">Technical Audit Checklist</h3>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500">Essential structured parameters required to demonstrate website safety and AI citation-readiness</p>
               </div>
 
               {/* Missing Details Grid */}
@@ -501,7 +512,7 @@ export default function GeoAnalysisPage() {
                       className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-all text-left cursor-pointer border-0"
                     >
                       <div className="flex items-center gap-4">
-                        <h4 className="text-base font-black capitalize text-slate-800 dark:text-white">{key}</h4>
+                        <h4 className="text-base font-black capitalize text-slate-850 dark:text-white">{key}</h4>
                         <span className={`text-sm font-extrabold ${getScoreColor(category.score)}`}>{category.score}/100</span>
                         <span className="text-[10px] text-slate-400 dark:text-slate-550 font-bold hidden sm:inline">{category.passedCount}/{category.totalCount} checks passed</span>
                       </div>
@@ -548,8 +559,8 @@ export default function GeoAnalysisPage() {
                         </div>
 
                         {/* How to Improve */}
-                        <div className="bg-orange-50/30 dark:bg-orange-500/[0.02] border border-orange-200/40 dark:border-orange-500/10 rounded-2xl p-5">
-                          <h5 className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 mb-3 flex items-center gap-1.5">
+                        <div className="bg-violet-50/30 dark:bg-violet-500/[0.02] border border-violet-200/40 dark:border-violet-500/10 rounded-2xl p-5">
+                          <h5 className="text-[10px] font-black uppercase tracking-wider text-violet-700 dark:text-violet-400 mb-3 flex items-center gap-1.5">
                             <HelpCircle className="w-3.5 h-3.5" />
                             Actionable Optimization Steps
                           </h5>
@@ -575,7 +586,7 @@ export default function GeoAnalysisPage() {
                   setUrlInput("");
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="rounded-full border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-850 px-6 py-3 text-xs font-black tracking-wider text-slate-600 dark:text-slate-300 uppercase transition-all cursor-pointer shadow-sm active:scale-97"
+                className="rounded-full border border-slate-205 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-850 px-6 py-3 text-xs font-black tracking-wider text-slate-600 dark:text-slate-300 uppercase transition-all cursor-pointer shadow-sm active:scale-97 animate-pulse"
               >
                 Analyze Another Website
               </button>
@@ -587,13 +598,13 @@ export default function GeoAnalysisPage() {
       {/* Understand Content Quality Section */}
       {renderSectionWrapper(
         <div className="px-6 py-16 sm:px-12 lg:px-16 text-center">
-          <div className="inline-flex rounded-full border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 px-4 py-1.5 mb-6 shadow-xs">
-            <span className="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest">Features</span>
+          <div className="inline-flex rounded-full border border-slate-200/80 dark:border-slate-800 bg-slate-55 dark:bg-slate-900/50 px-4 py-1.5 mb-6 shadow-xs">
+            <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Features</span>
           </div>
           <h2 className="text-2xl md:text-3.5xl font-black text-slate-850 dark:text-white tracking-tight mb-4">
             Understand Your Content Quality
           </h2>
-          <p className="text-slate-500 dark:text-slate-450 max-w-2xl mx-auto text-sm leading-relaxed mb-16 font-medium">
+          <p className="text-slate-500 dark:text-slate-455 max-w-2xl mx-auto text-sm leading-relaxed mb-16 font-medium">
             Our GEO Analysis tool evaluates your website content against Google's E-E-A-T guidelines to make sure you rank in AI search queries.
           </p>
 
@@ -608,12 +619,12 @@ export default function GeoAnalysisPage() {
             ].map((item, idx) => {
               const Icon = item.icon;
               return (
-                <div key={idx} className="bg-slate-50/50 dark:bg-[#120f26]/30 border border-slate-200/50 dark:border-white/5 rounded-2xl p-6 text-center hover:border-orange-500/20 dark:hover:border-orange-500/20 hover:bg-white dark:hover:bg-[#120f26]/60 transition-all duration-300 group shadow-xs">
-                  <div className="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-all">
+                <div key={idx} className="bg-slate-50/50 dark:bg-[#120f26]/30 border border-slate-200/50 dark:border-white/5 rounded-2xl p-6 text-center hover:border-violet-500/20 dark:hover:border-violet-500/20 hover:bg-white dark:hover:bg-[#120f26]/60 transition-all duration-300 group shadow-xs">
+                  <div className="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-650 flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-all">
                     <Icon className="w-5.5 h-5.5" />
                   </div>
-                  <h3 className="font-bold text-base text-slate-800 dark:text-white mb-2">{item.title}</h3>
-                  <p className="text-xs text-slate-505 dark:text-slate-450 leading-relaxed font-semibold">{item.desc}</p>
+                  <h3 className="font-bold text-base text-slate-805 dark:text-white mb-2">{item.title}</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-455 leading-relaxed font-semibold">{item.desc}</p>
                 </div>
               );
             })}
@@ -645,11 +656,11 @@ export default function GeoAnalysisPage() {
                 { step: "03", title: "Get Your Scores", desc: "View category-wise E-E-A-T scores and see exactly what is present and what is missing." },
                 { step: "04", title: "Improve &amp; Optimize", desc: "Get prioritized improvement suggestions to strengthen content quality and search rankings." }
               ].map((item, idx) => (
-                <div key={idx} className="bg-slate-50/50 dark:bg-[#120f26]/30 border border-slate-200/50 dark:border-white/5 rounded-2xl p-5 hover:border-orange-500/20 dark:hover:border-orange-500/20 transition-all flex gap-4 items-start shadow-xs">
-                  <span className="text-2xl font-black text-orange-500">{item.step}</span>
+                <div key={idx} className="bg-slate-50/50 dark:bg-[#120f26]/30 border border-slate-200/50 dark:border-white/5 rounded-2xl p-5 hover:border-violet-500/20 dark:hover:border-violet-500/20 transition-all flex gap-4 items-start shadow-xs">
+                  <span className="text-2xl font-black text-violet-600">{item.step}</span>
                   <div>
                     <h3 className="font-bold text-base text-slate-800 dark:text-white mb-1">{item.title}</h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-450 leading-relaxed font-semibold">{item.desc}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-455 leading-relaxed font-semibold">{item.desc}</p>
                   </div>
                 </div>
               ))}
@@ -666,57 +677,90 @@ export default function GeoAnalysisPage() {
             <div className="inline-flex rounded-full border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 px-4 py-1.5 mb-6 shadow-xs">
               <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">FAQs</span>
             </div>
-            <h2 className="text-3xl md:text-3.5xl font-black text-slate-850 dark:text-white tracking-tight mb-4">Have Questions?</h2>
+            <h2 className="text-3xl md:text-3.5xl font-black text-slate-805 dark:text-white tracking-tight mb-4">Have Questions?</h2>
             <p className="text-slate-550 dark:text-slate-450 text-sm font-semibold max-w-lg mx-auto">
-              Clear answers to common questions about our tools, data, and how the analysis works.
+              Clear answers to common questions about Generative Engine Optimization (GEO), E-E-A-T, and how the audit functions.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Sidebar list of tools */}
+            {/* Sidebar list of tools (leads directly to Setup Wizard dialog) */}
             <div className="lg:col-span-4 bg-slate-50/60 dark:bg-white/[0.01] border border-slate-200/50 dark:border-white/5 rounded-2xl p-4 flex flex-col gap-1 shadow-xs">
               <span className="text-[10px] font-black text-slate-400 dark:text-slate-550 px-4 py-1.5 uppercase tracking-wider block">Tools Navigation</span>
               {[
-                { name: "Domain Rating Checker", active: false, icon: Award },
-                { name: "SEO Audit Tool", active: false, icon: Activity },
-                { name: "Page Speed Analyzer", active: false, icon: Activity },
-                { name: "Keyword Research Tool", active: false, icon: Search },
-                { name: "Backlink Checker", active: false, icon: Link2 },
-                { name: "XML Sitemap Generator", active: false, icon: FileCode },
-                { name: "Sitemap Finder & Checker", active: false, icon: FileCode },
-                { name: "Sitemap Validator", active: false, icon: FileCode }
+                { name: "Domain Rating Checker", icon: Award },
+                { name: "SEO Audit Suite", icon: Activity },
+                { name: "Page Speed Analyzer", icon: Activity },
+                { name: "Keyword Research Tool", icon: Search },
+                { name: "Backlink Auditor", icon: Link2 },
+                { name: "XML Sitemap Generator", icon: FileCode },
+                { name: "Sitemap Finder & Indexer", icon: FileCode },
+                { name: "Sitemap Quality Validator", icon: FileCode }
               ].map((tool, idx) => (
                 <div 
                   key={idx} 
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-650 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer transition-all flex items-center justify-between"
+                  onClick={handleLaunchWizard}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-650 dark:text-slate-450 hover:text-violet-650 dark:hover:text-violet-400 hover:bg-violet-50/50 dark:hover:bg-violet-500/10 cursor-pointer transition-all flex items-center justify-between group"
                 >
                   <span className="flex items-center gap-2 font-semibold">
-                    <tool.icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
+                    <tool.icon className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 group-hover:text-violet-500" />
                     {tool.name}
                   </span>
-                  <ExternalLink className="w-3 h-3 text-slate-400/80" />
+                  <ChevronRight className="w-3 h-3 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               ))}
             </div>
 
-            {/* Accordions */}
+            {/* Expandable FAQs Accordions */}
             <div className="lg:col-span-8 space-y-3.5">
               {[
                 {
                   q: "What is GEO (Generative Engine Optimization)?",
-                  a: "GEO is the practice of optimizing your content to appear in AI-generated responses from ChatGPT, Claude, Perplexity AI, Google Gemini, and Microsoft Copilot. While traditional SEO focuses on ranking in search results, GEO focuses on being cited when AI systems generate answers."
+                  a: "GEO is the practice of optimizing website content so that AI engines (like ChatGPT, Claude, Gemini, Copilot, and Perplexity) can crawl, read, understand, and cite your brand as the primary source when answering user queries."
                 },
                 {
-                  q: "How does SoloSpider's GEO Analysis work?",
-                  a: "The tool crawls your homepage and checks for over 15 structural and E-E-A-T validation tags. It then extracts your headings, content, and schema declarations and passes them to our E-E-A-T analysis engine (powered by Gemini) to calculate precise quality ratings."
-                },
-                {
-                  q: "How does GEO Analysis evaluate my content?",
-                  a: "It checks for 'Experience' (firsthand insights, imagery, unique details), 'Expertise' (professional terminology, lack of placeholders, clear arguments), 'Authoritativeness' (brand mentions, linked reviews, external links), and 'Trustworthiness' (presence of privacy/terms sheets, SSL certificate, copyright protection, transparent contact handles)."
+                  q: "How does SoloSpider's GEO Analysis tool work?",
+                  a: "The tool crawls your website and audits 15+ vital signals (SSL status, terms & conditions sheets, schemas, and brand review listings). It then processes raw heading layout and content text, running a specialized quality rater audit (powered by Gemini) to calculate E-E-A-T metrics."
                 },
                 {
                   q: "How is GEO different from traditional SEO?",
-                  a: "Traditional SEO optimizes for keyword positions on Google search results pages. GEO optimizes for citation probability in LLM responses. AI search models prefer content that provides high-quality sources, verified claims, domain-specific terminology, and explicit trust indicators."
+                  a: "Traditional SEO targets keyword positions on Google search results pages. GEO optimizes for citation weight in LLM responses. AI search models prefer content that provides structured facts, verified author qualifications, brand trust signals, and machine-readable data formatting."
+                },
+                {
+                  q: "What is Google E-E-A-T and why does it matter for GEO?",
+                  a: "E-E-A-T stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It represents the quality guidelines search raters use to evaluate content. Since LLM models are trained on high E-E-A-T content, presenting these signals clearly is the most effective way to gain citations."
+                },
+                {
+                  q: "Which AI platforms are affected by GEO?",
+                  a: "All generative search engines, including OpenAI Search (SearchGPT), ChatGPT Plus, Perplexity AI, Claude (with web access), Google Gemini (and Search Generative Experience), Microsoft Copilot, and voice assistants powered by LLMs."
+                },
+                {
+                  q: "Does having an llms.txt file help GEO performance?",
+                  a: "Yes. An llms.txt file acts as a robot-friendly sitemap for LLM crawlers, providing a brief summary and structured markdown paths to help AI models consume your site content efficiently without crawling raw HTML noise."
+                },
+                {
+                  q: "What makes AI models choose my site over competitors?",
+                  a: "AI models select sources that offer specific data points, verified facts, explicit expert credentials, structured question-and-answer sections, and strong external trust validation (such as G2 reviews, crunchbase profiles, and verified social media footprints)."
+                },
+                {
+                  q: "How can I track if my website is cited in AI search results?",
+                  a: "You can test citations by prompting AI tools directly about your industry niche, tracking referral traffic coming from domains like chatgpt.com or perplexity.ai, or using SoloSpider's AEO dashboard to automate tracking of your brand mentions."
+                },
+                {
+                  q: "What are the risk factors of ignoring GEO optimization?",
+                  a: "As users shift from classic search engines to AI assistants, ignoring GEO means your brand will not be recommended in generative responses. This leads to a gradual loss of market share to competitors who optimize their content for LLM extractability."
+                },
+                {
+                  q: "Can I optimize for both traditional SEO and GEO at the same time?",
+                  a: "Absolutely. Strong SEO and GEO are highly complementary. Traditional SEO builds domain authority and indexability, while GEO refines the on-page experience and factual density so that AI assistants can pull quote-worthy content."
+                },
+                {
+                  q: "What content types perform best in AI search engines?",
+                  a: "Highly detailed pages containing unique research, original statistics, expert case studies, and well-structured comparative tables perform best. Avoid superficial placeholders and focus on clear, definitive answers."
+                },
+                {
+                  q: "How frequently should I update my content for GEO?",
+                  a: "AI crawlers prioritize fresh, relevant information. Update your key resources, statistics, and about-pages regularly, and ensure the copyright and metadata dates are updated to show current signals."
                 }
               ].map((faq, idx) => {
                 const isOpen = activeFaq === idx;
@@ -724,10 +768,10 @@ export default function GeoAnalysisPage() {
                   <div key={idx} className="bg-slate-50/50 dark:bg-white/[0.01] border border-slate-200/50 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs transition-all">
                     <button 
                       onClick={() => setActiveFaq(isOpen ? null : idx)}
-                      className="w-full px-6 py-4.5 flex items-center justify-between text-left hover:bg-slate-100/40 dark:hover:bg-white/5 transition-all cursor-pointer border-0"
+                      className="w-full px-6 py-4.5 flex items-center justify-between text-left hover:bg-slate-105/30 dark:hover:bg-white/5 transition-all cursor-pointer border-0"
                     >
                       <span className="text-xs sm:text-sm font-bold text-slate-805 dark:text-slate-200">{faq.q}</span>
-                      {isOpen ? <ChevronUp className="w-4 h-4 text-orange-500" /> : <ChevronDown className="w-4 h-4 text-slate-450" />}
+                      {isOpen ? <ChevronUp className="w-4 h-4 text-violet-600 dark:text-violet-400" /> : <ChevronDown className="w-4 h-4 text-slate-450" />}
                     </button>
                     {isOpen && (
                       <div className="px-6 pb-5 pt-1.5 border-t border-slate-200/40 dark:border-white/5 animate-fade-in-up">
@@ -749,28 +793,35 @@ export default function GeoAnalysisPage() {
       {renderSectionWrapper(
         <div className="px-6 py-16 sm:px-12 lg:px-16">
           <div className="flex items-center justify-between mb-12">
-            <h2 className="text-xl md:text-2xl font-black text-slate-850 dark:text-white">Explore Free Tools</h2>
-            <div className="flex items-center gap-1.5 text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider cursor-pointer hover:text-slate-650 dark:hover:text-slate-350">
-              View All <ChevronRight className="w-3.5 h-3.5" />
+            <h2 className="text-xl md:text-2xl font-black text-slate-855 dark:text-white">Explore Free Tools</h2>
+            <div 
+              onClick={handleLaunchWizard}
+              className="flex items-center gap-1.5 text-xs font-black text-violet-600 dark:text-violet-400 uppercase tracking-wider cursor-pointer hover:text-violet-750 dark:hover:text-violet-300"
+            >
+              Start Project Wizard <ChevronRight className="w-3.5 h-3.5" />
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               { title: "Domain Rating Checker", desc: "Check any website's Domain Rating (DR) score instantly. Understand your site's SEO authority." },
-              { title: "SEO Audit", desc: "Get a comprehensive SEO audit of your website with actionable recommendations." },
-              { title: "JSON-LD Generator", desc: "Generate Schema.org JSON-LD from any URL or content to boost AI search citations." }
+              { title: "SEO Audit Tool", desc: "Get a comprehensive SEO audit of your website with actionable recommendations." },
+              { title: "JSON-LD Schema Generator", desc: "Generate Schema.org JSON-LD from any URL or content to boost AI search citations." }
             ].map((item, idx) => (
-              <div key={idx} className="bg-slate-50/50 dark:bg-[#120f26]/30 border border-slate-200/50 dark:border-white/5 rounded-2xl p-6 hover:border-orange-500/20 dark:hover:border-orange-500/20 hover:bg-white dark:hover:bg-[#120f26]/60 transition-all duration-300 group flex flex-col justify-between h-56 shadow-xs">
+              <div 
+                key={idx} 
+                onClick={handleLaunchWizard}
+                className="bg-slate-50/50 dark:bg-[#120f26]/30 border border-slate-200/50 dark:border-white/5 rounded-2xl p-6 hover:border-violet-500/25 dark:hover:border-violet-500/25 hover:bg-white dark:hover:bg-[#120f26]/60 transition-all duration-300 group flex flex-col justify-between h-56 shadow-xs cursor-pointer"
+              >
                 <div>
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-500 flex items-center justify-center mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-600 dark:text-violet-400 flex items-center justify-center mb-4">
                     <Award className="w-4.5 h-4.5" />
                   </div>
                   <h3 className="font-bold text-base text-slate-850 dark:text-white mb-2">{item.title}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-450 leading-relaxed font-semibold">{item.desc}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-455 leading-relaxed font-semibold">{item.desc}</p>
                 </div>
-                <div className="flex items-center gap-1 text-xs font-black text-orange-500 uppercase tracking-widest mt-4">
-                  Try for Free <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                <div className="flex items-center gap-1 text-xs font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest mt-4">
+                  Launch Checker <ChevronRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             ))}
@@ -780,6 +831,13 @@ export default function GeoAnalysisPage() {
       )}
 
       <MarketingFooter />
+
+      {/* SoloSpider Setup Wizard Modal (Links all checker buttons/cards to actual functionality) */}
+      <AeoWizardModal 
+        isOpen={isWizardOpen} 
+        onClose={() => setIsWizardOpen(false)} 
+        initialDomain={wizardDomain} 
+      />
     </div>
   );
 }
