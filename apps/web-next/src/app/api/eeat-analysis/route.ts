@@ -244,8 +244,11 @@ SCORING RULE:
 - Set status to "Poor" if passedCount <= 1, "Needs Work" if passedCount <= 3, "Good" if passedCount >= 4.
 
 CRITICAL RULE FOR CHECKLIST:
-- Use the crawler detections as your starting point.
-- If you know that the brand has active social handles, profiles, or an about/contact section that the crawler might have missed due to SPA layout or connection limits, you are encouraged to correct the checklist value to true (PASS). Ensure the checklist reflects the actual, real-world state of the brand.
+- Use the crawler detections as your starting point, but perform full SEMANTIC analysis on the provided metadata, headings, and HTML text snippet.
+- For example, if you find links, headings, or texts like "Reach to Us", "Get in Touch", "Write to Us", "Talk to Us", "Contact", "Support", or visible email addresses/phone numbers, you MUST mark contactDetails as true (PASS).
+- Similarly, if you find links or texts like "Our Story", "Who We Are", "Team", "Company", or "About Us", you MUST mark aboutUs as true (PASS).
+- Do not fail valid elements due to differences in phrasing or naming. If the intent or link exists semantically in the content, pass the check.
+- If you have general knowledge that the brand has active social channels, profiles, or an about/contact section that the crawler might have missed due to SPA connection limits, override it to true (PASS).
 
 CRITICAL RULE FOR CATEGORIES:
 - You must evaluate exactly the following 6 standard check questions for each of the 4 categories:
