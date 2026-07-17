@@ -23,7 +23,7 @@ export const MarketingFooter = () => {
               <Link href="/pricing" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Pricing</Link>
               <Link href="/changelog" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Changelog</Link>
               <Link href="/roadmap" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Roadmap</Link>
-              <Link href="/eeat-analysis" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Free E-E-A-T Analytics Tool</Link>
+              <Link href="/eeat-analysis" className="text-white/65 hover:text-[#c5a3ff] transition-colors">Free E.e.a.t Analytics Tool</Link>
             </div>
           </div>
 

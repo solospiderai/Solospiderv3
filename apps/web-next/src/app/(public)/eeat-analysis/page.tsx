@@ -379,17 +379,17 @@ export default function GeoAnalysisPage() {
             {/* Title & Sub */}
             <div className="text-center max-w-3xl mx-auto mb-12 animate-fade-in-up">
               <h1 className="text-4xl md:text-5.5xl font-black tracking-tight leading-[1.1] text-[var(--ink)] mb-5">
-                Free <span className="grad-text">E-E-A-T Analysis</span> Tool
+                Free <span className="grad-text">E.e.a.t Analysis</span> Tool
               </h1>
               <p className="text-[var(--muted)] text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-medium">
-                Analyze your website's Experience, Expertise, Authoritativeness, and Trustworthiness signals. Get instant E-E-A-T reports and actionable recommendations to optimize for AI search engines.
+                Analyze your website's Experience, Expertise, Authoritativeness, and Trustworthiness signals. Get instant E.e.a.t reports and actionable recommendations to optimize for AI search engines.
               </p>
             </div>
 
             {/* URL Input Form */}
             <div className="max-w-xl mx-auto animate-fade-in-up">
               <div className="mb-2 flex items-center justify-between px-3 text-[11px] font-bold text-[var(--muted)] tracking-wider">
-                <span>EEAT CRAWLER ACTIVE</span>
+                <span>E.e.a.t CRAWLER ACTIVE</span>
                 <span>
                   <span className="text-[var(--primary)] font-black">5</span>/5 FREE CHECKS LEFT
                 </span>
@@ -417,12 +417,12 @@ export default function GeoAnalysisPage() {
                     {analyzing ? (
                       <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      Analyzing E-E-A-T...
+                      Analyzing E.e.a.t...
                       </>
                     ) : (
                       <>
                       <Search className="w-4 h-4 text-white" />
-                      Analyze E-E-A-T
+                      Analyze E.e.a.t
                       </>
                     )}
                   </button>
@@ -449,7 +449,7 @@ export default function GeoAnalysisPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-[var(--line)]">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">AUDIT COMPLETED</span>
-                <h2 className="text-2xl font-black text-[var(--ink)] mt-1">E-E-A-T Analysis Results</h2>
+                <h2 className="text-2xl font-black text-[var(--ink)] mt-1">E.e.a.t Analysis Results</h2>
                 <div className="flex items-center gap-2 mt-1 text-xs font-semibold text-[var(--muted)]">
                   <span className="text-[var(--ink-2)]">{result.domain}</span>
                   <span>•</span>
@@ -470,7 +470,7 @@ export default function GeoAnalysisPage() {
               {/* Radar chart */}
               <div className="lg:col-span-6 bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 flex flex-col justify-center items-center shadow-xs">
                 <h3 className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)] mb-6 w-full text-left">
-                  E-E-A-T Quality Dimensions
+                  E.e.a.t Quality Dimensions
                 </h3>
                 {renderRadarChart(result.analysis.scores)}
               </div>
@@ -857,7 +857,7 @@ export default function GeoAnalysisPage() {
                 <span className="text-[10px] font-black text-[var(--muted)] uppercase tracking-widest">How it works</span>
               </div>
               <h2 className="text-3xl md:text-3.5xl font-black text-[var(--ink)] leading-tight tracking-tight mb-4">
-                Analyze &amp; Improve Your Content's E-E-A-T Signals
+                Analyze &amp; Improve Your Content's E.e.a.t Signals
               </h2>
               <p className="text-[var(--muted)] text-sm leading-relaxed font-medium">
                 Evaluate experience, expertise, authority, and trust across any webpage. Get clear scores and actionable insights to strengthen content quality and improve search performance.
@@ -866,9 +866,9 @@ export default function GeoAnalysisPage() {
 
             <div className="flex flex-col gap-5">
               {[
-                { step: "01", title: "Enter Your Website URL", desc: "Paste any publicly accessible website and start analyzing E-E-A-T signals instantly." },
+                { step: "01", title: "Enter Your Website URL", desc: "Paste any publicly accessible website and start analyzing E.e.a.t signals instantly." },
                 { step: "02", title: "Content Analysis", desc: "Scans experience, expertise, authority, and trust to identify strong and weak signals." },
-                { step: "03", title: "Get Your Scores", desc: "View category-wise E-E-A-T scores and see exactly what is present and what is missing." },
+                { step: "03", title: "Get Your Scores", desc: "View category-wise E.e.a.t scores and see exactly what is present and what is missing." },
                 { step: "04", title: "Improve &amp; Optimize", desc: "Get prioritized improvement suggestions to strengthen content quality and search rankings." }
               ].map((item, idx) => (
                 <div key={idx} className="bg-[var(--bg-2)]/30 border border-[var(--line)]/50 rounded-2xl p-5 hover:border-[var(--primary)]/20 transition-all flex gap-4 items-start shadow-xs">
@@ -938,15 +938,15 @@ export default function GeoAnalysisPage() {
                 },
                 {
                   q: "How does SoloSpider's GEO Analysis tool work?",
-                  a: "The tool crawls your website and audits 15+ vital signals (SSL status, terms & conditions sheets, schemas, and brand review listings). It then processes raw heading layout and content text, running a specialized quality rater audit (powered by Gemini) to calculate E-E-A-T metrics."
+                  a: "The tool crawls your website and audits 15+ vital signals (SSL status, terms & conditions sheets, schemas, and brand review listings). It then processes raw heading layout and content text, running a specialized quality rater audit (powered by Gemini) to calculate E.e.a.t metrics."
                 },
                 {
                   q: "How is GEO different from traditional SEO?",
                   a: "Traditional SEO targets keyword positions on Google search results pages. GEO optimizes for citation weight in LLM responses. AI search models prefer content that provides structured facts, verified author qualifications, brand trust signals, and machine-readable data formatting."
                 },
                 {
-                  q: "What is Google E-E-A-T and why does it matter for GEO?",
-                  a: "E-E-A-T stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It represents the quality guidelines search raters use to evaluate content. Since LLM models are trained on high E-E-A-T content, presenting these signals clearly is the most effective way to gain citations."
+                  q: "What is Google E.e.a.t and why does it matter for GEO?",
+                  a: "E.e.a.t stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It represents the quality guidelines search raters use to evaluate content. Since LLM models are trained on high E.e.a.t content, presenting these signals clearly is the most effective way to gain citations."
                 },
                 {
                   q: "Which AI platforms are affected by GEO?",
