@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     try {
       const res = await fetchWithTimeout(normalizedUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 SoloSpiderGEOAnalyzer/1.0",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
           Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
           "Accept-Language": "en-US,en;q=0.5",
         },
@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
 
       if (!res.ok) {
         console.warn(`[E-E-A-T Scraper] Crawl returned non-200 code: ${res.status}`);
+        throw new Error(`Crawl returned status ${res.status}`);
       }
       html = await res.text();
     } catch (crawlErr: any) {
@@ -69,9 +70,12 @@ export async function GET(request: NextRequest) {
           const fallbackUrl = normalizedUrl.replace("https://", "http://");
           const res = await fetchWithTimeout(fallbackUrl, {
             headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             },
           });
+          if (!res.ok) {
+            throw new Error(`Fallback HTTP returned status ${res.status}`);
+          }
           html = await res.text();
           isSsl = false;
         } catch (fallbackErr) {
@@ -144,15 +148,15 @@ export async function GET(request: NextRequest) {
     // Check for general Social Links (Facebook, Instagram, etc. excluding GEO platforms which are checked separately)
     const hasSocialLinks = /(facebook\.com|instagram\.com|pinterest\.com|tiktok\.com)\/[a-zA-Z0-9_-]+/i.test(html);
 
-    // Check social & GEO Platforms (refined to require profile/channel slugs and exclude sharing endpoints)
-    const hasG2 = /g2\.com\/products\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasReddit = /reddit\.com\/(r|user|u)\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasCapterra = /capterra\.com\/p\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasLinkedIn = /linkedin\.com\/(company|in|showcase)\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasCrunchbase = /crunchbase\.com\/(organization|person)\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasTrustPilot = /trustpilot\.com\/review\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasX = /(twitter\.com|x\.com)\/(?!(share|intent|tweet|widgets))[a-zA-Z0-9_]{1,15}/i.test(html);
-    const hasYouTube = /youtube\.com\/(channel|c|user|@|show)\/[a-zA-Z0-9_-]+/i.test(html) || /youtu\.be\//i.test(html);
+    // Check social & GEO Platforms (relaxed to avoid false negatives on custom profile routes, e.g. linkedin.com/school/ or custom YouTube URLs)
+    const hasG2 = /g2\.com\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasReddit = /reddit\.com\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasCapterra = /capterra\.com\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasLinkedIn = /linkedin\.com\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasCrunchbase = /crunchbase\.com\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasTrustPilot = /trustpilot\.com\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasX = /(twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(html) && !/(share|intent|tweet|widgets)/i.test(html);
+    const hasYouTube = /(youtube\.com|youtu\.be)\/[a-zA-Z0-9_-]+/i.test(html);
 
     const checklist = {
       ssl: isSsl,
@@ -194,7 +198,7 @@ export async function GET(request: NextRequest) {
       .replace(/<[^>]*>/g, " ")
       .replace(/\s+/g, " ")
       .trim()
-      .substring(0, 3000);
+      .substring(0, 2000000);
 
     // 5. OpenRouter LLM Call
     const openrouterKey = process.env.OPENROUTER_API_KEY;
