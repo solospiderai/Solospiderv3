@@ -151,7 +151,7 @@ export default function GeoAnalysisPage() {
     setAnalyzing(true);
     setError(null);
     try {
-      const res = await fetch(`/api/geo-analysis?url=${encodeURIComponent(urlInput.trim())}`);
+      const res = await fetch(`/api/eeat-analysis?url=${encodeURIComponent(urlInput.trim())}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to analyze URL.");
@@ -379,7 +379,7 @@ export default function GeoAnalysisPage() {
             {/* Title & Sub */}
             <div className="text-center max-w-3xl mx-auto mb-12 animate-fade-in-up">
               <h1 className="text-4xl md:text-5.5xl font-black tracking-tight leading-[1.1] text-[var(--ink)] mb-5">
-                Free <span className="grad-text">GEO Analysis</span> Tool
+                Free <span className="grad-text">E-E-A-T Analysis</span> Tool
               </h1>
               <p className="text-[var(--muted)] text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-medium">
                 Analyze your website's Experience, Expertise, Authoritativeness, and Trustworthiness signals. Get instant E-E-A-T reports and actionable recommendations to optimize for AI search engines.
@@ -417,12 +417,12 @@ export default function GeoAnalysisPage() {
                     {analyzing ? (
                       <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      Analyzing GEO...
+                      Analyzing E-E-A-T...
                       </>
                     ) : (
                       <>
                       <Search className="w-4 h-4 text-white" />
-                      Analyze GEO
+                      Analyze E-E-A-T
                       </>
                     )}
                   </button>
@@ -449,7 +449,7 @@ export default function GeoAnalysisPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-[var(--line)]">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">AUDIT COMPLETED</span>
-                <h2 className="text-2xl font-black text-[var(--ink)] mt-1">GEO Analysis Results</h2>
+                <h2 className="text-2xl font-black text-[var(--ink)] mt-1">E-E-A-T Analysis Results</h2>
                 <div className="flex items-center gap-2 mt-1 text-xs font-semibold text-[var(--muted)]">
                   <span className="text-[var(--ink-2)]">{result.domain}</span>
                   <span>•</span>
@@ -820,7 +820,7 @@ export default function GeoAnalysisPage() {
             Understand Your Content Quality
           </h2>
           <p className="text-[var(--muted)] max-w-2xl mx-auto text-sm leading-relaxed mb-16 font-medium">
-            Our GEO Analysis tool evaluates your website content against Google's E-E-A-T guidelines to make sure you rank in AI search queries.
+            Our E-E-A-T Analysis tool evaluates your website content against Google's E-E-A-T guidelines to make sure you rank in AI search queries.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
     }
 
-    console.log(`[GEO Scraper] Analyzing domain: ${hostname} (URL: ${normalizedUrl})`);
+    console.log(`[E-E-A-T Scraper] Analyzing domain: ${hostname} (URL: ${normalizedUrl})`);
 
     // 2. Fetch page HTML
     let html = "";
@@ -58,11 +58,11 @@ export async function GET(request: NextRequest) {
       });
 
       if (!res.ok) {
-        console.warn(`[GEO Scraper] Crawl returned non-200 code: ${res.status}`);
+        console.warn(`[E-E-A-T Scraper] Crawl returned non-200 code: ${res.status}`);
       }
       html = await res.text();
     } catch (crawlErr: any) {
-      console.error(`[GEO Scraper] Scraping failed for ${normalizedUrl}:`, crawlErr);
+      console.error(`[E-E-A-T Scraper] Scraping failed for ${normalizedUrl}:`, crawlErr);
       // Fallback: If https failed, try http
       if (normalizedUrl.startsWith("https://")) {
         try {
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
           html = await res.text();
           isSsl = false;
         } catch (fallbackErr) {
-          console.error(`[GEO Scraper] Fallback HTTP failed:`, fallbackErr);
+          console.error(`[E-E-A-T Scraper] Fallback HTTP failed:`, fallbackErr);
           crawlFailed = true;
         }
       } else {
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (crawlFailed) {
-      console.warn(`[GEO Scraper] Both HTTPS and HTTP failed for ${normalizedUrl}. Falling back to general LLM brand knowledge.`);
+      console.warn(`[E-E-A-T Scraper] Both HTTPS and HTTP failed for ${normalizedUrl}. Falling back to general LLM brand knowledge.`);
       html = `
         <html>
           <head>
@@ -103,10 +103,39 @@ export async function GET(request: NextRequest) {
     const lowerHtml = html.toLowerCase();
 
     // Check for About Us Page
-    const hasAboutUs = /href="[^"]*(about|about-us|aboutus)[^"]*"/i.test(html) || /about us/i.test(html);
+    let hasAboutUs = /href="[^"]*(about|about-us|aboutus)[^"]*"/i.test(html) || /about us/i.test(html);
 
     // Check for Contact Details
-    const hasContactDetails = /href="mailto:/i.test(html) || /href="tel:/i.test(html) || /contact us|contact details/i.test(html) || /href="[^"]*contact[^"]*"/i.test(html);
+    let hasContactDetails = /href="mailto:/i.test(html) || /href="tel:/i.test(html) || /contact us|contact details/i.test(html) || /href="[^"]*contact[^"]*"/i.test(html);
+
+    // Dynamic checks for client-rendered SPA sites or missing footer/header links in initial home page crawl
+    if (!hasAboutUs) {
+      try {
+        const aboutPaths = ["/about", "/about-us", "/aboutus", "/company"];
+        for (const path of aboutPaths) {
+          const testUrl = new URL(path, normalizedUrl).toString();
+          const testRes = await fetch(testUrl, { method: "HEAD", signal: AbortSignal.timeout(1500) }).catch(() => null);
+          if (testRes && testRes.ok) {
+            hasAboutUs = true;
+            break;
+          }
+        }
+      } catch {}
+    }
+
+    if (!hasContactDetails) {
+      try {
+        const contactPaths = ["/contact", "/contact-us", "/contactus", "/support"];
+        for (const path of contactPaths) {
+          const testUrl = new URL(path, normalizedUrl).toString();
+          const testRes = await fetch(testUrl, { method: "HEAD", signal: AbortSignal.timeout(1500) }).catch(() => null);
+          if (testRes && testRes.ok) {
+            hasContactDetails = true;
+            break;
+          }
+        }
+      } catch {}
+    }
 
     // Check for Schema Organization
     const hasOrganizationSchema = /type="application\/ld\+json"[^>]*>[\s\S]*?"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/i.test(html) ||
@@ -204,12 +233,10 @@ INSTRUCTIONS:
 For each of the 4 E-E-A-T categories, evaluate 6 standard check questions and decide PASS or FAIL for each one.
 Also, output the corrected/final technical checklist.
 
-STRICT EVALUATION RULES:
-- You MUST be strict when deciding PASS or FAIL. A check only passes if there is CLEAR, SPECIFIC, EXPLICIT evidence in the crawled HTML content or metadata provided above.
-- Do NOT pass a check based on assumptions, inferences, or your general knowledge of the brand. Only pass it if the crawled snippet contains direct textual evidence.
-- If the crawled snippet is short (SPA/client-rendered), that means less evidence is available, so FEWER checks should pass — not more.
-- When in doubt, FAIL the check. It is better to be strict and fail a borderline check than to be generous and pass it.
-- Example: "Are specific anecdotes or testimonials provided?" should ONLY pass if the snippet contains actual testimonial text with names/quotes — not just because "the brand probably has testimonials somewhere."
+INFERENCE & EVALUATION RULES (SNOWSEO COMPATIBLE):
+- Evaluate the E-E-A-T category check items by combining the crawled HTML/metadata with your general knowledge of this brand and domain.
+- If you have knowledge of the brand/website (e.g., if you know the business, if it has standard social presence, or if the website content points to an active business structure), you should evaluate it realistically. Do NOT artificially fail checks if the crawled HTML is short or SPA-rendered.
+- Make reasonable, fair inferences about the presence of E-E-A-T signals (e.g., if the website is a professional agency or site, it naturally possesses expertise, topic relevance, and active subject participation).
 
 SCORING RULE:
 - The score for each category is calculated automatically as: score = Math.round((passedCount / 6) * 100)
@@ -217,9 +244,8 @@ SCORING RULE:
 - Set status to "Poor" if passedCount <= 1, "Needs Work" if passedCount <= 3, "Good" if passedCount >= 4.
 
 CRITICAL RULE FOR CHECKLIST:
-- Use the crawler detections as your starting point for the checklist values.
-- Do NOT override any crawler results. Stick strictly to what the crawler detected.
-- The only exception is for globally famous brands (e.g. Google, Amazon, Apple, Swiggy, Zomato) where you have absolute certainty that a platform profile exists.
+- Use the crawler detections as your starting point.
+- If you know that the brand has active social handles, profiles, or an about/contact section that the crawler might have missed due to SPA layout or connection limits, you are encouraged to correct the checklist value to true (PASS). Ensure the checklist reflects the actual, real-world state of the brand.
 
 CRITICAL RULE FOR CATEGORIES:
 - You must evaluate exactly the following 6 standard check questions for each of the 4 categories:
