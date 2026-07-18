@@ -11,7 +11,6 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ ti
   const qc = useQueryClient();
 
   const [messageText, setMessageText] = useState("");
-  const [isInternalNote, setIsInternalNote] = useState(false);
 
   // Fetch ticket details
   const { data, isLoading, error } = useQuery({
@@ -38,7 +37,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ ti
     },
     onSuccess: () => {
       setMessageText("");
-      toast.success(isInternalNote ? "Internal note added." : "Reply sent successfully!");
+      toast.success("Reply sent successfully!");
       qc.invalidateQueries({ queryKey: ["admin", "tickets", ticketId] });
     },
     onError: (err) => {
@@ -68,7 +67,7 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ ti
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageText.trim()) return;
-    sendReplyMutation.mutate({ message: messageText, isInternalNote });
+    sendReplyMutation.mutate({ message: messageText, isInternalNote: false });
   };
 
   const handleStatusChange = (status: string) => {
@@ -203,33 +202,9 @@ export default function AdminTicketDetailPage({ params }: { params: Promise<{ ti
 
           {/* Reply Form */}
           <form onSubmit={handleSendReply} className="space-y-3 pt-4 border-t border-slate-200/80 shadow-sm">
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setIsInternalNote(false)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${
-                  !isInternalNote
-                    ? "bg-violet-600/10 text-violet-600 border-violet-200/25"
-                    : "bg-white text-slate-400 border-transparent hover:text-slate-500"
-                }`}
-              >
-                Send Reply (Public)
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsInternalNote(true)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-bold border transition-colors ${
-                  isInternalNote
-                    ? "bg-amber-500/10 text-amber-600 border-amber-500/25"
-                    : "bg-white text-slate-400 border-transparent hover:text-slate-500"
-                }`}
-              >
-                Add Internal Note
-              </button>
-            </div>
             <div className="flex gap-2 items-end">
               <textarea
-                placeholder={isInternalNote ? "Write admin private note..." : "Write support response..."}
+                placeholder="Write support response..."
                 value={messageText}
                 onChange={(e) => setMessageText(e.target.value)}
                 className="flex-1 bg-slate-50/50 border border-slate-200/80 shadow-sm rounded-xl px-3 py-2 text-[12px] font-semibold text-slate-700 placeholder:text-slate-400 outline-none focus:border-violet-200/40 transition-colors min-h-[60px]"
