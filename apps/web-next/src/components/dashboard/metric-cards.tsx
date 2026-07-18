@@ -39,7 +39,8 @@ export function CircularProgress({
   color, 
   isPositive, 
   percentage,
-  tooltipContent
+  tooltipContent,
+  redirectTo
 }: { 
   value: number, 
   label: string, 
@@ -47,18 +48,19 @@ export function CircularProgress({
   color: string, 
   isPositive?: boolean, 
   percentage?: string,
-  tooltipContent?: React.ReactNode
+  tooltipContent?: React.ReactNode,
+  redirectTo?: string
 }) {
   const radius = 35;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (value / 100) * circumference;
 
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] hover:scale-[1.02] duration-300 transition-all">
+  const cardContent = (
+    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] hover:scale-[1.02] duration-300 transition-all cursor-pointer">
       <div className="group relative flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
         <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h3>
-        <div className="relative">
-          <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-650 transition-colors" />
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-655 transition-colors" />
           <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-900 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
             {tooltipContent || (label === "AI Visibility Score" 
               ? "Your brand's recommendation share across AI search engines. Run an active scan in AEO Workspace to update."
@@ -111,6 +113,16 @@ export function CircularProgress({
       </div>
     </div>
   );
+
+  if (redirectTo) {
+    return (
+      <Link href={redirectTo} className="block h-full">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
 }
 
 export function TrendCard({ 
@@ -138,14 +150,23 @@ export function TrendCard({
 }) {
   const isPositive = trend === 'up';
 
+  let currentRedirect = redirectTo;
+  if (!isLocked) {
+    if (label === "Organic Traffic" || label === "Total Impressions") {
+      currentRedirect = "/app/en/seo/rank-tracking";
+    } else if (label === "Backlinks") {
+      currentRedirect = "/app/en/backlinks";
+    }
+  }
+
   const cardContent = (
-    <div className={`bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] duration-300 transition-all relative overflow-hidden ${
+    <div className={`bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] duration-300 transition-all relative overflow-hidden cursor-pointer ${
       isLocked ? 'hover:border-violet-300 hover:shadow-md' : 'hover:scale-[1.02]'
     }`}>
       <div className={`flex flex-col justify-between h-full ${isLocked ? 'filter blur-[4px] select-none pointer-events-none' : ''}`}>
         <div className="group relative flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
           <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h3>
-          <div className="relative">
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
             <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-650 transition-colors" />
             <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-950 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
               {tooltipContent}
@@ -199,9 +220,9 @@ export function TrendCard({
     </div>
   );
 
-  if (isLocked && redirectTo) {
+  if (currentRedirect) {
     return (
-      <Link href={redirectTo} className="block h-full cursor-pointer">
+      <Link href={currentRedirect} className="block h-full">
         {cardContent}
       </Link>
     );
@@ -486,6 +507,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           percentage={scaleCount > 0 ? "8" : undefined} 
           isPositive={true} 
           tooltipContent={seoTooltipContent}
+          redirectTo="/app/en/seo"
         />
       </div>
       <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
@@ -539,6 +561,7 @@ export function MetricCards({ timeRange }: MetricCardsProps) {
           percentage={aeoScore > 0 ? "14" : undefined} 
           isPositive={true} 
           tooltipContent="Percentage of conversational scans where your brand is recommended or cited as an authority."
+          redirectTo="/app/en/aeo/overview"
         />
       </div>
     </div>

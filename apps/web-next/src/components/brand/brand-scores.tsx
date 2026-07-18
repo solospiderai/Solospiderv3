@@ -92,27 +92,31 @@ export function BrandScores() {
 
   const isInitialized = Boolean(meta);
 
-  // 1. Tone of Voice score
+  // 1. Tone of Voice score (base 92)
+  const voiceTagsCount = meta?.voiceTags?.length || 0;
   const voiceScore = isInitialized 
-    ? Math.max(50, Math.min(98, 75 + (meta.voiceTags?.length || 0) * 4))
+    ? Math.max(45, Math.min(98, 92 - (voiceTagsCount === 0 ? 15 : voiceTagsCount < 3 ? 8 : 0)))
     : 0;
 
-  // 2. Audience Fit score
+  // 2. Audience Fit score (base 94)
+  const targetAudienceLength = meta?.targetAudience?.length || 0;
+  const competitorsCount = meta?.competitorsDetail?.length || 0;
   const audienceScore = isInitialized 
-    ? Math.max(50, Math.min(98, 70 + (meta.competitorsDetail?.length || 0) * 5 + (meta.targetAudience ? 10 : 0)))
+    ? Math.max(40, Math.min(98, 94 - (targetAudienceLength < 20 ? 15 : 0) - (competitorsCount === 0 ? 15 : competitorsCount < 3 ? 8 : 0)))
     : 0;
 
-  // 3. Visual Identity score
+  // 3. Visual Identity score (base 96)
   const hasLogo = Boolean(activeProject?.brand_logo_url || meta?.logoUrl);
   const colorsCount = meta?.colors?.length || 0;
   const hasFonts = Boolean(meta?.fonts?.primary);
   const visualScore = isInitialized 
-    ? Math.max(40, Math.min(98, 50 + (colorsCount * 4) + (hasFonts ? 10 : 0) + (hasLogo ? 15 : 0)))
+    ? Math.max(35, Math.min(98, 96 - (hasLogo ? 0 : 20) - (colorsCount < 3 ? 12 : 0) - (hasFonts ? 0 : 10)))
     : 0;
 
   // 4. Overall Brand Health
+  const crawlPenalty = crawledCount === 0 ? 25 : crawledCount < 5 ? 15 : crawledCount < 15 ? 5 : 0;
   const healthScore = isInitialized 
-    ? Math.round((voiceScore + audienceScore + visualScore) / 3)
+    ? Math.max(30, Math.min(98, Math.round((voiceScore + audienceScore + visualScore) / 3) - crawlPenalty))
     : 0;
 
   const getStatus = (score: number) => {
@@ -230,30 +234,54 @@ export function BrandScores() {
                         
                         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                           <span className="text-slate-750">Website crawled pages ({crawledCount})</span>
-                          <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                            <Check className="w-4 h-4" /> Passed
-                          </span>
+                          {crawledCount >= 5 ? (
+                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                              <Check className="w-4 h-4" /> Passed
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-amber-600 font-bold">
+                              <AlertCircle className="w-4 h-4" /> Low Crawl Count (-15)
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                           <span className="text-slate-750">AI Voice Consistency ({voiceScore}/100)</span>
-                          <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                            <Check className="w-4 h-4" /> Verified
-                          </span>
+                          {voiceTagsCount >= 3 ? (
+                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                              <Check className="w-4 h-4" /> Verified
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-amber-600 font-bold">
+                              <AlertCircle className="w-4 h-4" /> Needs Tags (-15)
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                           <span className="text-slate-750">Visual Assets mapped ({visualScore}/100)</span>
-                          <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                            <Check className="w-4 h-4" /> Active
-                          </span>
+                          {hasLogo && colorsCount >= 3 && hasFonts ? (
+                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                              <Check className="w-4 h-4" /> Active
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-amber-600 font-bold">
+                              <AlertCircle className="w-4 h-4" /> Assets Missing (-20)
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-between">
                           <span className="text-slate-750">Competitor landscape comparison ({audienceScore}/100)</span>
-                          <span className="flex items-center gap-1 text-emerald-600 font-bold">
-                            <Check className="w-4 h-4" /> Mapped
-                          </span>
+                          {competitorsCount >= 3 ? (
+                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                              <Check className="w-4 h-4" /> Mapped
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-amber-600 font-bold">
+                              <AlertCircle className="w-4 h-4" /> Underpopulated (-15)
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-[11px] text-emerald-850 font-medium">
@@ -269,9 +297,29 @@ export function BrandScores() {
                         Your brand persona's tone characteristics extracted from the copy patterns, taglines, and company values.
                       </p>
 
+                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                        <h4 className="font-black text-[10px] uppercase text-slate-450 tracking-wider">Voice Analysis Checkpoints</h4>
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-1 text-[11px]">
+                          <span>Voice Archetype Tags Mapped</span>
+                          {voiceTagsCount >= 3 ? (
+                            <span className="text-emerald-650 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Full Archetypes Found</span>
+                          ) : (
+                            <span className="text-amber-650 font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Minimal Tags (-15)</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span>Voice Consistency</span>
+                          {voiceScore >= 85 ? (
+                            <span className="text-emerald-650 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> High Consistency</span>
+                          ) : (
+                            <span className="text-slate-500 font-bold">Moderate Consistency</span>
+                          )}
+                        </div>
+                      </div>
+
                       {meta.voiceSliders && (
                         <div className="space-y-3.5 bg-slate-50/50 border border-slate-200 rounded-xl p-4">
-                          <h4 className="font-black text-[10px] uppercase text-slate-450 tracking-wider mb-2">Voice Sliders</h4>
+                          <h4 className="font-black text-[10px] uppercase text-slate-455 tracking-wider mb-2">Voice Sliders</h4>
                           
                           <div className="flex items-center justify-between">
                             <span className="w-20 font-bold text-slate-700">Professional</span>
@@ -325,6 +373,26 @@ export function BrandScores() {
                   {/* AUDIENCE FIT MODAL */}
                   {activeModal === "audience" && (
                     <div className="space-y-4">
+                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                        <h4 className="font-black text-[10px] uppercase text-slate-450 tracking-wider font-bold">Audience Mapping Status</h4>
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-1 text-[11px]">
+                          <span>Target Segment Defined</span>
+                          {targetAudienceLength >= 20 ? (
+                            <span className="text-emerald-650 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Profile Clear</span>
+                          ) : (
+                            <span className="text-amber-650 font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Blank/Short (-15)</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span>Competitor Map Density</span>
+                          {competitorsCount >= 3 ? (
+                            <span className="text-emerald-650 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> {competitorsCount} Competitors</span>
+                          ) : (
+                            <span className="text-amber-650 font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Low Count (-15)</span>
+                          )}
+                        </div>
+                      </div>
+
                       <div>
                         <h4 className="font-black text-[10px] uppercase text-slate-400 tracking-widest mb-1.5">Target Location</h4>
                         <p className="text-slate-800 text-sm font-bold">{meta.location || "Worldwide"}</p>
@@ -366,6 +434,34 @@ export function BrandScores() {
                       <p className="text-slate-600">
                         Visual branding elements identified during frontend code extraction and metadata discovery.
                       </p>
+
+                      <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                        <h4 className="font-black text-[10px] uppercase text-slate-450 tracking-wider">Visual Identity Score Checkpoints</h4>
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-1 text-[11px]">
+                          <span>Brand Logo Asset</span>
+                          {hasLogo ? (
+                            <span className="text-emerald-650 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Found & Active</span>
+                          ) : (
+                            <span className="text-amber-650 font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Logo Missing (-20)</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-1 text-[11px]">
+                          <span>Primary & Secondary Fonts</span>
+                          {hasFonts ? (
+                            <span className="text-emerald-650 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> Fonts Extracted</span>
+                          ) : (
+                            <span className="text-amber-650 font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> No Mappings (-10)</span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between text-[11px]">
+                          <span>Extracted Color Palette</span>
+                          {colorsCount >= 3 ? (
+                            <span className="text-emerald-650 font-bold flex items-center gap-1"><Check className="w-3.5 h-3.5" /> {colorsCount} Colors Found</span>
+                          ) : (
+                            <span className="text-amber-650 font-bold flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" /> Under 3 Colors (-12)</span>
+                          )}
+                        </div>
+                      </div>
 
                       {meta.colors && (
                         <div>

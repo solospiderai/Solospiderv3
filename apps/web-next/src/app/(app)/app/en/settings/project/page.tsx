@@ -113,6 +113,9 @@ export default function ProjectSettingsPage() {
 
       await qc.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Branding identity saved successfully!");
+      setTimeout(() => {
+        window.location.href = "/app/en/brand";
+      }, 800);
     } catch (err: any) {
       console.error("Save error:", err);
       toast.error(err?.message || "Failed to update branding settings");

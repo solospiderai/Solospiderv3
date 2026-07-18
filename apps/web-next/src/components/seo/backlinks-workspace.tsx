@@ -49,6 +49,9 @@ export function BacklinksWorkspace() {
   const [selectedOpp, setSelectedOpp] = useState<Opportunity | null>(null);
   const [generatingOutreach, setGeneratingOutreach] = useState(false);
   const [outreachEmail, setOutreachEmail] = useState("");
+  const [recipientEmail, setRecipientEmail] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [sendingOutreach, setSendingOutreach] = useState(false);
 
   // AI Submission States
   const [submittingOpp, setSubmittingOpp] = useState<Opportunity | null>(null);
@@ -256,12 +259,16 @@ export function BacklinksWorkspace() {
   const handleOpenOutreach = (opp: Opportunity) => {
     setSelectedOpp(opp);
     setGeneratingOutreach(true);
+
+    const defaultRecipient = `editor@${opp.site.split("/")[0]}`;
+    setRecipientEmail(defaultRecipient);
+
+    const defaultSubject = `Partnership Opportunity with ${cleanBrand} / Editorial Suggestion`;
+    setEmailSubject(defaultSubject);
     
     // Simulating AI generation based on project details
     setTimeout(() => {
-      const emailText = `Subject: Partnership Opportunity with ${cleanBrand} / Editorial Suggestion for ${opp.site.split("/")[0]}
-
-Hi Editor,
+      const emailText = `Hi Editor,
 
 I hope this email finds you well. 
 
@@ -275,8 +282,7 @@ I would be happy to write a short unique description or contribute a guest overv
 
 Best regards,
 ${activeProject?.name || "SEO Manager"}
-${cleanBrand} Team
-Link: https://${cleanDomain}`;
+${cleanBrand} Team`;
       
       setOutreachEmail(emailText);
       setGeneratingOutreach(false);
@@ -286,6 +292,54 @@ Link: https://${cleanDomain}`;
   const handleCopyOutreach = () => {
     navigator.clipboard.writeText(outreachEmail);
     toast.success("Outreach template copied to clipboard!");
+  };
+
+  const handleSendOutreach = async () => {
+    if (!recipientEmail || !recipientEmail.includes("@")) {
+      toast.error("Please enter a valid recipient email address.");
+      return;
+    }
+    if (!emailSubject.trim()) {
+      toast.error("Please enter an email subject.");
+      return;
+    }
+    if (!outreachEmail.trim()) {
+      toast.error("Email body cannot be empty.");
+      return;
+    }
+
+    setSendingOutreach(true);
+    const toastId = toast.loading("Connecting to SMTP server and dispatching outreach...");
+
+    try {
+      const res = await fetch("/api/admin/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-worker-secret": "solospider-worker-secret-2026-xyz"
+        },
+        body: JSON.stringify({
+          recipientEmail: recipientEmail,
+          subject: emailSubject,
+          content: outreachEmail,
+          template: "backlink-outreach",
+          broadcast: false
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || `Server responded with status ${res.status}`);
+      }
+
+      toast.success("Outreach email successfully sent and logged!", { id: toastId });
+      setSelectedOpp(null);
+    } catch (err: any) {
+      console.error("[handleSendOutreach] error:", err);
+      toast.error(err.message || "Failed to dispatch email.", { id: toastId });
+    } finally {
+      setSendingOutreach(false);
+    }
   };
 
   const steps = [
@@ -1047,28 +1101,77 @@ Link: https://${cleanDomain}`;
                 <Loader2 className="h-7 w-7 animate-spin text-violet-600" />
                 <p className="text-[10px] text-slate-400 font-bold">Drafting personalized script...</p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                <textarea
-                  readOnly
-                  value={outreachEmail}
-                  className="w-full h-56 border border-slate-200 rounded-xl p-3 bg-slate-50 text-[11px] font-mono leading-relaxed text-slate-700 focus:outline-none select-all"
-                />
+             ) : (
+              <div className="space-y-3 text-left">
+                {/* Recipient Email */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Recipient Email</label>
+                  <input
+                    type="email"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500/40 font-semibold"
+                  />
+                </div>
+
+                {/* Email Subject */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Subject Line</label>
+                  <input
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-violet-500/40 font-semibold"
+                  />
+                </div>
+
+                {/* Email Body */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Email Body</label>
+                  <textarea
+                    value={outreachEmail}
+                    onChange={(e) => setOutreachEmail(e.target.value)}
+                    className="w-full h-44 border border-slate-200 rounded-xl p-3 bg-white text-[11px] font-mono leading-relaxed text-slate-700 focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                  />
+                </div>
                 
                 {/* Modal Actions */}
-                <div className="flex items-center justify-end gap-2">
-                  <button 
-                    onClick={() => setSelectedOpp(null)}
-                    className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-[10px] font-bold text-slate-655 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    onClick={handleCopyOutreach}
-                    className="px-3.5 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-[10px] font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md shadow-violet-100"
-                  >
-                    <Copy className="h-3.5 w-3.5" /> Copy Email Template
-                  </button>
+                <div className="flex items-center justify-between gap-2 pt-2">
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wide bg-slate-50 border border-slate-100 px-2 py-0.5 rounded flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> SMTP Connected
+                  </span>
+                  
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setSelectedOpp(null)}
+                      disabled={sendingOutreach}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-[10px] font-bold text-slate-600 cursor-pointer disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={handleCopyOutreach}
+                      disabled={sendingOutreach}
+                      className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[10px] font-bold text-slate-700 flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      <Copy className="h-3.5 w-3.5" /> Copy
+                    </button>
+                    <button 
+                      onClick={handleSendOutreach}
+                      disabled={sendingOutreach}
+                      className="px-4 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 text-white text-[10px] font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md shadow-violet-100 transition-all active:scale-[0.98]"
+                    >
+                      {sendingOutreach ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Dispatching...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-3.5 w-3.5" /> Send Outreach
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

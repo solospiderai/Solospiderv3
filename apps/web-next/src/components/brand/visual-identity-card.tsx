@@ -37,6 +37,7 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
 
   const [logoAttempt, setLogoAttempt] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [logoBg, setLogoBg] = useState<'light' | 'pastel' | 'dark'>('light');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
 
@@ -77,6 +78,14 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
   };
 
   const currentLogoUrl = getLogoUrl();
+
+  React.useEffect(() => {
+    if (currentLogoUrl && (currentLogoUrl.toLowerCase().includes("white") || currentLogoUrl.toLowerCase().includes("light"))) {
+      setLogoBg('dark');
+    } else {
+      setLogoBg('light');
+    }
+  }, [currentLogoUrl]);
 
   // Dynamic initials calculation for brand fallback
   let brandName = project?.brand_name || project?.name || "Acme Solutions";
@@ -220,21 +229,50 @@ export function VisualIdentityCard({ project }: { project: Project | null }) {
       <div className="flex gap-4 mb-6">
         <div className="flex-1 min-w-0">
           <span className="text-xs font-semibold text-slate-500 block mb-3">Logo</span>
-          <div className="h-20 bg-slate-50 rounded-lg border border-slate-100 flex items-center justify-center p-4 relative group">
+          <div className={`h-20 rounded-lg border flex items-center justify-center p-4 relative group transition-colors duration-250 ${
+            logoBg === 'dark' 
+              ? 'bg-slate-950 border-slate-800' 
+              : logoBg === 'pastel' 
+              ? 'bg-[#e0e7ff] border-indigo-200' 
+              : 'bg-slate-50 border-slate-100'
+          }`}>
             {isUploading ? (
               <div className="flex flex-col items-center gap-2">
                 <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Uploading...</span>
               </div>
             ) : currentLogoUrl ? (
-              <img 
-                src={currentLogoUrl} 
-                alt="Logo" 
-                className="max-h-full max-w-full object-contain cursor-pointer transition-opacity hover:opacity-80" 
-                onError={() => setLogoAttempt(prev => prev + 1)} 
-                onClick={() => fileInputRef.current?.click()}
-                title="Click to update logo"
-              />
+              <>
+                <img 
+                  src={currentLogoUrl} 
+                  alt="Logo" 
+                  className="max-h-full max-w-full object-contain cursor-pointer transition-opacity hover:opacity-80" 
+                  onError={() => setLogoAttempt(prev => prev + 1)} 
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Click to update logo"
+                />
+                {/* Background switcher control */}
+                <div className="absolute top-1 right-1.5 flex gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-slate-900/90 p-1 rounded-md shadow-sm border border-slate-200/50">
+                  <button
+                    type="button"
+                    title="Light Background"
+                    onClick={(e) => { e.stopPropagation(); setLogoBg('light'); }}
+                    className={`w-3.5 h-3.5 rounded-full bg-slate-100 border border-slate-400 cursor-pointer ${logoBg === 'light' ? 'ring-2 ring-indigo-500' : ''}`}
+                  />
+                  <button
+                    type="button"
+                    title="Pastel Background"
+                    onClick={(e) => { e.stopPropagation(); setLogoBg('pastel'); }}
+                    className={`w-3.5 h-3.5 rounded-full bg-[#c7d2fe] border border-indigo-400 cursor-pointer ${logoBg === 'pastel' ? 'ring-2 ring-indigo-500' : ''}`}
+                  />
+                  <button
+                    type="button"
+                    title="Dark Background"
+                    onClick={(e) => { e.stopPropagation(); setLogoBg('dark'); }}
+                    className={`w-3.5 h-3.5 rounded-full bg-slate-950 border border-slate-800 cursor-pointer ${logoBg === 'dark' ? 'ring-2 ring-indigo-500' : ''}`}
+                  />
+                </div>
+              </>
             ) : (
               <div 
                 className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity min-w-0 w-full"

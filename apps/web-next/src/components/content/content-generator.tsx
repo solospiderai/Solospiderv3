@@ -400,12 +400,25 @@ export function ContentGenerator({ redirectBase = "/app/en/content" }: { redirec
           <div className="p-8 text-center bg-white">
             <div className="max-w-md mx-auto space-y-3.5 text-left">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">Custom Featured Image <span className="font-normal text-slate-500 font-semibold">(Optional)</span></label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setSelectedImageFile(e.target.files?.[0] || null)}
-                className="cursor-pointer bg-white border border-slate-300 w-full rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2"
-              />
+              {selectedImageFile ? (
+                <div className="flex items-center justify-between bg-slate-50 border border-slate-250 rounded-xl p-3">
+                  <span className="text-xs font-semibold text-slate-700 truncate max-w-[280px]">📄 {selectedImageFile.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImageFile(null)}
+                    className="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setSelectedImageFile(e.target.files?.[0] || null)}
+                  className="cursor-pointer bg-white border border-slate-300 w-full rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2"
+                />
+              )}
               <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
                 Upload a custom image to be used as the featured image for the blog. If left empty, an AI image can be generated depending on your plan.
               </p>

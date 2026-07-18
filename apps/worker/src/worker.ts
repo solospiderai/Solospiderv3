@@ -10,6 +10,7 @@ import { startPromptScanWorker } from "./workers/prompt-scan.worker.js";
 import { startScoringWorker } from "./workers/scoring.worker.js";
 import { startPublishWorker } from "./workers/publish.worker.js";
 import { processDueSocialPosts } from "./services/social.js";
+import { processDueBlogPosts } from "./services/blogs.js";
 
 const crawlWorker = startCrawlWorker();
 const promptScanWorker = startPromptScanWorker();
@@ -40,6 +41,7 @@ cron.schedule("0 */6 * * *", async () => {
 
 cron.schedule("* * * * *", async () => {
   await processDueSocialPosts();
+  await processDueBlogPosts();
 });
 
 // Auto-cleanup stuck runs every 10 minutes

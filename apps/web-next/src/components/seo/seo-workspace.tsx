@@ -488,17 +488,41 @@ export function SeoWorkspace() {
       return;
     }
     
-    const headers = ["ID", "Issue", "Impact", "Difficulty", "SEO Impact", "Description", "How to Fix", "Failed URLs Count"];
-    const rows = list.map(issue => [
-      issue.id,
-      issue.title,
-      issue.impact,
-      issue.difficulty,
-      issue.impactLevel,
-      issue.desc,
-      issue.howToFix,
-      issue.failedPages.length
-    ]);
+    const headers = ["ID", "Issue", "Impact", "Difficulty", "SEO Impact", "Description", "How to Fix", "Target URL", "Issue Detail"];
+    const rows: any[][] = [];
+
+    list.forEach(issue => {
+      const urls = issue.failedPages || [];
+      if (urls.length === 0) {
+        rows.push([
+          issue.id,
+          issue.title,
+          issue.impact,
+          issue.difficulty,
+          issue.impactLevel,
+          issue.desc,
+          issue.howToFix,
+          "N/A",
+          "N/A"
+        ]);
+      } else {
+        urls.forEach(urlObj => {
+          const pageUrl = typeof urlObj === "object" && urlObj !== null ? (urlObj.url || "") : urlObj;
+          const pageDetail = typeof urlObj === "object" && urlObj !== null ? (urlObj.detail || "") : "";
+          rows.push([
+            issue.id,
+            issue.title,
+            issue.impact,
+            issue.difficulty,
+            issue.impactLevel,
+            issue.desc,
+            issue.howToFix,
+            pageUrl,
+            pageDetail
+          ]);
+        });
+      }
+    });
 
     const csvContent = [
       headers.join(","),

@@ -3445,24 +3445,24 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
             </div>
 
             {/* Heatmap Matrix Table */}
-            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm space-y-4 p-1">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-[10px] font-black text-slate-455 uppercase tracking-wider">
-                      <th className="px-4 py-3 min-w-[280px]">AEO Prompt / Query</th>
+                    <tr className="bg-slate-100 text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                      <th className="px-4 py-3 min-w-[280px] border-2 border-white">AEO Prompt / Query</th>
                       {allowedModels.map((model) => {
                         const info = getModelInfo(model);
                         return (
-                          <th key={model} className="px-4 py-3 text-center">{info.name}</th>
+                          <th key={model} className="px-4 py-3 text-center border-2 border-white">{info.name}</th>
                         );
                       })}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-650">
+                  <tbody className="text-xs font-semibold text-slate-650">
                     {processedPrompts.length === 0 ? (
                       <tr>
-                        <td colSpan={allowedModels.length + 1} className="text-center py-12 text-slate-400 font-semibold">
+                        <td colSpan={allowedModels.length + 1} className="text-center py-12 text-slate-400 font-semibold border-2 border-white">
                           No prompts scanned. Seed queries and launch scan to populate heatmap.
                         </td>
                       </tr>
@@ -3473,14 +3473,14 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                         );
 
                         return (
-                          <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="px-4 py-3.5 flex flex-col gap-1.5 max-w-sm">
-                              <div className="flex">
-                                <span className="px-2 py-0.5 rounded bg-violet-50 border border-violet-100 text-[8px] font-extrabold uppercase text-violet-700 tracking-wide">
+                          <tr key={p.id}>
+                            <td className="px-4 py-3 border-2 border-white bg-slate-50 text-slate-800 font-bold text-xs leading-normal max-w-sm">
+                              <div className="flex mb-1">
+                                <span className="px-2 py-0.5 rounded bg-violet-100 text-[8px] font-extrabold uppercase text-violet-700 tracking-wide">
                                   {p.topic || "general"}
                                 </span>
                               </div>
-                              <span className="text-slate-800 font-bold leading-normal break-words">
+                              <span className="text-slate-800 font-black leading-normal break-words">
                                 "{p.prompt}"
                               </span>
                             </td>
@@ -3490,10 +3490,12 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                               
                               if (!match) {
                                 return (
-                                  <td key={model} className="px-4 py-3 text-center align-middle">
-                                    <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-[10px] font-bold bg-slate-50 text-slate-350 border border-slate-100">
-                                      —
-                                    </span>
+                                  <td 
+                                    key={model} 
+                                    className="border-2 border-white bg-slate-100 text-slate-350 text-center align-middle font-bold text-xs p-2 h-16"
+                                    title="No scan data"
+                                  >
+                                    —
                                   </td>
                                 );
                               }
@@ -3504,35 +3506,44 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                               const comps = Array.isArray(match.competitors_mentioned) ? match.competitors_mentioned : [];
 
                               if (isCited) {
+                                const isHigh = pos && pos <= 2;
+                                const cellBg = isHigh ? "bg-emerald-600" : "bg-emerald-400";
                                 return (
-                                  <td key={model} className="px-4 py-3 text-center align-middle">
-                                    <span className="inline-flex flex-col items-center justify-center px-2.5 py-1.5 rounded-lg text-[10px] font-black tracking-wide bg-emerald-50 text-emerald-700 border border-emerald-100/60 shadow-sm">
-                                      <span className="flex items-center gap-1">✓ Cited {pos ? `#${pos}` : ""}</span>
-                                      {sentiment && <span className="text-[7.5px] font-extrabold uppercase opacity-85 mt-0.5">{sentiment}</span>}
-                                    </span>
+                                  <td 
+                                    key={model} 
+                                    className={`border-2 border-white ${cellBg} text-white text-center align-middle font-black text-xs p-2 h-16 relative group cursor-help`}
+                                    title={`Cited ${pos ? `#${pos}` : ""}${sentiment ? ` (${sentiment})` : ""}`}
+                                  >
+                                    <div className="flex flex-col items-center justify-center">
+                                      <span className="flex items-center gap-0.5">✓ Cited {pos ? `#${pos}` : ""}</span>
+                                      {sentiment && <span className="text-[8px] uppercase tracking-wider opacity-90 mt-0.5">{sentiment}</span>}
+                                    </div>
                                   </td>
                                 );
                               }
 
                               if (comps.length > 0) {
                                 return (
-                                  <td key={model} className="px-4 py-3 text-center align-middle">
-                                    <span 
-                                      className="inline-flex flex-col items-center justify-center px-2.5 py-1.5 rounded-lg text-[10px] font-black tracking-wide bg-amber-50 text-amber-700 border border-amber-100/60 shadow-sm cursor-help"
-                                      title={`Competitors cited: ${comps.join(", ")}`}
-                                    >
-                                      <span className="flex items-center gap-1">⚠️ Gap</span>
-                                      <span className="text-[7.5px] font-extrabold uppercase opacity-85 truncate max-w-[80px] mt-0.5">{comps[0]}</span>
-                                    </span>
+                                  <td 
+                                    key={model} 
+                                    className="border-2 border-white bg-rose-500 text-white text-center align-middle font-black text-xs p-2 h-16 cursor-help group"
+                                    title={`Gap: Competitor cited (${comps.join(", ")})`}
+                                  >
+                                    <div className="flex flex-col items-center justify-center">
+                                      <span>⚠️ Gap</span>
+                                      <span className="text-[8px] uppercase tracking-wider opacity-90 truncate max-w-[90px] mt-0.5">{comps[0]}</span>
+                                    </div>
                                   </td>
                                 );
                               }
 
                               return (
-                                <td key={model} className="px-4 py-3 text-center align-middle">
-                                  <span className="inline-flex items-center justify-center px-2 py-1 rounded-md text-[10px] font-bold bg-slate-50 text-slate-400 border border-slate-100">
-                                    ✗ No Cite
-                                  </span>
+                                <td 
+                                  key={model} 
+                                  className="border-2 border-white bg-slate-100 text-slate-400 text-center align-middle font-black text-xs p-2 h-16"
+                                  title="Neither brand nor competitors mentioned"
+                                >
+                                  ✗ No Cite
                                 </td>
                               );
                             })}
@@ -3542,6 +3553,22 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Seaborn Heatmap Legend */}
+              <div className="flex flex-wrap items-center justify-center gap-6 pt-4 pb-2 border-t border-slate-100 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 bg-emerald-600 border border-slate-200 rounded-sm" /> Cited #1-2 (High)
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 bg-emerald-400 border border-slate-200 rounded-sm" /> Cited #3+ (Moderate)
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 bg-rose-500 border border-slate-200 rounded-sm" /> Competitive Gap (Threat)
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="w-4 h-4 bg-slate-100 border border-slate-200 rounded-sm" /> No Mentions
+                </span>
               </div>
             </div>
           </div>

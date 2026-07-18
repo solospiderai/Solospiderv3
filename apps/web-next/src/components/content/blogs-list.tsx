@@ -267,10 +267,17 @@ export function BlogsList() {
                   {/* Badge & Date */}
                   <div className="flex items-center justify-between">
                     {getStatusBadge(blog.status)}
-                    <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-                      <Calendar className="w-3.5 h-3.5" />
-                      {formatDate(blog.created_at)}
-                    </span>
+                    {blog.scheduled_date ? (
+                      <span className="text-[10px] font-extrabold text-amber-600 flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/40">
+                        <Clock className="w-3.5 h-3.5" />
+                        Sched: {formatDate(blog.scheduled_date)}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {formatDate(blog.created_at)}
+                      </span>
+                    )}
                   </div>
 
                   {/* Title */}

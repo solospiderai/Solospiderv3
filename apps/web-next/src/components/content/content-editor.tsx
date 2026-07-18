@@ -27,6 +27,8 @@ interface ContentItem {
   h2_list: string[];
   h3_list: string[] | null;
   created_at: string;
+  featured_image_url?: string | null;
+  scheduled_date?: string | null;
 }
 
 // --- SEO SCORE LOGIC ---
@@ -135,6 +137,8 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
   const [selectedAuthor, setSelectedAuthor] = useState<string>("none");
   const [fetchingAuthors, setFetchingAuthors] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
+  const [editScheduledDate, setEditScheduledDate] = useState("");
   const [canonicalUrl, setCanonicalUrl] = useState<string>("");
 
   // Shopify Publish Settings State
@@ -175,6 +179,15 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
         setEditTitle(data?.generated_title ? toTitleCase(data.generated_title) : (data?.h1 ? toTitleCase(data.h1) : ""));
         setEditMetaDesc((data as any)?.meta_description || "");
         setEditContent(data?.generated_content || "");
+        if (data?.scheduled_date) {
+          const d = new Date(data.scheduled_date);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          setEditScheduledDate(`${year}-${month}-${day}`);
+        } else {
+          setEditScheduledDate("");
+        }
       }
     }
     setLoading(false);
@@ -225,7 +238,8 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
       .update({
         generated_title: toTitleCase(editTitle),
         meta_description: editMetaDesc,
-        generated_content: editContent
+        generated_content: editContent,
+        scheduled_date: editScheduledDate ? new Date(editScheduledDate).toISOString() : null
       })
       .eq("id", content.id)
       .eq("user_id", user?.id);
@@ -359,6 +373,15 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
         let imageQuery = supabase
           .from("content_items")
           .update({ featured_image_url: publicUrl } as any)
+          .eq("id", content.id)
+          .eq("user_id", user?.id);
+        if (activeProjectId) imageQuery = imageQuery.eq("project_id", activeProjectId);
+        await imageQuery;
+      } else if (removeExistingImage) {
+        // Set featured_image_url to null
+        let imageQuery = supabase
+          .from("content_items")
+          .update({ featured_image_url: null } as any)
           .eq("id", content.id)
           .eq("user_id", user?.id);
         if (activeProjectId) imageQuery = imageQuery.eq("project_id", activeProjectId);
@@ -840,6 +863,15 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
                 />
               </div>
               <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 uppercase">Scheduled Date (Optional)</label>
+                <input
+                  type="date"
+                  value={editScheduledDate}
+                  onChange={(e) => setEditScheduledDate(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-xl px-4 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 text-sm font-semibold"
+                />
+              </div>
+              <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-700 uppercase">Article Content (Markdown)</label>
                 <textarea
                   value={editContent}
@@ -1027,14 +1059,59 @@ export function ContentEditor({ id, backHref = "/app/en/dashboard" }: { id: stri
                   </div>
 
                   {/* Featured Image */}
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 uppercase block">Featured Image override (optional)</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setSelectedImageFile(e.target.files?.[0] || null)}
-                      className="cursor-pointer bg-white border border-slate-300 w-full rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 text-xs"
-                    />
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 uppercase block">Featured Image</label>
+                    {selectedImageFile ? (
+                      <div className="flex items-center justify-between bg-slate-50 border border-slate-250 rounded-xl p-2 px-3">
+                        <span className="text-xs font-semibold text-slate-700 truncate max-w-[200px]">📄 {selectedImageFile.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedImageFile(null)}
+                          className="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            setSelectedImageFile(e.target.files?.[0] || null);
+                            setRemoveExistingImage(false);
+                          }}
+                          className="cursor-pointer bg-white border border-slate-300 w-full rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 text-xs"
+                        />
+                        {content?.featured_image_url && !removeExistingImage && (
+                          <div className="flex items-center justify-between bg-indigo-50/20 border border-indigo-100 rounded-xl p-2 px-3 mt-1.5">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <img src={content.featured_image_url} alt="featured image preview" className="w-8 h-8 rounded object-cover border border-slate-200 shrink-0" />
+                              <span className="text-[11px] text-slate-500 font-semibold truncate">Current saved image</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setRemoveExistingImage(true)}
+                              className="text-xs font-bold text-red-650 hover:text-red-800 cursor-pointer"
+                            >
+                              Remove Existing
+                            </button>
+                          </div>
+                        )}
+                        {removeExistingImage && (
+                          <div className="flex items-center justify-between bg-red-50/20 border border-red-100 rounded-xl p-2 px-3 mt-1.5">
+                            <span className="text-[11px] text-red-700 font-extrabold italic">Existing image will be deleted on publish</span>
+                            <button
+                              type="button"
+                              onClick={() => setRemoveExistingImage(false)}
+                              className="text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
+                            >
+                              Undo
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {/* Publish Status */}
