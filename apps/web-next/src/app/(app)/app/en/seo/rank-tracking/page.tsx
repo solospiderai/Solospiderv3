@@ -35,6 +35,7 @@ export default function RankTrackingPage() {
   const [newPhrase, setNewPhrase] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [filterMode, setFilterMode] = useState<"all" | "top3" | "top10">("all");
 
   const projectName = activeProject?.brand_name || activeProject?.name || "Solospider Project";
   const projectDomain = activeProject?.domain || "yourdomain.com";
@@ -161,6 +162,12 @@ export default function RankTrackingPage() {
   const top3Count = keywords.filter(k => k.position <= 3).length;
   const top10Count = keywords.filter(k => k.position <= 10).length;
 
+  const filteredKeywords = keywords.filter(kw => {
+    if (filterMode === "top3") return kw.position <= 3;
+    if (filterMode === "top10") return kw.position <= 10;
+    return true;
+  });
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 animate-slide-in">
       {/* Header HUD */}
@@ -189,23 +196,55 @@ export default function RankTrackingPage() {
       </header>
 
       {/* Stats HUD grid */}
-      <div className="grid gap-6 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="grid gap-6 md:grid-cols-4 animate-in fade-in slide-in-from-top-4 duration-300">
+        <div 
+          onClick={() => setFilterMode("all")}
+          className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
+            filterMode === "all" 
+              ? "border-violet-600 bg-violet-50/20 ring-2 ring-violet-500/20" 
+              : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
+          }`}
+          title="Show all keywords"
+        >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Avg position</p>
           <p className="mt-3 text-2xl font-black text-slate-900">{avgPosition}</p>
           <p className="mt-1 text-xs font-semibold text-slate-400">SERP placement average</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div 
+          onClick={() => setFilterMode(filterMode === "top3" ? "all" : "top3")}
+          className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
+            filterMode === "top3" 
+              ? "border-emerald-600 bg-emerald-50/25 ring-2 ring-emerald-500/20" 
+              : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
+          }`}
+          title="Filter to Top 3 positions"
+        >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">In Top 3</p>
-          <p className="mt-3 text-2xl font-black text-slate-900 text-emerald-600">{top3Count}</p>
+          <p className="mt-3 text-2xl font-black text-emerald-600">{top3Count}</p>
           <p className="mt-1 text-xs font-semibold text-slate-400">High intent keywords</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div 
+          onClick={() => setFilterMode(filterMode === "top10" ? "all" : "top10")}
+          className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
+            filterMode === "top10" 
+              ? "border-violet-600 bg-violet-50/25 ring-2 ring-violet-500/20" 
+              : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
+          }`}
+          title="Filter to Top 10 positions"
+        >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">In Top 10</p>
-          <p className="mt-3 text-2xl font-black text-slate-900 text-violet-600">{top10Count}</p>
+          <p className="mt-3 text-2xl font-black text-violet-600">{top10Count}</p>
           <p className="mt-1 text-xs font-semibold text-slate-400">Page 1 placements</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div 
+          onClick={() => setFilterMode("all")}
+          className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
+            filterMode === "all" 
+              ? "border-indigo-600 bg-indigo-50/20 ring-2 ring-indigo-500/20" 
+              : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
+          }`}
+          title="Show all keywords"
+        >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Tracked terms</p>
           <p className="mt-3 text-2xl font-black text-slate-900">{totalKeywords}</p>
           <p className="mt-1 text-xs font-semibold text-slate-400">Active keyword limits</p>
@@ -310,18 +349,34 @@ export default function RankTrackingPage() {
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">Tracked Search Phrases</h3>
-            <p className="text-xs font-semibold text-slate-400 mt-1">Real-time keyword analysis tied to active project domain</p>
+            <p className="text-xs font-semibold text-slate-400 mt-1">
+              {filterMode === "top3" 
+                ? "Showing only keywords ranking in Top 3 (#1 - #3)" 
+                : filterMode === "top10" 
+                  ? "Showing only keywords ranking in Top 10 (#1 - #10)" 
+                  : "Real-time keyword analysis tied to active project domain"}
+            </p>
           </div>
-          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 p-1 px-2.5 rounded-full border">
-            Engine: Google US
-          </span>
+          <div className="flex items-center gap-2">
+            {filterMode !== "all" && (
+              <button
+                onClick={() => setFilterMode("all")}
+                className="text-[10px] font-black text-rose-650 hover:text-rose-800 bg-rose-50 border border-rose-200/50 px-2 py-0.5 rounded-full cursor-pointer transition-colors"
+              >
+                Clear Filter ✕
+              </button>
+            )}
+            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 p-1 px-2.5 rounded-full border">
+              Engine: Google US
+            </span>
+          </div>
         </div>
 
-        {keywords.length === 0 ? (
+        {filteredKeywords.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             <Search className="mx-auto h-8 w-8 text-slate-300 mb-2" />
-            <p className="text-xs font-bold">No keywords are currently tracked for this project.</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">Use the panel above to add terms to your dashboard.</p>
+            <p className="text-xs font-bold">No keywords match the active filter criteria.</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">Click another card or clear filter to display details.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -338,7 +393,7 @@ export default function RankTrackingPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-xs font-semibold text-slate-700">
-                {keywords.map((kw) => {
+                {filteredKeywords.map((kw) => {
                   const change = kw.prevPosition - kw.position;
                   return (
                     <tr key={kw.id} className="hover:bg-slate-50/40 transition-colors">

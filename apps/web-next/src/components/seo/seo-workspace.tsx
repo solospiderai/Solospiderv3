@@ -482,7 +482,7 @@ export function SeoWorkspace() {
   };
 
   const handleExportIssuesCsv = () => {
-    const list = activeTab === "Passed" ? auditData.passedChecksList : auditData.issues;
+    const list = filteredIssuesList;
     if (list.length === 0) {
       toast.error("No data to export.");
       return;
@@ -529,7 +529,7 @@ export function SeoWorkspace() {
       ...rows.map(row => row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))
     ].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
