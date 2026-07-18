@@ -126,7 +126,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
               href="/eeat-analysis"
               className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-normal text-[14px]"
             >
-              E.e.a.t Analytics
+              E.E.A.T Analytics
             </Link>
           </div>
           
