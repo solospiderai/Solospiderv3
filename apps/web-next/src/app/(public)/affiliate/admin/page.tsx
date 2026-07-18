@@ -67,6 +67,8 @@ export default function AffiliateAdminPage() {
   const [firstTimeRate, setFirstTimeRate] = useState(30);
   const [recurringRate, setRecurringRate] = useState(15);
   const [sentEmails, setSentEmails] = useState<{to: string, subject: string, body: string, date: string}[]>([]);
+  const [approvingApp, setApprovingApp] = useState<Application | null>(null);
+  const [customRefId, setCustomRefId] = useState("");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -365,8 +367,8 @@ export default function AffiliateAdminPage() {
 
 
   // Admin Actions
-  const handleApprove = async (app: Application) => {
-    const refId = app.name.toLowerCase().replace(/\s+/g, "");
+  const handleApprove = async (app: Application, chosenRefId?: string) => {
+    const refId = chosenRefId ? chosenRefId.trim().toLowerCase().replace(/\s+/g, "") : app.name.toLowerCase().replace(/\s+/g, "");
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -817,7 +819,10 @@ export default function AffiliateAdminPage() {
 
                       <div className="flex md:flex-col justify-end gap-3 shrink-0">
                         <button
-                          onClick={() => handleApprove(app)}
+                          onClick={() => {
+                            setApprovingApp(app);
+                            setCustomRefId(app.name.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9_-]/g, ""));
+                          }}
                           className="btn btn-grad px-5 py-2.5 text-xs font-bold flex items-center gap-1 cursor-pointer"
                         >
                           <CheckCircle2 className="w-4 h-4" /> Approve
@@ -1081,6 +1086,80 @@ export default function AffiliateAdminPage() {
 
         </div>
       </main>
+
+      {/* Custom Referral Code Approval Dialog */}
+      {approvingApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl space-y-6 text-left">
+            <div>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-primary mb-1 block">Approve Partner</span>
+              <h3 className="text-xl font-black text-[var(--ink)]">Review Referral Code</h3>
+              <p className="text-xs text-[var(--muted)] mt-1 font-semibold leading-relaxed">
+                Review or modify the referral code for <strong className="text-[var(--ink-2)]">{approvingApp.name}</strong> before approving.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">Affiliate Name</label>
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={approvingApp.name}
+                  className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs text-[var(--ink)] focus:outline-none opacity-80 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">Email Address</label>
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={approvingApp.email}
+                  className="w-full bg-[var(--bg-2)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs text-[var(--ink)] focus:outline-none opacity-80 cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">Referral Code *</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={customRefId}
+                  onChange={(e) => setCustomRefId(e.target.value.toLowerCase().replace(/\s+/g, "").replace(/[^a-z0-9_-]/g, ""))}
+                  className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-2.5 text-xs text-[var(--ink)] focus:outline-none focus:border-primary font-mono"
+                  placeholder="e.g. johndoe"
+                />
+                <p className="text-[9px] text-[var(--muted)] mt-1 font-semibold">
+                  Only lowercase alphanumeric characters, dashes, and underscores allowed.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => {
+                  if (!customRefId.trim()) {
+                    toast.error("Referral code cannot be blank.");
+                    return;
+                  }
+                  handleApprove(approvingApp, customRefId);
+                  setApprovingApp(null);
+                }}
+                className="flex-1 btn btn-grad py-3 text-xs font-bold shadow-md shadow-primary/25 cursor-pointer text-center"
+              >
+                Approve &amp; Finalize
+              </button>
+              <button
+                onClick={() => setApprovingApp(null)}
+                className="btn btn-ghost border-[var(--line)] hover:bg-[var(--bg-2)] px-5 py-3 text-xs font-semibold cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MarketingFooter />
     </div>
