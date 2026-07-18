@@ -14,7 +14,8 @@ import {
   ChevronDown, 
   ArrowRight,
   TrendingDown,
-  Info
+  Info,
+  X
 } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 
@@ -36,6 +37,7 @@ export default function RankTrackingPage() {
   const [newUrl, setNewUrl] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [filterMode, setFilterMode] = useState<"all" | "top3" | "top10">("all");
+  const [activeDetailModal, setActiveDetailModal] = useState<"avg" | "top3" | "top10" | "terms" | null>(null);
 
   const projectName = activeProject?.brand_name || activeProject?.name || "Solospider Project";
   const projectDomain = activeProject?.domain || "yourdomain.com";
@@ -198,52 +200,52 @@ export default function RankTrackingPage() {
       {/* Stats HUD grid */}
       <div className="grid gap-6 md:grid-cols-4 animate-in fade-in slide-in-from-top-4 duration-300">
         <div 
-          onClick={() => setFilterMode("all")}
+          onClick={() => { setFilterMode("all"); setActiveDetailModal("avg"); }}
           className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
             filterMode === "all" 
               ? "border-violet-600 bg-violet-50/20 ring-2 ring-violet-500/20" 
               : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
           }`}
-          title="Show all keywords"
+          title="Show average position details"
         >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Avg position</p>
           <p className="mt-3 text-2xl font-black text-slate-900">{avgPosition}</p>
           <p className="mt-1 text-xs font-semibold text-slate-400">SERP placement average</p>
         </div>
         <div 
-          onClick={() => setFilterMode(filterMode === "top3" ? "all" : "top3")}
+          onClick={() => { setFilterMode("top3"); setActiveDetailModal("top3"); }}
           className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
             filterMode === "top3" 
               ? "border-emerald-600 bg-emerald-50/25 ring-2 ring-emerald-500/20" 
               : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
           }`}
-          title="Filter to Top 3 positions"
+          title="Filter to Top 3 positions & view details"
         >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">In Top 3</p>
           <p className="mt-3 text-2xl font-black text-emerald-600">{top3Count}</p>
           <p className="mt-1 text-xs font-semibold text-slate-400">High intent keywords</p>
         </div>
         <div 
-          onClick={() => setFilterMode(filterMode === "top10" ? "all" : "top10")}
+          onClick={() => { setFilterMode("top10"); setActiveDetailModal("top10"); }}
           className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
             filterMode === "top10" 
               ? "border-violet-600 bg-violet-50/25 ring-2 ring-violet-500/20" 
               : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
           }`}
-          title="Filter to Top 10 positions"
+          title="Filter to Top 10 positions & view details"
         >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">In Top 10</p>
           <p className="mt-3 text-2xl font-black text-violet-600">{top10Count}</p>
           <p className="mt-1 text-xs font-semibold text-slate-400">Page 1 placements</p>
         </div>
         <div 
-          onClick={() => setFilterMode("all")}
+          onClick={() => { setFilterMode("all"); setActiveDetailModal("terms"); }}
           className={`rounded-2xl border p-5 shadow-sm cursor-pointer transition-all duration-200 select-none ${
             filterMode === "all" 
               ? "border-indigo-600 bg-indigo-50/20 ring-2 ring-indigo-500/20" 
               : "border-slate-200 bg-white hover:border-slate-350 hover:shadow-md active:scale-[0.99]"
           }`}
-          title="Show all keywords"
+          title="Show tracked terms details"
         >
           <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Tracked terms</p>
           <p className="mt-3 text-2xl font-black text-slate-900">{totalKeywords}</p>
@@ -477,6 +479,153 @@ export default function RankTrackingPage() {
           Tracked positions are synchronized with search queries automatically. Use Content Studio to generate search-optimized pages targeting high-difficulty terms to drive organic improvement on keywords with low index placement.
         </div>
       </div>
+
+      {/* Detail Modals for Rank Tracking Metrics */}
+      {activeDetailModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 animate-in fade-in zoom-in duration-200 space-y-4 max-h-[85vh] flex flex-col justify-between">
+            
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+              <div>
+                <h3 className="font-black text-slate-900 text-sm flex items-center gap-1.5">
+                  <TrendingUp className="h-4 w-4 text-indigo-600" />
+                  {activeDetailModal === 'avg' && "Average SERP Position Details"}
+                  {activeDetailModal === 'top3' && "Top 3 Ranking Keywords"}
+                  {activeDetailModal === 'top10' && "Top 10 (Page 1) Keywords"}
+                  {activeDetailModal === 'terms' && "Tracked Search Terms Overview"}
+                </h3>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">
+                  {activeDetailModal === 'avg' && "Detailed breakdown of average search ranking placement"}
+                  {activeDetailModal === 'top3' && "High-priority keywords ranking in positions #1 to #3"}
+                  {activeDetailModal === 'top10' && "Keywords ranking in Page 1 positions (#1 to #10)"}
+                  {activeDetailModal === 'terms' && "Comprehensive inventory of actively tracked query phrases"}
+                </p>
+              </div>
+              <button 
+                onClick={() => setActiveDetailModal(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-50 rounded-lg cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto pr-1 space-y-4 text-left">
+              {activeDetailModal === 'avg' && (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                    <h4 className="font-black text-[10px] uppercase text-slate-450 tracking-wider">Calculation Breakdown</h4>
+                    <div className="flex justify-between text-xs font-semibold text-slate-700">
+                      <span>Sum of Positions:</span>
+                      <span>{keywords.reduce((sum, k) => sum + k.position, 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-semibold text-slate-700 border-b border-slate-150 pb-2">
+                      <span>Total Keywords Tracked:</span>
+                      <span>{totalKeywords}</span>
+                    </div>
+                    <div className="flex justify-between text-xs font-black text-slate-900 pt-1">
+                      <span>Calculated Average:</span>
+                      <span className="text-indigo-650">#{avgPosition}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-black text-[10px] uppercase text-slate-400 tracking-wider">All Positions (Best to Worst)</h4>
+                    <div className="space-y-2">
+                      {[...keywords].sort((a, b) => a.position - b.position).map((kw) => (
+                        <div key={kw.id} className="flex justify-between items-center p-2.5 rounded-xl border border-slate-150 bg-white">
+                          <span className="text-xs font-bold text-slate-900 truncate max-w-[280px]">"{kw.phrase}"</span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                            kw.position <= 3 ? "bg-emerald-50 text-emerald-700 border border-emerald-100" :
+                            kw.position <= 10 ? "bg-violet-50 text-violet-700 border border-violet-100" : "bg-slate-50 text-slate-655 border"
+                          }`}>
+                            #{kw.position}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeDetailModal === 'top3' && (
+                <div className="space-y-3">
+                  {keywords.filter(k => k.position <= 3).length === 0 ? (
+                    <p className="text-center py-6 text-xs text-slate-400 font-bold">No keywords currently ranking in Top 3.</p>
+                  ) : (
+                    keywords.filter(k => k.position <= 3).map((kw) => (
+                      <div key={kw.id} className="p-3.5 rounded-xl border border-slate-150 bg-white flex flex-col gap-1.5">
+                        <div className="flex justify-between items-start">
+                          <span className="text-xs font-black text-slate-900">"{kw.phrase}"</span>
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 text-[10px] font-extrabold">
+                            #{kw.position}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] text-slate-550 font-semibold">
+                          <span>Vol: {kw.volume.toLocaleString()}</span>
+                          <span>Diff: {kw.difficulty}/100</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeDetailModal === 'top10' && (
+                <div className="space-y-3">
+                  {keywords.filter(k => k.position <= 10).length === 0 ? (
+                    <p className="text-center py-6 text-xs text-slate-400 font-bold">No keywords currently ranking in Top 10.</p>
+                  ) : (
+                    keywords.filter(k => k.position <= 10).map((kw) => (
+                      <div key={kw.id} className="p-3.5 rounded-xl border border-slate-150 bg-white flex flex-col gap-1.5">
+                        <div className="flex justify-between items-start">
+                          <span className="text-xs font-black text-slate-900">"{kw.phrase}"</span>
+                          <span className="px-2 py-0.5 rounded bg-violet-50 text-violet-750 border border-violet-100 text-[10px] font-extrabold">
+                            #{kw.position}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center text-[10px] text-slate-550 font-semibold">
+                          <span>Vol: {kw.volume.toLocaleString()}</span>
+                          <span>Diff: {kw.difficulty}/100</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {activeDetailModal === 'terms' && (
+                <div className="space-y-3">
+                  {keywords.map((kw) => (
+                    <div key={kw.id} className="p-3 rounded-xl border border-slate-150 bg-white flex items-center justify-between">
+                      <div className="min-w-0 flex-1 pr-3">
+                        <span className="text-xs font-black text-slate-900 block truncate">"{kw.phrase}"</span>
+                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5 block truncate">
+                          URL: {kw.url.replace(/^https?:\/\//i, "")}
+                        </span>
+                      </div>
+                      <span className="shrink-0 text-[10px] font-extrabold text-slate-550 bg-slate-50 border border-slate-150 px-2 py-0.5 rounded">
+                        Diff: {kw.difficulty}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-3 border-t border-slate-100 flex justify-end shrink-0">
+              <button 
+                onClick={() => setActiveDetailModal(null)}
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs cursor-pointer shadow-sm hover:shadow"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
