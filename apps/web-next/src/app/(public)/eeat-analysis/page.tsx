@@ -379,7 +379,7 @@ export default function GeoAnalysisPage() {
             {/* Title & Sub */}
             <div className="text-center max-w-3xl mx-auto mb-12 animate-fade-in-up">
               <h1 className="text-4xl md:text-5.5xl font-black tracking-tight leading-[1.1] text-[var(--ink)] mb-5">
-                Free <span className="grad-text">E.e.a.t Analysis</span> Tool
+                Free <span className="grad-text">E.E.A.T Analysis</span> Tool
               </h1>
               <p className="text-[var(--muted)] text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-medium">
                 Analyze your website's Experience, Expertise, Authoritativeness, and Trustworthiness signals. Get instant E.e.a.t reports and actionable recommendations to optimize for AI search engines.
