@@ -1143,6 +1143,14 @@ export default function AffiliateAdminPage() {
                     toast.error("Referral code cannot be blank.");
                     return;
                   }
+                  
+                  const targetCode = customRefId.trim().toLowerCase();
+                  const isTaken = affiliates.some((a) => a.refId?.toLowerCase() === targetCode);
+                  if (isTaken) {
+                    toast.error(`Referral code "${customRefId}" is already assigned to another partner. Please choose a unique code.`);
+                    return;
+                  }
+
                   handleApprove(approvingApp, customRefId);
                   setApprovingApp(null);
                 }}
