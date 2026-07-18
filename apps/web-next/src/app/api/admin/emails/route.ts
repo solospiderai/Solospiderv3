@@ -37,8 +37,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { error, user: adminUser } = await requireAdmin();
-  if (error) return error;
+  const secretHeader = req.headers.get("x-worker-secret") || "";
+  const expectedSecret = (process.env.WORKER_SECRET || "").trim();
+  const isSecretBypass = expectedSecret.length > 0 && secretHeader === expectedSecret;
+
+  let adminUser = null;
+  if (!isSecretBypass) {
+    const { error, user } = await requireAdmin();
+    if (error) return error;
+    adminUser = user;
+  }
 
   const admin = getSupabaseAdminClient();
   const body = await req.json();
@@ -250,17 +258,19 @@ export async function POST(req: NextRequest) {
           body: content,
           template,
           status,
-          sent_by: adminUser!.id,
+          sent_by: adminUser ? adminUser.id : "00000000-0000-0000-0000-000000000000",
         })
         .select("*")
         .single();
 
       if (insErr) throw insErr;
 
-      await logAdminAction(adminUser!.id, "send_email", "email", newLog.id, {
-        recipient_email: recipientEmail,
-        subject,
-      });
+      if (adminUser) {
+        await logAdminAction(adminUser.id, "send_email", "email", newLog.id, {
+          recipient_email: recipientEmail,
+          subject,
+        });
+      }
 
       const missingVars = [];
       if (!smtpHost) missingVars.push("SMTP_HOST");

@@ -441,6 +441,32 @@ export default function AffiliateAdminPage() {
       date: new Date().toLocaleString()
     };
     addSimulatedEmail(welcomeEmail);
+
+    // Dispatch real email via API
+    try {
+      const res = await fetch("/api/admin/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-worker-secret": process.env.NEXT_PUBLIC_WORKER_SECRET || "solospider-worker-secret-2026-xyz"
+        },
+        body: JSON.stringify({
+          recipientEmail: app.email,
+          subject: "Welcome to SoloSpider Affiliate Program!",
+          content: `Hi ${app.name},\n\nYour application has been approved! Your unique affiliate referral code is: ${refId}.\n\nUse this link to refer users and earn 30% first month + 15% recurring commissions:\nhttps://solospider.ai/?ref=${refId}\n\nYou can now log in using your password at: https://solospider.ai/affiliate/login\n\nBest regards,\nSoloSpider Partner Team`,
+          template: "welcome_affiliate"
+        })
+      });
+      if (res.ok) {
+        toast.success("Real welcome email sent successfully!");
+      } else {
+        console.error("Email dispatch failed:", await res.text());
+        toast.warning("Affiliate approved locally, but real email dispatch failed.");
+      }
+    } catch (err) {
+      console.error("Failed to send welcome email:", err);
+      toast.warning("Failed to send real welcome email.");
+    }
   };
 
   const handleReject = async (appId: string) => {
