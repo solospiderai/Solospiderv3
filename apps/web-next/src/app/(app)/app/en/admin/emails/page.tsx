@@ -16,6 +16,7 @@ export default function AdminEmailsPage() {
   const [broadcast, setBroadcast] = useState(false);
   const [planFilter, setPlanFilter] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Fetch email logs
   const { data, isLoading, error } = useQuery({
@@ -26,6 +27,22 @@ export default function AdminEmailsPage() {
       return res.json();
     },
   });
+
+  // Fetch users for target preview
+  const { data: usersData, isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["admin", "users", "preview"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/users?limit=1000");
+      if (!res.ok) throw new Error("Failed to load users for preview");
+      return res.json();
+    },
+    enabled: broadcast,
+  });
+
+  const allUsers = usersData?.users || [];
+  const targetUsers = planFilter 
+    ? allUsers.filter((u: any) => u.plan === planFilter)
+    : allUsers;
 
   const sendEmailMutation = useMutation({
     mutationFn: async (payload: any) => {
@@ -211,6 +228,46 @@ export default function AdminEmailsPage() {
                   <option value="scale" className="bg-white">Scale</option>
                   <option value="custom" className="bg-white">Custom</option>
                 </select>
+
+                {/* Target Audience Preview */}
+                <div className="mt-3 bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      Target Audience ({isLoadingUsers ? "..." : targetUsers.length} Users)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowPreview(!showPreview)}
+                      className="text-[10px] text-violet-600 hover:text-violet-750 font-bold underline cursor-pointer"
+                    >
+                      {showPreview ? "Hide Preview" : "Preview Users"}
+                    </button>
+                  </div>
+                  
+                  {showPreview && (
+                    <div className="max-h-[140px] overflow-y-auto space-y-1.5 pt-1 pr-1 scrollbar-thin">
+                      {isLoadingUsers ? (
+                        <div className="flex items-center gap-1.5 text-slate-400 font-semibold italic text-[11px]">
+                          <Loader2 className="h-3 w-3 animate-spin text-violet-600" />
+                          Loading preview list...
+                        </div>
+                      ) : targetUsers.length === 0 ? (
+                        <p className="text-[11px] text-slate-400 font-semibold italic">No users in this plan tier.</p>
+                      ) : (
+                        targetUsers.map((user: any) => (
+                          <div key={user.id} className="flex justify-between items-center bg-white border border-slate-100 rounded-lg p-2 shadow-sm">
+                            <span className="font-bold text-slate-700 text-[11px] truncate max-w-[150px]" title={user.email}>
+                              {user.email}
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-black uppercase bg-violet-600/10 text-violet-600 border border-violet-200/20">
+                              {user.plan}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-2">
