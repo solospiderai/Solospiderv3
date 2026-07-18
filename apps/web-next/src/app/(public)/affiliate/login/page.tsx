@@ -131,6 +131,7 @@ export default function AffiliateLoginPage() {
       const stored = window.localStorage.getItem("solospider_affiliate_state");
       const stateObj = stored ? JSON.parse(stored) : null;
       const affiliatesList = stateObj?.affiliates || [];
+      const applicationsList = stateObj?.applications || [];
       
       // Find if this email is a registered affiliate
       const found = affiliatesList.find((a: any) => a.email.toLowerCase() === email.toLowerCase());
@@ -141,12 +142,26 @@ export default function AffiliateLoginPage() {
           setIsSubmitting(false);
           return;
         }
+
+        // Verify password if set in record
+        if (found.password && found.password !== password) {
+          toast.error("Incorrect password. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+
         // Store logged in partner in sessionStorage (independent of Supabase auth)
         window.sessionStorage.setItem("solospider_partner_email", found.email);
         toast.success(`Welcome back, ${found.name}!`);
         router.push("/affiliate/dashboard");
       } else {
-        toast.error("Account not found. Please apply to the program first.");
+        // Check if there is a pending application under this email
+        const pendingFound = applicationsList.find((app: any) => app.email.toLowerCase() === email.toLowerCase());
+        if (pendingFound) {
+          toast.warning("Your partner application is pending admin review. You can sign in once the administrator approves it.");
+        } else {
+          toast.error("Account not found. Please apply to the program first.");
+        }
       }
     } catch (err) {
       console.error(err);

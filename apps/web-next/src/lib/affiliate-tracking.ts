@@ -97,11 +97,12 @@ export function clearReferralCode(): void {
  */
 export function recordReferralCommission(
   planId: string,
-  userEmail?: string
+  userEmail?: string,
+  manualRefCode?: string
 ): boolean {
   if (typeof window === "undefined") return false;
 
-  const refCode = getStoredReferralCode();
+  const refCode = manualRefCode ? manualRefCode.trim().toLowerCase() : getStoredReferralCode();
   if (!refCode) return false;
 
   try {
@@ -132,6 +133,9 @@ export function recordReferralCommission(
     const isFirstTime = existingReferrals.length === 0;
     const rate = isFirstTime ? FIRST_TIME_RATE : RECURRING_RATE;
     const commission = Math.round(planPrice * rate * 100) / 100;
+    
+    // Check if the affiliate has enabled instant direct bank transfers
+    const isInstant = affiliate.enableInstantBank === true;
 
     // Create a referral record
     const newReferral = {
@@ -142,7 +146,7 @@ export function recordReferralCommission(
       plan: planId.charAt(0).toUpperCase() + planId.slice(1),
       signupDate: new Date().toISOString().split("T")[0],
       purchaseDate: new Date().toISOString().split("T")[0],
-      status: "converted",
+      status: isInstant ? "paid_instantly" : "converted",
       commission,
       isFirstTime,
       rateApplied: rate * 100,
@@ -153,19 +157,16 @@ export function recordReferralCommission(
       ...affiliate,
       signups: (affiliate.signups || 0) + (isFirstTime ? 1 : 0),
       activeCustomers: (affiliate.activeCustomers || 0) + (isFirstTime ? 1 : 0),
-      pendingCommission: Math.round(((affiliate.pendingCommission || 0) + commission) * 100) / 100,
+      pendingCommission: isInstant ? (affiliate.pendingCommission || 0) : Math.round(((affiliate.pendingCommission || 0) + commission) * 100) / 100,
+      paidCommission: isInstant ? Math.round(((affiliate.paidCommission || 0) + commission) * 100) / 100 : (affiliate.paidCommission || 0),
       totalEarnings: Math.round(((affiliate.totalEarnings || 0) + commission) * 100) / 100,
-      balance: Math.round(((affiliate.balance || 0) + commission) * 100) / 100,
+      balance: isInstant ? (affiliate.balance || 0) : Math.round(((affiliate.balance || 0) + commission) * 100) / 100,
     };
 
     // Save back
     state.affiliates = affiliates;
     state.referrals = [...referrals, newReferral];
     window.localStorage.setItem("solospider_affiliate_state", JSON.stringify(state));
-
-    // Don't clear the referral code — it should persist for recurring commissions
-    // Only clear if it was a first-time attribution
-    // Actually, keep the ref code so recurring purchases also track
 
     console.log(
       `[Affiliate] Commission recorded: ₹${commission} (${rate * 100}% ${isFirstTime ? "first-time" : "recurring"}) for affiliate "${affiliate.name}" (${affiliate.refId})`

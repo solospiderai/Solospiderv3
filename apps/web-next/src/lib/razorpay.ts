@@ -90,7 +90,7 @@ export async function triggerRazorpayCheckout({ planId, userEmail, couponCode, o
 
           // Record referral commission if referred
           try {
-            recordReferralCommission(planId, userEmail);
+            recordReferralCommission(planId, userEmail, couponCode);
           } catch (affErr) {
             console.error("Failed to attribute referral commission:", affErr);
           }

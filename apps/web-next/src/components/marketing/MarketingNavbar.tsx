@@ -126,7 +126,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
               href="/eeat-analysis"
               className="px-3.5 py-2 rounded-xl transition-all duration-200 hover:bg-primary-soft/50 hover:text-primary cursor-pointer text-left font-normal text-[14px]"
             >
-              E.e.a.t Analytics
+              EEAT Analytics
             </Link>
           </div>
           
@@ -180,7 +180,7 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
             Blog
           </button>
           <Link href="/eeat-analysis" className="text-lg text-[var(--ink-2)] py-2 border-b border-[var(--line)] cursor-pointer font-semibold" onClick={() => setMobileMenuOpen(false)}>
-            E.e.a.t Analytics
+            EEAT Analytics
           </Link>
           <div className="flex flex-col gap-3 mt-4">
             <div className="flex items-center justify-between py-2 px-1 border-b border-dashed border-[var(--line)]">

@@ -379,17 +379,17 @@ export default function GeoAnalysisPage() {
             {/* Title & Sub */}
             <div className="text-center max-w-3xl mx-auto mb-12 animate-fade-in-up">
               <h1 className="text-4xl md:text-5.5xl font-black tracking-tight leading-[1.1] text-[var(--ink)] mb-5">
-                Free <span className="grad-text">E.e.a.t Analysis</span> Tool
+                Free <span className="grad-text">EEAT Analysis</span> Tool
               </h1>
               <p className="text-[var(--muted)] text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-medium">
-                Analyze your website's Experience, Expertise, Authoritativeness, and Trustworthiness signals. Get instant E.e.a.t reports and actionable recommendations to optimize for AI search engines.
+                Analyze your website's Experience, Expertise, Authoritativeness, and Trustworthiness signals. Get instant EEAT reports and actionable recommendations to optimize for AI search engines.
               </p>
             </div>
 
             {/* URL Input Form */}
             <div className="max-w-xl mx-auto animate-fade-in-up">
               <div className="mb-2 flex items-center justify-between px-3 text-[11px] font-bold text-[var(--muted)] tracking-wider">
-                <span>E.e.a.t CRAWLER ACTIVE</span>
+                <span>EEAT CRAWLER ACTIVE</span>
                 <span>
                   <span className="text-[var(--primary)] font-black">5</span>/5 FREE CHECKS LEFT
                 </span>
@@ -417,12 +417,12 @@ export default function GeoAnalysisPage() {
                     {analyzing ? (
                       <>
                       <Loader2 className="w-4 h-4 animate-spin text-white" />
-                      Analyzing E.e.a.t...
+                      Analyzing EEAT...
                       </>
                     ) : (
                       <>
                       <Search className="w-4 h-4 text-white" />
-                      Analyze E.e.a.t
+                      Analyze EEAT
                       </>
                     )}
                   </button>
@@ -449,7 +449,7 @@ export default function GeoAnalysisPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10 pb-6 border-b border-[var(--line)]">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">AUDIT COMPLETED</span>
-                <h2 className="text-2xl font-black text-[var(--ink)] mt-1">E.e.a.t Analysis Results</h2>
+                <h2 className="text-2xl font-black text-[var(--ink)] mt-1">EEAT Analysis Results</h2>
                 <div className="flex items-center gap-2 mt-1 text-xs font-semibold text-[var(--muted)]">
                   <span className="text-[var(--ink-2)]">{result.domain}</span>
                   <span>•</span>
@@ -470,7 +470,7 @@ export default function GeoAnalysisPage() {
               {/* Radar chart */}
               <div className="lg:col-span-6 bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-6 flex flex-col justify-center items-center shadow-xs">
                 <h3 className="text-[10px] font-black uppercase tracking-wider text-[var(--muted)] mb-6 w-full text-left">
-                  E.e.a.t Quality Dimensions
+                  EEAT Quality Dimensions
                 </h3>
                 {renderRadarChart(result.analysis.scores)}
               </div>
@@ -574,7 +574,7 @@ export default function GeoAnalysisPage() {
               );
             })()}
 
-            {/* Detailed Accordions for E-E-A-T */}
+            {/* Detailed Accordions for EEAT */}
             <div className="space-y-4">
               <h3 className="text-lg font-black text-[var(--ink)] mb-4">Detailed Analysis</h3>
 
@@ -820,14 +820,14 @@ export default function GeoAnalysisPage() {
             Understand Your Content Quality
           </h2>
           <p className="text-[var(--muted)] max-w-2xl mx-auto text-sm leading-relaxed mb-16 font-medium">
-            Our E-E-A-T Analysis tool evaluates your website content against Google's E-E-A-T guidelines to make sure you rank in AI search queries.
+            Our EEAT Analysis tool evaluates your website content against Google's EEAT guidelines to make sure you rank in AI search queries.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
               { title: "Deep Content Analysis", desc: "Scans your page for signals that demonstrate first-hand experience and expertise.", icon: FileText },
               { title: "Comprehensive Scoring", desc: "Get individual scores for Experience, Expertise, Authoritativeness, and Trustworthiness.", icon: Activity },
-              { title: "Actionable Recommendations", desc: "Receive prioritized suggestions to improve your E-E-A-T signals.", icon: HelpCircle },
+              { title: "Actionable Recommendations", desc: "Receive prioritized suggestions to improve your EEAT signals.", icon: HelpCircle },
               { title: "Authority Signals", desc: "Identifies author credentials, citations, and backlink quality indicators.", icon: Award },
               { title: "Trust Factors", desc: "Checks for security, privacy policies, and transparency signals.", icon: ShieldCheck },
               { title: "SEO Insights", desc: "Understand how Google evaluates your content quality and what to improve.", icon: Globe }
@@ -857,7 +857,7 @@ export default function GeoAnalysisPage() {
                 <span className="text-[10px] font-black text-[var(--muted)] uppercase tracking-widest">How it works</span>
               </div>
               <h2 className="text-3xl md:text-3.5xl font-black text-[var(--ink)] leading-tight tracking-tight mb-4">
-                Analyze &amp; Improve Your Content's E.e.a.t Signals
+                Analyze &amp; Improve Your Content's EEAT Signals
               </h2>
               <p className="text-[var(--muted)] text-sm leading-relaxed font-medium">
                 Evaluate experience, expertise, authority, and trust across any webpage. Get clear scores and actionable insights to strengthen content quality and improve search performance.
@@ -866,9 +866,9 @@ export default function GeoAnalysisPage() {
 
             <div className="flex flex-col gap-5">
               {[
-                { step: "01", title: "Enter Your Website URL", desc: "Paste any publicly accessible website and start analyzing E.e.a.t signals instantly." },
+                { step: "01", title: "Enter Your Website URL", desc: "Paste any publicly accessible website and start analyzing EEAT signals instantly." },
                 { step: "02", title: "Content Analysis", desc: "Scans experience, expertise, authority, and trust to identify strong and weak signals." },
-                { step: "03", title: "Get Your Scores", desc: "View category-wise E.e.a.t scores and see exactly what is present and what is missing." },
+                { step: "03", title: "Get Your Scores", desc: "View category-wise EEAT scores and see exactly what is present and what is missing." },
                 { step: "04", title: "Improve &amp; Optimize", desc: "Get prioritized improvement suggestions to strengthen content quality and search rankings." }
               ].map((item, idx) => (
                 <div key={idx} className="bg-[var(--bg-2)]/30 border border-[var(--line)]/50 rounded-2xl p-5 hover:border-[var(--primary)]/20 transition-all flex gap-4 items-start shadow-xs">
@@ -895,37 +895,39 @@ export default function GeoAnalysisPage() {
             </div>
             <h2 className="text-3xl md:text-3.5xl font-black text-[var(--ink)] tracking-tight mb-4">Have Questions?</h2>
             <p className="text-[var(--muted)] text-sm font-semibold max-w-lg mx-auto">
-              Clear answers to common questions about Generative Engine Optimization (GEO), E-E-A-T, and how the audit functions.
+              Clear answers to common questions about Generative Engine Optimization (GEO), EEAT, and how the audit functions.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Sidebar list of tools — sticky */}
             <div className="lg:col-span-4 lg:sticky lg:top-24 self-start">
-              <div className="bg-[var(--bg-2)]/60 border border-[var(--line)]/50 rounded-2xl p-4 flex flex-col gap-1 shadow-xs">
-                <span className="text-[10px] font-black text-[var(--muted)] px-4 py-1.5 uppercase tracking-wider block">Tools Navigation</span>
-                {[
-                  { name: "Domain Rating Checker", icon: Award },
-                  { name: "SEO Audit Suite", icon: Activity },
-                  { name: "Page Speed Analyzer", icon: Activity },
-                  { name: "Keyword Research Tool", icon: Search },
-                  { name: "Backlink Auditor", icon: Link2 },
-                  { name: "XML Sitemap Generator", icon: FileCode },
-                  { name: "Sitemap Finder & Indexer", icon: FileCode },
-                  { name: "Sitemap Quality Validator", icon: FileCode }
-                ].map((tool, idx) => (
-                  <div 
-                    key={idx} 
-                    onClick={handleLaunchWizard}
-                    className="px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--ink-2)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 cursor-pointer transition-all flex items-center justify-between group"
-                  >
-                    <span className="flex items-center gap-2 font-semibold">
-                      <tool.icon className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--primary)]" />
-                      {tool.name}
-                    </span>
-                    <ChevronRight className="w-3 h-3 text-[var(--muted)] group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                ))}
+              <div className="bg-[var(--bg-2)]/60 border border-[var(--line)]/50 rounded-2xl p-6 lg:h-[600px] lg:flex lg:flex-col lg:justify-start lg:gap-2.5 shadow-xs">
+                <span className="text-xs font-black text-[var(--muted)] px-3 py-1.5 uppercase tracking-widest block mb-2">Tools Navigation</span>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { name: "Domain Rating Checker", icon: Award },
+                    { name: "SEO Audit Suite", icon: Activity },
+                    { name: "Page Speed Analyzer", icon: Activity },
+                    { name: "Keyword Research Tool", icon: Search },
+                    { name: "Backlink Auditor", icon: Link2 },
+                    { name: "XML Sitemap Generator", icon: FileCode },
+                    { name: "Sitemap Finder & Indexer", icon: FileCode },
+                    { name: "Sitemap Quality Validator", icon: FileCode }
+                  ].map((tool, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={handleLaunchWizard}
+                      className="px-4.5 py-3.5 rounded-xl text-sm font-bold text-[var(--ink-2)] hover:text-[var(--primary)] hover:bg-[var(--primary)]/5 cursor-pointer transition-all flex items-center justify-between group"
+                    >
+                      <span className="flex items-center gap-3 font-semibold">
+                        <tool.icon className="w-4.5 h-4.5 text-[var(--muted)] group-hover:text-[var(--primary)]" />
+                        {tool.name}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-[var(--muted)] group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -938,15 +940,15 @@ export default function GeoAnalysisPage() {
                 },
                 {
                   q: "How does SoloSpider's GEO Analysis tool work?",
-                  a: "The tool crawls your website and audits 15+ vital signals (SSL status, terms & conditions sheets, schemas, and brand review listings). It then processes raw heading layout and content text, running a specialized quality rater audit (powered by Gemini) to calculate E.e.a.t metrics."
+                  a: "The tool crawls your website and audits 15+ vital signals (SSL status, terms & conditions sheets, schemas, and brand review listings). It then processes raw heading layout and content text, running a specialized quality rater audit (powered by Gemini) to calculate EEAT metrics."
                 },
                 {
                   q: "How is GEO different from traditional SEO?",
                   a: "Traditional SEO targets keyword positions on Google search results pages. GEO optimizes for citation weight in LLM responses. AI search models prefer content that provides structured facts, verified author qualifications, brand trust signals, and machine-readable data formatting."
                 },
                 {
-                  q: "What is Google E.e.a.t and why does it matter for GEO?",
-                  a: "E.e.a.t stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It represents the quality guidelines search raters use to evaluate content. Since LLM models are trained on high E.e.a.t content, presenting these signals clearly is the most effective way to gain citations."
+                  q: "What is Google EEAT and why does it matter for GEO?",
+                  a: "EEAT stands for Experience, Expertise, Authoritativeness, and Trustworthiness. It represents the quality guidelines search raters use to evaluate content. Since LLM models are trained on high EEAT content, presenting these signals clearly is the most effective way to gain citations."
                 },
                 {
                   q: "Which AI platforms are affected by GEO?",

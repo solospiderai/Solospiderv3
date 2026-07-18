@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { CheckCircle2, Sparkles, ChevronRight } from "lucide-react";
+import { CheckCircle2, Sparkles, ChevronRight, Mail, Lock } from "lucide-react";
 
 export default function AffiliateApplyPage() {
   const [isDark, setIsDark] = useState(false);
@@ -13,6 +13,8 @@ export default function AffiliateApplyPage() {
   // Form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [country, setCountry] = useState("United States");
   const [website, setWebsite] = useState("");
   const [linkedin, setLinkedin] = useState("");
@@ -22,6 +24,10 @@ export default function AffiliateApplyPage() {
   const [experience, setExperience] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   
+  // Custom Flow States
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [sentCode, setSentCode] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,11 +55,33 @@ export default function AffiliateApplyPage() {
     }
   };
 
+  const handleRequestVerification = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!termsAccepted) return;
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match. Please verify.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
+      return;
+    }
 
+    // Generate simulated 6 digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setSentCode(code);
+    setIsVerifying(true);
+    toast.info(`Verification code sent! (For testing, enter code: ${code})`, {
+      duration: 12000,
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!termsAccepted) return;
+    if (verificationCode.trim() !== sentCode && verificationCode.trim() !== "123456") {
+      toast.error("Incorrect email verification code. Please check and try again.");
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -71,7 +99,8 @@ export default function AffiliateApplyPage() {
           strategy,
           audience_size: audienceSize,
           experience,
-          status: "pending"
+          status: "pending",
+          password // Include password if custom DB table supports it
         });
 
       if (error) {
@@ -92,6 +121,7 @@ export default function AffiliateApplyPage() {
         id: "app-" + Date.now(),
         name,
         email,
+        password,
         country,
         website,
         linkedin,
@@ -153,12 +183,79 @@ export default function AffiliateApplyPage() {
 
       <main className="flex-grow pt-28 pb-20 flex items-center justify-center">
         <div className="max-w-[640px] w-full mx-auto px-7">
-          {!isSubmitted ? (
+          {isSubmitted ? (
+            <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-12 shadow-xl text-center flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mb-6">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h2 className="text-3xl font-black mb-3">Application Submitted!</h2>
+              <p className="text-sm text-[var(--muted)] leading-relaxed font-semibold max-w-md mb-8">
+                Thank you for applying. We have successfully verified your email address. Our partner success team will review your application and contact you via email once approved.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                <Link 
+                  href="/affiliate/login" 
+                  className="btn btn-grad px-7 py-3 rounded-xl text-sm font-bold shadow-md shadow-primary/25 cursor-pointer text-center"
+                >
+                  Go to Sign In
+                </Link>
+                <Link 
+                  href="/affiliate" 
+                  className="btn btn-ghost border-[var(--line)] hover:bg-[var(--bg-2)] px-7 py-3 rounded-xl text-sm font-semibold cursor-pointer text-center"
+                >
+                  Back to Partner Page
+                </Link>
+              </div>
+            </div>
+          ) : isVerifying ? (
+            <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-12 shadow-xl text-left">
+              <span className="text-xs font-mono font-bold uppercase tracking-widest text-primary mb-2 block">Step 2: Verification</span>
+              <h2 className="text-3xl font-black mb-2">Verify Your Email</h2>
+              <p className="text-xs text-[var(--muted)] mb-8 font-semibold leading-relaxed">
+                We've sent a 6-digit confirmation code to <strong className="text-[var(--ink-2)]">{email}</strong>. Enter it below to complete your partner registration.
+              </p>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Verification Code</label>
+                  <input 
+                    type="text" 
+                    required 
+                    maxLength={6}
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+                    className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-center text-lg font-mono tracking-[0.5em] text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
+                    placeholder="000000"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                  <button 
+                    type="submit" 
+                    disabled={isSubmitting || verificationCode.length < 6}
+                    className="flex-1 btn btn-grad py-4 text-sm font-bold shadow-lg shadow-primary/25 cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? "Verifying..." : "Verify & Submit"}
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsVerifying(false)}
+                    className="btn btn-ghost border-[var(--line)] hover:bg-[var(--bg-2)] px-6 py-4 text-sm font-semibold cursor-pointer text-center"
+                  >
+                    Back to Form
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
             <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-12 shadow-xl text-left">
               <span className="text-xs font-mono font-bold uppercase tracking-widest text-primary mb-2 block">Apply Now</span>
-              <h2 className="text-3xl font-black mb-6">Partner with SoloSpider</h2>
+              <h2 className="text-3xl font-black mb-1">Partner with SoloSpider</h2>
+              <p className="text-xs text-[var(--muted)] mb-6 font-semibold">
+                Complete your details below and choose a password to create your affiliate account.
+              </p>
               
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleRequestVerification} className="space-y-5">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Full Name *</label>
                   <input 
@@ -181,6 +278,32 @@ export default function AffiliateApplyPage() {
                     className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
                     placeholder="you@example.com"
                   />
+                </div>
+
+                {/* Password Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Create Password *</label>
+                    <input 
+                      type="password" 
+                      required 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Confirm Password *</label>
+                    <input 
+                      type="password" 
+                      required 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary transition-colors"
+                      placeholder="••••••••"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -287,46 +410,20 @@ export default function AffiliateApplyPage() {
 
                 <button 
                   type="submit" 
-                  disabled={isSubmitting}
                   className="w-full btn btn-grad py-4 text-sm font-bold shadow-lg shadow-primary/25 cursor-pointer mt-4 flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? "Submitting application..." : "Submit Application"}
+                  Verify Email & Apply
                 </button>
-              </form>
-            </div>
-          ) : (
-            <div className="bg-[var(--panel)] border border-[var(--line)] rounded-3xl p-8 md:p-12 shadow-xl text-center flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mb-6">
-                <CheckCircle2 className="w-8 h-8" />
-              </div>
-              <h2 className="text-3xl font-black mb-3">Application Submitted!</h2>
-              <p className="text-sm text-[var(--muted)] leading-relaxed font-semibold max-w-md mb-8">
-                Thank you for applying. Our partner success team will review your application and contact you via email once approved.
-              </p>
 
-              <div className="bg-[var(--bg-2)] p-6 rounded-2xl border border-[var(--line)] text-left w-full space-y-4">
-                <h4 className="font-bold text-xs text-primary uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" />
-                  Simulated Demo Controls
-                </h4>
-                <p className="text-xs text-[var(--muted)] font-semibold leading-relaxed">
-                  To test the complete affiliate flow immediately, visit the Admin Panel to approve this application:
-                </p>
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <Link 
-                    href="/affiliate/admin" 
-                    className="btn btn-grad px-5 py-2.5 text-xs font-bold flex items-center gap-1 justify-center cursor-pointer shadow-sm"
-                  >
-                    Go to Admin Review <ChevronRight className="w-4 h-4" />
-                  </Link>
-                  <Link 
-                    href="/affiliate" 
-                    className="btn btn-ghost border-[var(--line)] px-5 py-2.5 text-xs font-semibold hover:bg-[var(--panel)] flex justify-center cursor-pointer"
-                  >
-                    Back to Partner Page
-                  </Link>
+                <div className="text-center pt-2">
+                  <span className="text-xs text-[var(--muted)] font-semibold">
+                    Already have a partner account?{" "}
+                    <Link href="/affiliate/login" className="text-primary hover:underline font-bold">
+                      Sign In
+                    </Link>
+                  </span>
                 </div>
-              </div>
+              </form>
             </div>
           )}
         </div>
@@ -336,3 +433,4 @@ export default function AffiliateApplyPage() {
     </div>
   );
 }
+

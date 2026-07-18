@@ -467,13 +467,13 @@ export default function HomePage() {
                     ))}
                   </div>
                   {/* #15: Geist 700 14px */}
-                  <button
-                    onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
-                    className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white self-start mt-auto cursor-pointer flex items-center justify-center"
+                  <Link
+                    href="/pricing"
+                    className="w-[187px] h-[49px] rounded-[9.5px] bg-[#9025F2] hover:bg-primary-2 text-white self-start mt-auto cursor-pointer flex items-center justify-center no-underline text-inherit"
                     style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}
                   >
                     Explore Agency Plan
-                  </button>
+                  </Link>
                 </div>
               </div>
 
@@ -515,13 +515,13 @@ export default function HomePage() {
                     ))}
                   </div>
                   {/* #15: Geist 700 14px */}
-                  <button
-                    onClick={() => { setWizardDomain(""); setIsWizardOpen(true); }}
-                    className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all self-start mt-auto cursor-pointer flex items-center justify-center"
+                  <Link
+                    href="/pricing"
+                    className="w-[187px] h-[49px] rounded-[9.5px] border border-[var(--line)] bg-[var(--panel)] text-[var(--ink)] hover:bg-[var(--bg-2)] transition-all self-start mt-auto cursor-pointer flex items-center justify-center no-underline text-inherit"
                     style={{ fontFamily: "'Geist', sans-serif", fontWeight: 700, fontSize: 14, lineHeight: '100%', letterSpacing: '0%', verticalAlign: 'middle' }}
                   >
                     Explore Solo Plan
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

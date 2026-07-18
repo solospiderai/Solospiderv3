@@ -6,7 +6,7 @@ import { MarketingFooter } from "@/components/marketing/MarketingFooter";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { 
   Users, CheckCircle2, XCircle, ArrowRight, Shield, 
-  DollarSign, BarChart3, Settings, Percent, Layers, Trash2 
+  DollarSign, BarChart3, Settings, Percent, Layers, Trash2, Mail
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ interface Application {
   id: string;
   name: string;
   email: string;
+  password?: string;
   country: string;
   website: string;
   strategy: string;
@@ -27,6 +28,7 @@ interface Affiliate {
   id: string;
   name: string;
   email: string;
+  password?: string;
   refId: string;
   clicks: number;
   signups: number;
@@ -64,6 +66,26 @@ export default function AffiliateAdminPage() {
   const [payouts, setPayouts] = useState<PayoutRequest[]>([]);
   const [firstTimeRate, setFirstTimeRate] = useState(30);
   const [recurringRate, setRecurringRate] = useState(15);
+  const [sentEmails, setSentEmails] = useState<{to: string, subject: string, body: string, date: string}[]>([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedEmails = window.sessionStorage.getItem("solospider_simulated_emails");
+      if (storedEmails) {
+        setSentEmails(JSON.parse(storedEmails));
+      }
+    }
+  }, []);
+
+  const addSimulatedEmail = (email: {to: string, subject: string, body: string, date: string}) => {
+    setSentEmails(prev => {
+      const next = [email, ...prev];
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("solospider_simulated_emails", JSON.stringify(next));
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -344,9 +366,10 @@ export default function AffiliateAdminPage() {
 
   // Admin Actions
   const handleApprove = async (app: Application) => {
+    const refId = app.name.toLowerCase().replace(/\s+/g, "");
+
     try {
       const supabase = getSupabaseBrowserClient();
-      const refId = app.name.toLowerCase().replace(/\s+/g, "");
 
       // 1. Insert into affiliates
       const { data: affData, error: affErr } = await supabase
@@ -362,7 +385,8 @@ export default function AffiliateAdminPage() {
           paid_commission: 0.00,
           total_earnings: 0.00,
           balance: 0.00,
-          status: "active"
+          status: "active",
+          password: app.password // Save password to database
         })
         .select()
         .single();
@@ -384,11 +408,11 @@ export default function AffiliateAdminPage() {
       
       // Local fallback
       const updatedApps = applications.filter((a) => a.id !== app.id);
-      const refId = app.name.toLowerCase().replace(/\s+/g, "");
       const newAffiliate: Affiliate = {
         id: "aff-" + Date.now(),
         name: app.name,
         email: app.email,
+        password: app.password, // Copy password
         refId,
         clicks: 0,
         signups: 0,
@@ -406,6 +430,15 @@ export default function AffiliateAdminPage() {
       saveState(updatedApps, updatedAffiliates, payouts, firstTimeRate, recurringRate);
       toast.success(`🎉 Approved ${app.name}! Link ref is ${refId}`);
     }
+
+    // Add Simulated Email welcome notification
+    const welcomeEmail = {
+      to: app.email,
+      subject: "Welcome to SoloSpider Affiliate Program!",
+      body: `Hi ${app.name},\n\nYour application has been approved! Your unique affiliate referral code is: ${refId}.\n\nUse this link to refer users and earn 30% first month + 15% recurring commissions:\nhttps://solospider.ai/?ref=${refId}\n\nYou can now log in using your password at: https://solospider.ai/affiliate/login\n\nBest regards,\nSoloSpider Partner Team`,
+      date: new Date().toLocaleString()
+    };
+    addSimulatedEmail(welcomeEmail);
   };
 
   const handleReject = async (appId: string) => {
@@ -799,6 +832,40 @@ export default function AffiliateAdminPage() {
                     </div>
                   ))
                 )}
+
+                {/* Simulated Welcome Email Logs section */}
+                <div className="pt-8 border-t border-[var(--line)] space-y-4 mt-8">
+                  <h3 className="font-display text-lg font-black flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-primary" />
+                    <span>Simulated Welcome Email Outbox Logs</span>
+                  </h3>
+                  <p className="text-xs text-[var(--muted)] font-semibold">
+                    Simulated email transmissions triggered upon partner approval. Verify contents here for testing.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    {sentEmails.length === 0 ? (
+                      <div className="bg-[var(--panel)] border border-[var(--line)] border-dashed p-6 rounded-2xl text-center text-xs text-[var(--muted)] font-semibold">
+                        No emails sent yet. Approve a partner application to trigger simulated welcome email.
+                      </div>
+                    ) : (
+                      sentEmails.map((email, idx) => (
+                        <div key={idx} className="bg-[var(--panel)] border border-[var(--line)] rounded-2xl p-5 space-y-3">
+                          <div className="flex justify-between items-start gap-4 pb-2.5 border-b border-[var(--line)]/50">
+                            <div>
+                              <div className="text-xs font-semibold text-[var(--muted)]">To: <span className="text-[var(--ink-2)] font-bold">{email.to}</span></div>
+                              <div className="text-xs font-semibold text-[var(--muted)] mt-1">Subject: <span className="text-[var(--ink)] font-bold">{email.subject}</span></div>
+                            </div>
+                            <span className="text-[10px] font-mono font-bold text-[var(--muted)]">{email.date}</span>
+                          </div>
+                          <pre className="text-xs font-mono text-[var(--ink-2)] bg-[var(--bg-2)] p-4 rounded-xl leading-relaxed whitespace-pre-wrap">
+                            {email.body}
+                          </pre>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 

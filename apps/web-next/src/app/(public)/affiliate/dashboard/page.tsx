@@ -72,7 +72,11 @@ export default function AffiliateDashboardPage() {
   const [profileName, setProfileName] = useState("");
   const [profileCountry, setProfileCountry] = useState("United States");
   const [upiId, setUpiId] = useState("");
-  const [bankDetails, setBankDetails] = useState("");
+  const [bankHolderName, setBankHolderName] = useState("");
+  const [bankNameState, setBankNameState] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [ifscCode, setIfscCode] = useState("");
+  const [enableInstantBank, setEnableInstantBank] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -104,6 +108,13 @@ export default function AffiliateDashboardPage() {
           if (found) {
             setCurrentAffiliate(found);
             setProfileName(found.name);
+            setProfileCountry(found.country || "United States");
+            setBankHolderName(found.bankHolderName || "");
+            setBankNameState(found.bankName || "");
+            setAccountNumber(found.accountNumber || "");
+            setIfscCode(found.ifscCode || "");
+            setUpiId(found.upiId || "");
+            setEnableInstantBank(found.enableInstantBank || false);
           } else {
             const fallbackAff: Affiliate = {
               id: "aff-session-" + Date.now(),
@@ -414,7 +425,17 @@ export default function AffiliateDashboardPage() {
       const parsed = JSON.parse(stored);
       parsed.affiliates = (parsed.affiliates as Affiliate[]).map((a) => {
         if (a.id === currentAffiliate.id) {
-          return { ...a, name: profileName };
+          return { 
+            ...a, 
+            name: profileName,
+            country: profileCountry,
+            bankHolderName,
+            bankName: bankNameState,
+            accountNumber,
+            ifscCode,
+            upiId,
+            enableInstantBank
+          };
         }
         return a;
       });
@@ -782,46 +803,76 @@ export default function AffiliateDashboardPage() {
                       </div>
 
                       {/* Request Payout Ticket Form */}
-                      <form onSubmit={handleRequestPayout} className="space-y-4">
-                        <h4 className="font-bold text-sm text-[var(--ink)]">Request Payout Transfer</h4>
+                      {(() => {
+                        const isIntegrated = bankHolderName.trim() !== "" && bankNameState.trim() !== "" && accountNumber.trim() !== "" && ifscCode.trim() !== "";
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Request Amount ($)</label>
-                            <input 
-                              type="number" 
-                              required 
-                              min="50"
-                              max={currentAffiliate.balance}
-                              value={payoutAmount}
-                              onChange={(e) => setPayoutAmount(e.target.value)}
-                              className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none"
-                              placeholder="e.g. 100"
-                            />
-                          </div>
+                        if (!isIntegrated) {
+                          return (
+                            <div className="bg-amber-500/5 border border-amber-500/25 p-6 rounded-2xl text-left space-y-4">
+                              <h4 className="font-bold text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                                ⚠️ Bank Integration Required
+                              </h4>
+                              <p className="text-xs text-[var(--muted)] font-semibold leading-relaxed">
+                                To protect your earnings and enable direct withdrawals, you must properly integrate your bank account details first.
+                              </p>
+                              <button 
+                                onClick={() => setActiveTab("settings")}
+                                className="btn btn-grad text-xs px-5 py-2.5 font-bold shadow-md shadow-primary/25 cursor-pointer block"
+                              >
+                                Go to Settings &amp; Integrate Bank
+                              </button>
+                            </div>
+                          );
+                        }
 
-                          <div>
-                            <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Payment Method</label>
-                            <select 
-                              value={payoutMethod}
-                              onChange={(e) => setPayoutMethod(e.target.value)}
-                              className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none"
+                        return (
+                          <form onSubmit={handleRequestPayout} className="space-y-4">
+                            <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]/50">
+                              <h4 className="font-bold text-sm text-[var(--ink)]">Request Payout Transfer</h4>
+                              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                                ✓ Bank Account Linked
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Request Amount ($)</label>
+                                <input 
+                                  type="number" 
+                                  required 
+                                  min="50"
+                                  max={currentAffiliate.balance}
+                                  value={payoutAmount}
+                                  onChange={(e) => setPayoutAmount(e.target.value)}
+                                  className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none"
+                                  placeholder="e.g. 100"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Payment Method</label>
+                                <select 
+                                  value={payoutMethod}
+                                  onChange={(e) => setPayoutMethod(e.target.value)}
+                                  className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none"
+                                >
+                                  <option value="Bank Transfer">Bank Transfer (Direct)</option>
+                                  <option value="UPI">UPI Payment</option>
+                                  <option value="PayPal">PayPal (Future support)</option>
+                                </select>
+                              </div>
+                            </div>
+
+                            <button 
+                              type="submit" 
+                              disabled={currentAffiliate.balance < 50}
+                              className="btn btn-grad w-full py-3.5 text-xs font-bold shadow-lg shadow-primary/25 cursor-pointer disabled:opacity-50"
                             >
-                              <option value="Bank Transfer">Bank Transfer (Direct)</option>
-                              <option value="UPI">UPI Payment</option>
-                              <option value="PayPal">PayPal (Future support)</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <button 
-                          type="submit" 
-                          disabled={currentAffiliate.balance < 50}
-                          className="btn btn-grad w-full py-3.5 text-xs font-bold shadow-lg shadow-primary/25 cursor-pointer disabled:opacity-50"
-                        >
-                          Request Payout Transfer
-                        </button>
-                      </form>
+                              Request Payout Transfer
+                            </button>
+                          </form>
+                        );
+                      })()}
                     </div>
 
                     {/* Payout Ticket History list */}
@@ -866,23 +917,27 @@ export default function AffiliateDashboardPage() {
                       <div className="bg-[var(--panel)] border border-[var(--line)] p-6 rounded-2xl space-y-4">
                         <h4 className="font-bold text-sm text-[var(--ink)]">SoloSpider Brand Assets</h4>
                         <p className="text-xs text-[var(--muted)] font-semibold">Contains brand logos, guidelines, and vector files.</p>
-                        <button
-                          onClick={() => toast.success("Downloading zip file (Simulated)")}
-                          className="btn btn-ghost border-[var(--line)] px-4 py-2 text-xs font-bold hover:bg-[var(--bg-2)] cursor-pointer flex items-center gap-1.5"
+                        <a
+                          href="/assets/brand-assets.zip"
+                          download="brand-assets.zip"
+                          onClick={() => toast.success("Downloading SoloSpider brand assets kit...")}
+                          className="btn btn-ghost border-[var(--line)] px-4 py-2 text-xs font-bold hover:bg-[var(--bg-2)] cursor-pointer flex items-center gap-1.5 w-fit no-underline text-inherit"
                         >
                           <Download className="w-3.5 h-3.5 text-primary" /> Brand Assets (.Zip)
-                        </button>
+                        </a>
                       </div>
 
                       <div className="bg-[var(--panel)] border border-[var(--line)] p-6 rounded-2xl space-y-4">
                         <h4 className="font-bold text-sm text-[var(--ink)]">Email Swipe Templates</h4>
                         <p className="text-xs text-[var(--muted)] font-semibold">High-converting cold and newsletter email drafts.</p>
-                        <button
-                          onClick={() => toast.success("Downloading zip file (Simulated)")}
-                          className="btn btn-ghost border-[var(--line)] px-4 py-2 text-xs font-bold hover:bg-[var(--bg-2)] cursor-pointer flex items-center gap-1.5"
+                        <a
+                          href="/assets/email-templates.zip"
+                          download="email-templates.zip"
+                          onClick={() => toast.success("Downloading email swipe templates...")}
+                          className="btn btn-ghost border-[var(--line)] px-4 py-2 text-xs font-bold hover:bg-[var(--bg-2)] cursor-pointer flex items-center gap-1.5 w-fit no-underline text-inherit"
                         >
                           <Download className="w-3.5 h-3.5 text-primary" /> Email Templates (.Zip)
-                        </button>
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -906,14 +961,99 @@ export default function AffiliateDashboardPage() {
                         </div>
 
                         <div>
-                          <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Payout Method Option</label>
+                          <label className="block text-xs font-bold uppercase tracking-wider text-[var(--muted)] mb-2">Country</label>
+                          <select 
+                            value={profileCountry}
+                            onChange={(e) => setProfileCountry(e.target.value)}
+                            className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none focus:border-primary"
+                          >
+                            {["United States", "India", "United Kingdom", "Canada", "Germany", "Australia", "Singapore", "France", "Japan"].map((c) => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Bank Details Card */}
+                      <div className="bg-[var(--bg-2)] p-6 rounded-2xl border border-[var(--line)] space-y-4">
+                        <h4 className="font-bold text-xs text-primary uppercase tracking-wider">
+                          Bank Details & Integration
+                        </h4>
+                        <p className="text-[11px] text-[var(--muted)] font-semibold leading-normal">
+                          Provide your bank credentials to enable direct withdrawable transfers or automate payouts instantly upon referral conversions.
+                        </p>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">Account Holder Name</label>
+                            <input 
+                              type="text" 
+                              value={bankHolderName}
+                              onChange={(e) => setBankHolderName(e.target.value)}
+                              className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--ink)] focus:outline-none"
+                              placeholder="John Doe"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">Bank Name</label>
+                            <input 
+                              type="text" 
+                              value={bankNameState}
+                              onChange={(e) => setBankNameState(e.target.value)}
+                              className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--ink)] focus:outline-none"
+                              placeholder="Silicon Valley Bank"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">Account Number</label>
+                            <input 
+                              type="text" 
+                              value={accountNumber}
+                              onChange={(e) => setAccountNumber(e.target.value)}
+                              className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--ink)] focus:outline-none"
+                              placeholder="1234567890"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">IFSC / SWIFT / ROUTING Code</label>
+                            <input 
+                              type="text" 
+                              value={ifscCode}
+                              onChange={(e) => setIfscCode(e.target.value)}
+                              className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--ink)] focus:outline-none uppercase"
+                              placeholder="SBIN0001234"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] mb-1.5">UPI ID (Optional)</label>
+                            <input 
+                              type="text" 
+                              value={upiId}
+                              onChange={(e) => setUpiId(e.target.value)}
+                              className="w-full bg-[var(--panel)] border border-[var(--line)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--ink)] focus:outline-none"
+                              placeholder="john@upi"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-2.5 pt-2">
                           <input 
-                            type="text" 
-                            value={upiId}
-                            onChange={(e) => setUpiId(e.target.value)}
-                            className="w-full bg-[var(--bg)] border border-[var(--line)] rounded-xl px-4 py-3 text-sm text-[var(--ink)] focus:outline-none"
-                            placeholder="UPI Address or Bank Details"
+                            type="checkbox" 
+                            id="enableInstantBank"
+                            checked={enableInstantBank}
+                            onChange={(e) => setEnableInstantBank(e.target.checked)}
+                            className="mt-0.5 accent-primary"
                           />
+                          <label htmlFor="enableInstantBank" className="text-xs text-[var(--muted)] leading-relaxed font-semibold cursor-pointer">
+                            <strong>Enable Instant Bank Transfers (Automatic Direct Credit)</strong><br />
+                            Automatically process and send referral commissions straight to this integrated bank account immediately upon successful referrals, bypassing wallet holding and thresholds.
+                          </label>
                         </div>
                       </div>
 

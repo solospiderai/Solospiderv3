@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
     }
 
-    console.log(`[E-E-A-T Scraper] Analyzing domain: ${hostname} (URL: ${normalizedUrl})`);
+    console.log(`[EEAT Scraper] Analyzing domain: ${hostname} (URL: ${normalizedUrl})`);
 
     // 2. Fetch page HTML
     let html = "";
@@ -58,12 +58,12 @@ export async function GET(request: NextRequest) {
       });
 
       if (!res.ok) {
-        console.warn(`[E-E-A-T Scraper] Crawl returned non-200 code: ${res.status}`);
+        console.warn(`[EEAT Scraper] Crawl returned non-200 code: ${res.status}`);
         throw new Error(`Crawl returned status ${res.status}`);
       }
       html = await res.text();
     } catch (crawlErr: any) {
-      console.error(`[E-E-A-T Scraper] Scraping failed for ${normalizedUrl}:`, crawlErr);
+      console.error(`[EEAT Scraper] Scraping failed for ${normalizedUrl}:`, crawlErr);
       // Fallback: If https failed, try http
       if (normalizedUrl.startsWith("https://")) {
         try {
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
           html = await res.text();
           isSsl = false;
         } catch (fallbackErr) {
-          console.error(`[E-E-A-T Scraper] Fallback HTTP failed:`, fallbackErr);
+          console.error(`[EEAT Scraper] Fallback HTTP failed:`, fallbackErr);
           crawlFailed = true;
         }
       } else {
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (crawlFailed) {
-      console.warn(`[E-E-A-T Scraper] Both HTTPS and HTTP failed for ${normalizedUrl}. Falling back to general LLM brand knowledge.`);
+      console.warn(`[EEAT Scraper] Both HTTPS and HTTP failed for ${normalizedUrl}. Falling back to general LLM brand knowledge.`);
       html = `
         <html>
           <head>
@@ -207,7 +207,7 @@ export async function GET(request: NextRequest) {
     }
 
     const systemPrompt = `You are a Google Search Quality Rater and GEO (Generative Engine Optimization) expert.
-Evaluate the following website details and text content against Google's official E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) guidelines.
+Evaluate the following website details and text content against Google's official EEAT (Experience, Expertise, Authoritativeness, Trustworthiness) guidelines.
 
 CRAWLER DETECTED CHECKLIST (INITIAL ESTIMATES):
 - SSL Active: ${checklist.ssl}
@@ -234,13 +234,13 @@ WEBSITE METADATA:
 ${crawlFailed ? `IMPORTANT NOTE: The crawler was blocked or unable to reach the page. Please evaluate the brand/website "${hostname}" using your general knowledge of this brand and its digital presence. If you do not know this specific brand, generate plausible rating points based on standard industry expectations for this domain.` : `NOTE: The crawled HTML was ${html.length} characters long. ${html.length < 5000 ? "This is quite short, indicating the site likely uses client-side rendering (React/Next.js/SPA). The content above may not represent the full site. Use your knowledge of this brand/domain to supplement." : "This appears to be a server-rendered page with substantial content."}`}
 
 INSTRUCTIONS:
-For each of the 4 E-E-A-T categories, evaluate 6 standard check questions and decide PASS or FAIL for each one.
+For each of the 4 EEAT categories, evaluate 6 standard check questions and decide PASS or FAIL for each one.
 Also, output the corrected/final technical checklist.
 
 INFERENCE & EVALUATION RULES (SNOWSEO COMPATIBLE):
-- Evaluate the E-E-A-T category check items by combining the crawled HTML/metadata with your general knowledge of this brand and domain.
+- Evaluate the EEAT category check items by combining the crawled HTML/metadata with your general knowledge of this brand and domain.
 - If you have knowledge of the brand/website (e.g., if you know the business, if it has standard social presence, or if the website content points to an active business structure), you should evaluate it realistically. Do NOT artificially fail checks if the crawled HTML is short or SPA-rendered.
-- Make reasonable, fair inferences about the presence of E-E-A-T signals (e.g., if the website is a professional agency or site, it naturally possesses expertise, topic relevance, and active subject participation).
+- Make reasonable, fair inferences about the presence of EEAT signals (e.g., if the website is a professional agency or site, it naturally possesses expertise, topic relevance, and active subject participation).
 
 SCORING RULE:
 - The score for each category is calculated automatically as: score = Math.round((passedCount / 6) * 100)
@@ -257,7 +257,7 @@ CRITICAL RULE FOR CHECKLIST:
 CRITICAL RULE FOR CATEGORIES:
 - You must evaluate exactly the following 6 standard check questions for each of the 4 categories:
 
-  EXPERIENCE check questions:
+  EEAT check questions:
   1. "Does it reflect first-hand experience with personal narration?"
   2. "Are original photos/videos/screenshots present?"
   3. "Does it discuss challenges faced, lessons learned, or practical advice?"
@@ -389,7 +389,7 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
       parsedData = JSON.parse(cleanJson);
     } catch (err) {
       console.error("[GEO Scraper] Failed to parse LLM JSON:", rawContent);
-      throw new Error("Failed to generate structured E-E-A-T results.");
+      throw new Error("Failed to generate structured EEAT results.");
     }
 
     const finalChecklist = parsedData.checklist || checklist;
