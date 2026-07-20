@@ -157,16 +157,15 @@ export default function GeoAnalysisPage() {
     }
   }, []);
 
-  // Handle running the audit
-  const handleAnalyze = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!urlInput.trim()) return;
+  // Centralized audit runner
+  const runAudit = async (targetUrl: string) => {
+    if (!targetUrl.trim()) return;
 
     setAnalyzing(true);
     setError(null);
     try {
-      const targetUrl = urlInput.trim();
-      const res = await fetch(`/api/eeat-analysis?url=${encodeURIComponent(targetUrl)}`);
+      const cleanTarget = targetUrl.trim();
+      const res = await fetch(`/api/eeat-analysis?url=${encodeURIComponent(cleanTarget)}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to analyze URL.");
@@ -174,7 +173,7 @@ export default function GeoAnalysisPage() {
       setResult(data);
 
       // Save to recent analyses history
-      const cleanHost = targetUrl.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+      const cleanHost = cleanTarget.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
       const newEntry = { url: cleanHost, date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
       
       setRecentAnalyses((prev) => {
@@ -182,22 +181,25 @@ export default function GeoAnalysisPage() {
         const updated = [newEntry, ...filtered].slice(0, 8);
         try {
           localStorage.setItem('eeat_analysis_history', JSON.stringify(updated));
-        } catch {
-          // Ignore
-        }
+        } catch {}
         return updated;
       });
 
       // Smooth scroll to results
       setTimeout(() => {
         document.getElementById("results-section")?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      }, 150);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "An unexpected error occurred. Please check the URL and try again.");
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  const handleAnalyze = (e: React.FormEvent) => {
+    e.preventDefault();
+    runAudit(urlInput);
   };
 
   // Click handler to launch SoloSpider Project setup wizard
@@ -469,14 +471,7 @@ export default function GeoAnalysisPage() {
                         type="button"
                         onClick={() => {
                           setUrlInput(item.url);
-                          fetch(`/api/eeat-analysis?url=${encodeURIComponent(item.url)}`)
-                            .then((res) => res.json())
-                            .then((data) => {
-                              setResult(data);
-                              setTimeout(() => {
-                                document.getElementById("results-section")?.scrollIntoView({ behavior: "smooth" });
-                              }, 100);
-                            });
+                          runAudit(item.url);
                         }}
                         className="px-2.5 py-1 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[var(--ink)] hover:border-[var(--primary)] text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 shadow-xs"
                       >
