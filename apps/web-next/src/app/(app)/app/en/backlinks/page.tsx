@@ -22,21 +22,23 @@ import {
   Plug2,
   Loader2,
   Bot,
+  Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function ResponaBacklinksDashboardPage() {
+export default function BacklinksDashboardPage() {
   const { activeProject } = useProjects();
   const supabase = getSupabaseBrowserClient();
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [websiteUrl, setWebsiteUrl] = useState(activeProject?.domain || '');
   const [gscConnected, setGscConnected] = useState(false);
+  
+  // Crawl Loading States
   const [isCrawling, setIsCrawling] = useState(false);
-
-  // Live Crawl Progress State
   const [crawlProgress, setCrawlProgress] = useState(0);
   const [crawlStatusText, setCrawlStatusText] = useState('');
+  const [lastCrawlFinished, setLastCrawlFinished] = useState(false);
 
   // Dynamic state from database
   const [prospects, setProspects] = useState<any[]>([]);
@@ -66,7 +68,10 @@ export default function ResponaBacklinksDashboardPage() {
         .maybeSingle();
 
       if (bProj) {
-        if (bProj.promotable_pages?.length > 0) setStep(3);
+        if (bProj.promotable_pages?.length > 0) {
+          setStep(3);
+          setLastCrawlFinished(true);
+        }
 
         const { data: pList } = await supabase
           .from('prospects')
@@ -114,46 +119,53 @@ export default function ResponaBacklinksDashboardPage() {
     }
 
     setIsCrawling(true);
+    setLastCrawlFinished(false);
     setStep(2);
-    setCrawlProgress(15);
-    setCrawlStatusText("Connecting to website & scanning homepage, /blog, /pricing, /docs, /resources...");
+    setCrawlProgress(20);
+    setCrawlStatusText("Step 1/3: Crawling homepage, /blog, /pricing, /docs, /resources...");
 
-    // Simulated progress steps for real-time user feedback
-    const t1 = setTimeout(() => {
-      setCrawlProgress(50);
-      setCrawlStatusText("AI analyzing industry topics, products, and outreach angles...");
-    }, 1200);
-
-    const t2 = setTimeout(() => {
-      setCrawlProgress(85);
-      setCrawlStatusText("Discovering and scoring target prospects (0–100)...");
-    }, 2400);
+    // Smooth step-by-step loading animation timers so user clearly sees the progress
+    const p1 = new Promise((res) => setTimeout(res, 1200));
+    const p2 = new Promise((res) => setTimeout(res, 2400));
+    const p3 = new Promise((res) => setTimeout(res, 3600));
 
     try {
       const cleanUrl = websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`;
 
-      const res = await fetch('/api/backlinks/projects', {
+      // Call API
+      const apiPromise = fetch('/api/backlinks/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ website: cleanUrl, name: activeProject?.name || 'My Project' }),
       });
 
+      await p1;
+      setCrawlProgress(55);
+      setCrawlStatusText("Step 2/3: OpenRouter AI extracting industry keywords & promotable assets...");
+
+      await p2;
+      setCrawlProgress(85);
+      setCrawlStatusText("Step 3/3: Discovering and scoring target prospects (0–100)...");
+
+      await p3;
+      const res = await apiPromise;
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Failed to analyze website");
 
       setCrawlProgress(100);
-      setCrawlStatusText("Discovery complete! Discovered and scored relevant prospects.");
+      setCrawlStatusText("AI Crawl Complete! Prospects Discovered & Scored.");
       toast.success("AI Crawling & Prospect Discovery completed!");
 
       // Refresh database records
       await loadBacklinksData();
       setStep(3);
+      setLastCrawlFinished(true);
     } catch (err: any) {
       toast.error(err.message || "Failed to trigger AI crawl");
     } finally {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      setIsCrawling(false);
+      setTimeout(() => {
+        setIsCrawling(false);
+      }, 1000);
     }
   };
 
@@ -246,19 +258,20 @@ export default function ResponaBacklinksDashboardPage() {
           <input
             type="text"
             value={websiteUrl}
+            disabled={isCrawling}
             onChange={(e) => setWebsiteUrl(e.target.value)}
             placeholder="Enter website URL (e.g. https://mywebsite.com)..."
-            className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm"
+            className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm disabled:opacity-60"
           />
           <button
             type="submit"
             disabled={isCrawling}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-md shrink-0"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-md shrink-0 disabled:opacity-70"
           >
             {isCrawling ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin text-white" />
-                <span>AI Crawling Website...</span>
+                <span>AI Crawling & Analyzing Website...</span>
               </>
             ) : (
               <>
@@ -269,22 +282,33 @@ export default function ResponaBacklinksDashboardPage() {
           </button>
         </form>
 
-        {/* Live Visual Crawl Progress Bar (When Crawling) */}
+        {/* LIVE AI CRAWL PROGRESS BAR (Visible while crawling) */}
         {isCrawling && (
-          <div className="p-4 bg-white border border-blue-200 rounded-xl space-y-2.5 shadow-sm animate-in fade-in">
+          <div className="p-5 bg-white border border-blue-300 rounded-xl space-y-3 shadow-md animate-in fade-in">
             <div className="flex items-center justify-between text-xs">
               <div className="flex items-center gap-2 text-blue-700 font-bold">
-                <Bot className="w-4 h-4 text-blue-600 animate-bounce" />
+                <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
                 <span>{crawlStatusText}</span>
               </div>
-              <span className="font-bold text-blue-600">{crawlProgress}%</span>
+              <span className="font-bold text-blue-600 text-sm">{crawlProgress}%</span>
             </div>
-            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
               <div
-                className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                className="bg-blue-600 h-full rounded-full transition-all duration-700 ease-out"
                 style={{ width: `${crawlProgress}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {/* Completed Crawl Badge */}
+        {!isCrawling && lastCrawlFinished && (
+          <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs text-emerald-800 font-medium shadow-xs">
+            <div className="flex items-center gap-2">
+              <Check className="w-4 h-4 text-emerald-600" />
+              <span>Website analysis complete! Target pages & assets extracted.</span>
+            </div>
+            <span className="text-[11px] text-emerald-700 font-bold">{prospects.length} Prospects Discovered</span>
           </div>
         )}
       </div>
