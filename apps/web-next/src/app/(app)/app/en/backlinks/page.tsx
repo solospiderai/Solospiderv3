@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function BacklinksDashboardPage() {
+export default function ResponaBacklinksDashboardPage() {
   const { activeProject } = useProjects();
   const supabase = getSupabaseBrowserClient();
 
@@ -41,7 +41,6 @@ export default function BacklinksDashboardPage() {
   const [lostLinks, setLostLinks] = useState<any[]>([]);
   const [projectData, setProjectData] = useState<any>(null);
 
-  // Fetch real data from Supabase for current project
   useEffect(() => {
     async function loadBacklinksData() {
       if (!activeProject?.id) {
@@ -51,7 +50,6 @@ export default function BacklinksDashboardPage() {
 
       try {
         setLoadingData(true);
-        // Check GSC integration
         const { data: gsc } = await supabase
           .from('workspace_integrations')
           .select('*')
@@ -62,7 +60,6 @@ export default function BacklinksDashboardPage() {
 
         if (gsc) setGscConnected(true);
 
-        // Fetch backlink project if exists
         const { data: bProj } = await supabase
           .from('backlink_projects')
           .select('*')
@@ -73,7 +70,6 @@ export default function BacklinksDashboardPage() {
           setProjectData(bProj);
           if (bProj.promotable_pages?.length > 0) setStep(3);
 
-          // Fetch real prospects
           const { data: pList } = await supabase
             .from('prospects')
             .select('*')
@@ -82,7 +78,6 @@ export default function BacklinksDashboardPage() {
 
           if (pList) setProspects(pList);
 
-          // Fetch real campaigns
           const { data: cList } = await supabase
             .from('campaigns')
             .select('*')
@@ -90,7 +85,6 @@ export default function BacklinksDashboardPage() {
 
           if (cList) setCampaigns(cList);
 
-          // Fetch live verified links
           const { data: vList } = await supabase
             .from('verified_backlinks')
             .select('*')
@@ -98,7 +92,6 @@ export default function BacklinksDashboardPage() {
 
           if (vList) setVerifiedLinks(vList);
 
-          // Fetch lost links
           const { data: lList } = await supabase
             .from('lost_backlinks')
             .select('*')
@@ -129,7 +122,6 @@ export default function BacklinksDashboardPage() {
     try {
       const cleanUrl = websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`;
 
-      // Create or update backlink project in Supabase
       const { data: newProj, error } = await supabase
         .from('backlink_projects')
         .upsert({
@@ -143,7 +135,6 @@ export default function BacklinksDashboardPage() {
 
       if (error) throw error;
 
-      // Call trigger API for crawling and prospect discovery
       await fetch('/api/backlinks/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,20 +159,20 @@ export default function BacklinksDashboardPage() {
       {/* GSC Integration & Onboarding Header Banner */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-white border border-blue-100 p-6 rounded-2xl shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-slate-900">Backlink Acquisition Platform</h1>
-              <span className="px-2.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-slate-900 truncate">Backlink Acquisition Platform</h1>
+              <span className="px-2.5 py-0.5 bg-blue-100 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold shrink-0">
                 SoloSpider Engine
               </span>
             </div>
-            <p className="text-xs text-slate-600 mt-1">
-              AI-powered backlink discovery, GSC index sync, contact extraction, personalized outreach & link monitoring.
+            <p className="text-xs text-slate-600 mt-1 truncate">
+              AI-powered backlink discovery, GSC index sync, contact extraction & link monitoring.
             </p>
           </div>
 
-          {/* GSC Integration Status Pill (Clickable) */}
-          <div className="flex items-center gap-3">
+          {/* GSC Integration Status Pill */}
+          <div className="flex items-center gap-3 shrink-0">
             {gscConnected ? (
               <Link
                 href="/app/en/settings/integrations"
@@ -256,7 +247,7 @@ export default function BacklinksDashboardPage() {
           <button
             type="submit"
             disabled={isCrawling}
-            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-md"
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-md shrink-0"
           >
             {isCrawling ? (
               <>
@@ -273,7 +264,7 @@ export default function BacklinksDashboardPage() {
         </form>
       </div>
 
-      {/* Dashboard KPI Grid (Interactive Clickable Cards) */}
+      {/* Dashboard KPI Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Link href="/app/en/backlinks/prospects" className="bg-white border border-slate-200 p-5 rounded-xl shadow-sm hover:border-blue-400 hover:shadow-md transition">
           <div className="flex justify-between items-start text-slate-500 mb-2">
@@ -319,7 +310,7 @@ export default function BacklinksDashboardPage() {
         </Link>
       </div>
 
-      {/* Discovered Prospects Section */}
+      {/* Discovered Opportunities Section */}
       <div className="bg-white border border-slate-200 p-6 rounded-xl space-y-4 shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">

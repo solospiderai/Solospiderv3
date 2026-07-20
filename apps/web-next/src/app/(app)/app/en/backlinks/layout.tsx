@@ -35,19 +35,19 @@ export default function BacklinksLayout({ children }: { children: React.ReactNod
       {/* SoloSpider Top Navigation Header */}
       <header className="border border-slate-200 bg-white sticky top-0 z-40 backdrop-blur-md rounded-2xl mb-6 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-600 rounded-xl text-white shadow-sm">
+          <div className="flex items-center justify-between h-16 gap-4">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2 bg-blue-600 rounded-xl text-white shadow-sm shrink-0">
                 <LinkIcon className="w-5 h-5" />
               </div>
-              <div>
-                <h1 className="text-base font-bold text-slate-900 leading-none">SoloSpider Backlinks Engine</h1>
-                <p className="text-xs text-slate-500 mt-0.5">AI Backlink Acquisition & Outreach Platform</p>
+              <div className="min-w-0">
+                <h1 className="text-base font-bold text-slate-900 leading-none truncate">SoloSpider Backlinks</h1>
+                <p className="text-xs text-slate-500 mt-1 truncate">AI Backlink Acquisition & GSC Integration</p>
               </div>
             </div>
 
             {/* Sub-navigation Links */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
@@ -56,7 +56,7 @@ export default function BacklinksLayout({ children }: { children: React.ReactNod
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
                       isActive
                         ? 'bg-blue-600 text-white shadow-sm'
                         : 'text-slate-600 hover:text-blue-600 hover:bg-slate-100'
@@ -71,16 +71,16 @@ export default function BacklinksLayout({ children }: { children: React.ReactNod
 
             <Link
               href="/app/en/settings/integrations"
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded-xl border border-slate-200 font-medium transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded-xl border border-slate-200 font-medium transition shrink-0"
             >
               <Plug2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>GSC Integration</span>
+              <span className="hidden sm:inline">GSC Integration</span>
             </Link>
           </div>
         </div>
 
         {/* Mobile Nav Scrollbar */}
-        <div className="md:hidden flex overflow-x-auto border-t border-slate-100 px-4 py-2 gap-2 text-xs">
+        <div className="lg:hidden flex overflow-x-auto border-t border-slate-100 px-4 py-2 gap-2 text-xs">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
