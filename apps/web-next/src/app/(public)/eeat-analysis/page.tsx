@@ -143,6 +143,20 @@ export default function GeoAnalysisPage() {
   const [schemaFaqA2, setSchemaFaqA2] = useState("");
   const [copiedSchema, setCopiedSchema] = useState(false);
 
+  const [recentAnalyses, setRecentAnalyses] = useState<Array<{ url: string; date: string }>>([]);
+
+  // Load recent analyses from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('eeat_analysis_history');
+      if (saved) {
+        setRecentAnalyses(JSON.parse(saved));
+      }
+    } catch {
+      // Ignore
+    }
+  }, []);
+
   // Handle running the audit
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -151,12 +165,29 @@ export default function GeoAnalysisPage() {
     setAnalyzing(true);
     setError(null);
     try {
-      const res = await fetch(`/api/eeat-analysis?url=${encodeURIComponent(urlInput.trim())}`);
+      const targetUrl = urlInput.trim();
+      const res = await fetch(`/api/eeat-analysis?url=${encodeURIComponent(targetUrl)}`);
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.error || "Failed to analyze URL.");
       }
       setResult(data);
+
+      // Save to recent analyses history
+      const cleanHost = targetUrl.replace(/^https?:\/\//i, '').replace(/\/.*$/, '');
+      const newEntry = { url: cleanHost, date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+      
+      setRecentAnalyses((prev) => {
+        const filtered = prev.filter((item) => item.url.toLowerCase() !== cleanHost.toLowerCase());
+        const updated = [newEntry, ...filtered].slice(0, 8);
+        try {
+          localStorage.setItem('eeat_analysis_history', JSON.stringify(updated));
+        } catch {
+          // Ignore
+        }
+        return updated;
+      });
+
       // Smooth scroll to results
       setTimeout(() => {
         document.getElementById("results-section")?.scrollIntoView({ behavior: "smooth" });
@@ -427,6 +458,34 @@ export default function GeoAnalysisPage() {
                     )}
                   </button>
                 </div>
+
+                {/* Recently Analyzed Websites History */}
+                {recentAnalyses.length > 0 && (
+                  <div className="mt-4 flex items-center justify-center gap-2 flex-wrap text-xs">
+                    <span className="font-bold text-[var(--muted)] text-[11px] uppercase tracking-wider">Recently Analyzed:</span>
+                    {recentAnalyses.map((item, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setUrlInput(item.url);
+                          fetch(`/api/eeat-analysis?url=${encodeURIComponent(item.url)}`)
+                            .then((res) => res.json())
+                            .then((data) => {
+                              setResult(data);
+                              setTimeout(() => {
+                                document.getElementById("results-section")?.scrollIntoView({ behavior: "smooth" });
+                              }, 100);
+                            });
+                        }}
+                        className="px-2.5 py-1 rounded-full bg-[var(--panel)] border border-[var(--line)] text-[var(--ink)] hover:border-[var(--primary)] text-[11px] font-semibold transition cursor-pointer flex items-center gap-1 shadow-xs"
+                      >
+                        <span>{item.url}</span>
+                        <span className="text-[9px] text-[var(--muted)] font-normal">({item.date})</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
 
                 {error && (
                   <div className="mt-4 p-3.5 rounded-2xl bg-rose-500/5 dark:bg-rose-950/20 border border-rose-200/50 dark:border-rose-500/20 text-rose-600 dark:text-rose-300 text-xs font-bold max-w-md mx-auto text-center animate-fade-in-up">
