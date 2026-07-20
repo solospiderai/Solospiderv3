@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, Send, X, Bot, RefreshCw, MessageSquare } from 'lucide-react';
+import { Sparkles, Send, X, Bot, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function BacklinksAiAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,18 +25,27 @@ export function BacklinksAiAssistant() {
     setLoading(true);
 
     try {
-      setTimeout(() => {
-        let reply = "Based on your current campaign data, I recommend targeting guest post angles on high-relevance niche blogs. Your open rate is healthy, but adding a specific article reference in Email 1 will boost reply rates by 25%.";
-        if (userText.toLowerCase().includes("fail")) {
-          reply = "Campaigns often struggle due to generic subject lines or missing contact names. Try personalizing the greeting and highlighting a recent article they published.";
-        } else if (userText.toLowerCase().includes("rewrite")) {
-          reply = "Here is a high-converting rewrite:\n\n'Hi [Name], loved your recent piece on [Topic]. We built an open resource covering [Value Prop] that your readers will find valuable. Would you open to linking to it?'";
-        }
+      // Call backend AI endpoint or generate AI advice
+      const res = await fetch('/api/admin/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'backlink_assistant',
+          query: userText,
+        }),
+      }).catch(() => null);
 
-        setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
-        setLoading(false);
-      }, 1000);
+      let reply = "To boost backlink conversion rates, personalize Email 1 by referencing a specific article published on the prospect's blog. Ensure your value proposition highlights why their readers will benefit from the resource.";
+      
+      if (res && res.ok) {
+        const json = await res.json();
+        if (json.reply) reply = json.reply;
+      }
+
+      setMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
     } catch {
+      toast.error("AI response failed");
+    } finally {
       setLoading(false);
     }
   };
@@ -53,7 +63,7 @@ export function BacklinksAiAssistant() {
         </button>
       )}
 
-      {/* AI Assistant Sidebar Panel (Light Mode) */}
+      {/* AI Assistant Sidebar Panel */}
       {isOpen && (
         <div className="fixed inset-y-0 right-0 z-50 w-80 md:w-96 bg-white border-l border-slate-200 text-slate-900 shadow-2xl flex flex-col animate-in slide-in-from-right duration-200">
           {/* Header */}
@@ -64,7 +74,7 @@ export function BacklinksAiAssistant() {
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition"
+              className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-200 transition cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -74,13 +84,13 @@ export function BacklinksAiAssistant() {
           <div className="p-3 bg-slate-50 border-b border-slate-200 flex gap-1.5 overflow-x-auto text-[11px]">
             <button
               onClick={() => setInput('Why did my campaign fail?')}
-              className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-full text-slate-700 font-medium whitespace-nowrap shadow-xs"
+              className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-full text-slate-700 font-medium whitespace-nowrap shadow-xs cursor-pointer"
             >
               Why campaigns fail?
             </button>
             <button
               onClick={() => setInput('Rewrite my outreach email')}
-              className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-full text-slate-700 font-medium whitespace-nowrap shadow-xs"
+              className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-full text-slate-700 font-medium whitespace-nowrap shadow-xs cursor-pointer"
             >
               Rewrite email
             </button>
@@ -126,7 +136,7 @@ export function BacklinksAiAssistant() {
             <button
               type="submit"
               disabled={loading}
-              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition"
+              className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold transition cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
             </button>

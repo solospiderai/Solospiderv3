@@ -27,12 +27,12 @@ const navItems = [
   { name: 'Reports', href: '/app/en/backlinks/reports', icon: BarChart2 },
 ];
 
-export default function ResponaBacklinksLayout({ children }: { children: React.ReactNode }) {
+export default function BacklinksLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans -m-6 p-6">
-      {/* Respona-Style Top Navigation Header */}
+      {/* SoloSpider Top Navigation Header */}
       <header className="border border-slate-200 bg-white sticky top-0 z-40 backdrop-blur-md rounded-2xl mb-6 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -41,8 +41,8 @@ export default function ResponaBacklinksLayout({ children }: { children: React.R
                 <LinkIcon className="w-5 h-5" />
               </div>
               <div>
-                <h1 className="text-base font-bold text-slate-900 leading-none">Respona Backlinks Platform</h1>
-                <p className="text-xs text-slate-500 mt-0.5">AI Acquisition & Outreach • GSC Integrated</p>
+                <h1 className="text-base font-bold text-slate-900 leading-none">SoloSpider Backlinks Engine</h1>
+                <p className="text-xs text-slate-500 mt-0.5">AI Backlink Acquisition & Outreach Platform</p>
               </div>
             </div>
 
@@ -74,7 +74,7 @@ export default function ResponaBacklinksLayout({ children }: { children: React.R
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs rounded-xl border border-slate-200 font-medium transition"
             >
               <Plug2 className="w-3.5 h-3.5 text-blue-600" />
-              <span>GSC Settings</span>
+              <span>GSC Integration</span>
             </Link>
           </div>
         </div>
