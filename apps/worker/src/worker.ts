@@ -9,13 +9,35 @@ import { startCrawlWorker } from "./workers/crawl.worker.js";
 import { startPromptScanWorker } from "./workers/prompt-scan.worker.js";
 import { startScoringWorker } from "./workers/scoring.worker.js";
 import { startPublishWorker } from "./workers/publish.worker.js";
+import { startBacklinksWorkers } from "./workers/backlinks.worker.js";
 import { processDueSocialPosts } from "./services/social.js";
 import { processDueBlogPosts } from "./services/blogs.js";
+import { verifyBacklinksQueue } from "./queues.js";
 
 const crawlWorker = startCrawlWorker();
 const promptScanWorker = startPromptScanWorker();
 const scoringWorker = startScoringWorker();
 const publishWorker = startPublishWorker();
+const backlinksWorkers = startBacklinksWorkers();
+
+// 7-day Backlink Verification & Lost Link Monitoring Cron
+cron.schedule("0 2 * * 0", async () => {
+  console.log("[Cron] Running 7-day automated backlink verification recheck...");
+  try {
+    const { data: activeLinks } = await supabase.from("verified_backlinks").select("*").eq("is_active", true);
+    for (const link of activeLinks || []) {
+      await verifyBacklinksQueue.add("verify", {
+        verified_backlink_id: link.id,
+        referring_url: link.referring_url,
+        target_url: link.target_url,
+        backlink_project_id: link.backlink_project_id,
+      });
+    }
+    console.log(`[Cron] Queued ${activeLinks?.length || 0} backlinks for verification audit.`);
+  } catch (err) {
+    console.error("[Cron] Backlink verification cron error:", err);
+  }
+});
 
 cron.schedule("0 */6 * * *", async () => {
   console.log("[Cron] Triggering GEO score recompute for all projects...");
