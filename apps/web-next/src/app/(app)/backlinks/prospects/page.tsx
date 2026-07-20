@@ -129,12 +129,12 @@ export default function ProspectsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-slate-900">
       {/* Top Action Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-white">Prospect Discovery & Opportunity Scoring</h1>
-          <p className="text-xs text-slate-400">
+          <h1 className="text-xl font-bold text-slate-900">Prospect Discovery & Opportunity Scoring</h1>
+          <p className="text-xs text-slate-500">
             Automatically discover and score relevant websites looking for backlink opportunities.
           </p>
         </div>
@@ -146,12 +146,12 @@ export default function ProspectsPage() {
             value={discoveryKeyword}
             onChange={(e) => setDiscoveryKeyword(e.target.value)}
             placeholder="Enter niche or keyword (e.g. AI SEO)..."
-            className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 w-64"
+            className="bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 w-64 shadow-sm"
           />
           <button
             type="submit"
             disabled={isDiscovering}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl transition cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition cursor-pointer shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             <span>{isDiscovering ? 'Discovering...' : 'Discover'}</span>
@@ -160,24 +160,24 @@ export default function ProspectsPage() {
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/80 border border-slate-800 p-3 rounded-xl text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-slate-200 p-3 rounded-xl text-xs shadow-sm">
         <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-          <Search className="w-4 h-4 text-slate-500" />
+          <Search className="w-4 h-4 text-slate-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search domain or score reason..."
-            className="bg-transparent border-none text-white focus:outline-none w-full"
+            className="bg-transparent border-none text-slate-900 focus:outline-none w-full"
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-500" />
+          <Filter className="w-4 h-4 text-slate-400" />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-slate-950 border border-slate-800 text-slate-300 rounded-lg px-2.5 py-1.5 focus:outline-none"
+            className="bg-slate-50 border border-slate-200 text-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none"
           >
             <option value="All">All Categories</option>
             <option value="Blog">Blog</option>
@@ -189,54 +189,54 @@ export default function ProspectsPage() {
       </div>
 
       {/* Prospects Table */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 uppercase tracking-wider text-[10px]">
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10px] font-semibold">
               <tr>
-                <th className="p-3 w-10 text-center">
+                <th className="p-3.5 w-10 text-center">
                   <input
                     type="checkbox"
                     onChange={handleSelectAll}
                     checked={selectedIds.length === prospects.length && prospects.length > 0}
-                    className="rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-0 cursor-pointer"
+                    className="rounded border-slate-300 text-blue-600 focus:ring-0 cursor-pointer"
                   />
                 </th>
-                <th className="p-3">Website & Category</th>
-                <th className="p-3">Relevance Score</th>
-                <th className="p-3">Authority / Traffic</th>
-                <th className="p-3">Contact Available</th>
-                <th className="p-3">Score Explanation</th>
-                <th className="p-3 text-right">Actions</th>
+                <th className="p-3.5">Website & Category</th>
+                <th className="p-3.5">Relevance Score</th>
+                <th className="p-3.5">Authority / Traffic</th>
+                <th className="p-3.5">Contact Available</th>
+                <th className="p-3.5">Score Explanation</th>
+                <th className="p-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {filtered.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-800/40 transition">
-                  <td className="p-3 text-center">
+                <tr key={p.id} className="hover:bg-slate-50/80 transition">
+                  <td className="p-3.5 text-center">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(p.id)}
                       onChange={() => toggleSelect(p.id)}
-                      className="rounded border-slate-700 bg-slate-900 text-blue-600 focus:ring-0 cursor-pointer"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-0 cursor-pointer"
                     />
                   </td>
-                  <td className="p-3">
-                    <div className="font-semibold text-white flex items-center gap-1.5">
+                  <td className="p-3.5">
+                    <div className="font-bold text-slate-900 flex items-center gap-1.5">
                       <span>{p.domain}</span>
-                      <a href={p.website} target="_blank" rel="noreferrer" className="text-slate-500 hover:text-blue-400">
+                      <a href={p.website} target="_blank" rel="noreferrer" className="text-slate-400 hover:text-blue-600">
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
-                    <span className="inline-block mt-1 px-2 py-0.5 bg-slate-800 text-slate-400 rounded-md text-[10px]">
+                    <span className="inline-block mt-1 px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-medium border border-slate-200">
                       {p.category}
                     </span>
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-3.5">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-emerald-400">{p.relevance_score}</span>
-                      <div className="w-16 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                      <span className="font-bold text-sm text-emerald-600">{p.relevance_score}</span>
+                      <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200">
                         <div
                           className="bg-emerald-500 h-full rounded-full"
                           style={{ width: `${p.relevance_score}%` }}
@@ -245,27 +245,27 @@ export default function ProspectsPage() {
                     </div>
                   </td>
 
-                  <td className="p-3">
-                    <div className="text-white font-medium">{p.estimated_authority} DR <span className="text-[10px] text-slate-500">(Est.)</span></div>
-                    <div className="text-slate-400 text-[11px]">{p.estimated_traffic.toLocaleString()} visitors/mo</div>
+                  <td className="p-3.5">
+                    <div className="text-slate-900 font-bold">{p.estimated_authority} DR <span className="text-[10px] text-slate-400 font-normal">(Est.)</span></div>
+                    <div className="text-slate-500 text-[11px]">{p.estimated_traffic.toLocaleString()} visitors/mo</div>
                   </td>
 
-                  <td className="p-3">
+                  <td className="p-3.5">
                     {p.email_available ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full text-[10px] border border-emerald-500/20">
-                        <Mail className="w-3 h-3" /> Verified Contact
+                      <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] font-medium border border-emerald-200">
+                        <Mail className="w-3 h-3 text-emerald-600" /> Verified Contact
                       </span>
                     ) : (
-                      <span className="text-slate-500 text-[10px]">No verified contact found</span>
+                      <span className="text-slate-400 text-[10px]">No verified contact found</span>
                     )}
                   </td>
 
-                  <td className="p-3 max-w-xs text-slate-400 leading-normal">
+                  <td className="p-3.5 max-w-xs text-slate-600 leading-relaxed">
                     {p.score_explanation}
                   </td>
 
-                  <td className="p-3 text-right">
-                    <button className="px-3 py-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-medium transition cursor-pointer">
+                  <td className="p-3.5 text-right">
+                    <button className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-semibold transition cursor-pointer border border-blue-100">
                       Add to Campaign
                     </button>
                   </td>
