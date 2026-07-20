@@ -195,3 +195,57 @@ create index if not exists idx_messages_campaign on public.campaign_messages(cam
 create index if not exists idx_replies_campaign on public.campaign_replies(campaign_id);
 create index if not exists idx_verified_links_project on public.verified_backlinks(backlink_project_id);
 create index if not exists idx_lost_links_project on public.lost_backlinks(backlink_project_id);
+
+-- Enable RLS & Add Full Access Policies for all Backlinks Tables
+alter table public.backlink_projects enable row level security;
+alter table public.prospects enable row level security;
+alter table public.prospect_analysis enable row level security;
+alter table public.contacts enable row level security;
+alter table public.campaigns enable row level security;
+alter table public.campaign_messages enable row level security;
+alter table public.campaign_replies enable row level security;
+alter table public.verified_backlinks enable row level security;
+alter table public.lost_backlinks enable row level security;
+alter table public.link_checks enable row level security;
+alter table public.notifications enable row level security;
+alter table public.ai_summaries enable row level security;
+alter table public.email_events enable row level security;
+
+drop policy if exists "Enable all actions on backlink_projects" on public.backlink_projects;
+create policy "Enable all actions on backlink_projects" on public.backlink_projects for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on prospects" on public.prospects;
+create policy "Enable all actions on prospects" on public.prospects for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on prospect_analysis" on public.prospect_analysis;
+create policy "Enable all actions on prospect_analysis" on public.prospect_analysis for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on contacts" on public.contacts;
+create policy "Enable all actions on contacts" on public.contacts for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on campaigns" on public.campaigns;
+create policy "Enable all actions on campaigns" on public.campaigns for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on campaign_messages" on public.campaign_messages;
+create policy "Enable all actions on campaign_messages" on public.campaign_messages for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on campaign_replies" on public.campaign_replies;
+create policy "Enable all actions on campaign_replies" on public.campaign_replies for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on verified_backlinks" on public.verified_backlinks;
+create policy "Enable all actions on verified_backlinks" on public.verified_backlinks for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on lost_backlinks" on public.lost_backlinks;
+create policy "Enable all actions on lost_backlinks" on public.lost_backlinks for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on link_checks" on public.link_checks;
+create policy "Enable all actions on link_checks" on public.link_checks for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on notifications" on public.notifications;
+create policy "Enable all actions on notifications" on public.notifications for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on ai_summaries" on public.ai_summaries;
+create policy "Enable all actions on ai_summaries" on public.ai_summaries for all using (true) with check (true);
+
+drop policy if exists "Enable all actions on email_events" on public.email_events;
+create policy "Enable all actions on email_events" on public.email_events for all using (true) with check (true);
