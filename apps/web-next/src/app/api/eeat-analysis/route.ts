@@ -142,21 +142,24 @@ export async function GET(request: NextRequest) {
     }
 
     // Check for Schema Organization
-    const hasOrganizationSchema = /type="application\/ld\+json"[^>]*>[\s\S]*?"@type"\s*:\s*"Organization"[\s\S]*?<\/script>/i.test(html) ||
-                                  /type="application\/ld\+json"[^>]*>[\s\S]*?"Organization"[\s\S]*?<\/script>/i.test(html);
+    // Check for Schema Organization or Structured Data
+    const hasOrganizationSchema = /type="application\/ld\+json"[^>]*>[\s\S]*?"@type"\s*:\s*"(Organization|Corporation|LocalBusiness|Brand|Manufacturer)"/i.test(html) ||
+                                  /schema\.org\/(Organization|Corporation|LocalBusiness|Brand|Manufacturer)/i.test(html) ||
+                                  /application\/ld\+json/i.test(html);
 
-    // Check for general Social Links (Facebook, Instagram, etc. excluding GEO platforms which are checked separately)
-    const hasSocialLinks = /(facebook\.com|instagram\.com|pinterest\.com|tiktok\.com)\/[a-zA-Z0-9_-]+/i.test(html);
+    // Check for general Social Links (Facebook, Instagram, LinkedIn, etc.)
+    const hasSocialLinks = /(facebook\.com|instagram\.com|linkedin\.com|pinterest\.com|tiktok\.com|youtube\.com|twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(html) ||
+                           /linkedin\.com|facebook\.com|instagram\.com/i.test(html);
 
-    // Check social & GEO Platforms (relaxed to avoid false negatives on custom profile routes, e.g. linkedin.com/school/ or custom YouTube URLs)
+    // Check social & GEO Platforms with robust URL patterns
     const hasG2 = /g2\.com\/[a-zA-Z0-9_-]+/i.test(html);
     const hasReddit = /reddit\.com\/[a-zA-Z0-9_-]+/i.test(html);
     const hasCapterra = /capterra\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasLinkedIn = /linkedin\.com\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasLinkedIn = /linkedin\.com\/(company|school|in|pub)\/[a-zA-Z0-9_-]+/i.test(html) || /linkedin\.com\/[a-zA-Z0-9_-]+/i.test(html);
     const hasCrunchbase = /crunchbase\.com\/[a-zA-Z0-9_-]+/i.test(html);
     const hasTrustPilot = /trustpilot\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasX = /(twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(html) && !/(share|intent|tweet|widgets)/i.test(html);
-    const hasYouTube = /(youtube\.com|youtu\.be)\/[a-zA-Z0-9_-]+/i.test(html);
+    const hasX = /(twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(html) || /twitter\.com|x\.com/i.test(html);
+    const hasYouTube = /(youtube\.com|youtu\.be)\/[a-zA-Z0-9_-]+/i.test(html) || /youtube\.com/i.test(html);
 
     const checklist = {
       ssl: isSsl,

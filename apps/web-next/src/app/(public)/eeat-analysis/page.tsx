@@ -228,14 +228,14 @@ export default function GeoAnalysisPage() {
     const polygonPointsStr = points.map(p => `${p.x},${p.y}`).join(" ");
 
     return (
-      <div className="relative w-[300px] h-[300px] mx-auto select-none scale-90 sm:scale-100 transition-all duration-300">
-        <svg width="300" height="300" className="mx-auto">
+      <div className="relative w-[340px] h-[320px] mx-auto select-none scale-90 sm:scale-100 transition-all duration-300">
+        <svg width="340" height="320" viewBox="0 0 340 320" className="mx-auto overflow-visible">
           {/* Background Grid Circles */}
           {[0.25, 0.5, 0.75, 1.0].map((scale, i) => (
             <circle 
               key={i} 
-              cx={center} 
-              cy={center} 
+              cx={center + 20} 
+              cy={center + 10} 
               r={rMax * scale} 
               fill="none" 
               className="stroke-[var(--line)]" 
@@ -244,18 +244,18 @@ export default function GeoAnalysisPage() {
           ))}
 
           {/* Axes lines */}
-          <line x1={center} y1={center - rMax} x2={center} y2={center + rMax} className="stroke-[var(--line)] opacity-60" strokeWidth="1.5" />
-          <line x1={center - rMax} y1={center} x2={center + rMax} y2={center} className="stroke-[var(--line)] opacity-60" strokeWidth="1.5" />
+          <line x1={center + 20} y1={center + 10 - rMax} x2={center + 20} y2={center + 10 + rMax} className="stroke-[var(--line)] opacity-60" strokeWidth="1.5" />
+          <line x1={center + 20 - rMax} y1={center + 10} x2={center + 20 + rMax} y2={center + 10} className="stroke-[var(--line)] opacity-60" strokeWidth="1.5" />
 
           {/* Outer Grid Labels */}
-          <text x={center} y={center - rMax - 12} textAnchor="middle" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Experience</text>
-          <text x={center + rMax + 14} y={center + 4} textAnchor="start" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Expertise</text>
-          <text x={center} y={center + rMax + 22} textAnchor="middle" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Authority</text>
-          <text x={center - rMax - 14} y={center + 4} textAnchor="end" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Trust</text>
+          <text x={center + 20} y={center + 10 - rMax - 12} textAnchor="middle" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Experience</text>
+          <text x={center + 20 + rMax + 12} y={center + 14} textAnchor="start" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Expertise</text>
+          <text x={center + 20} y={center + 10 + rMax + 24} textAnchor="middle" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Authority</text>
+          <text x={center + 20 - rMax - 12} y={center + 14} textAnchor="end" className="text-[11px] font-black fill-[var(--muted)] uppercase tracking-widest">Trust</text>
 
           {/* Filled Data Polygon */}
           <polygon 
-            points={polygonPointsStr} 
+            points={points.map(p => `${p.x + 20},${p.y + 10}`).join(" ")} 
             className="animate-draw-polygon fill-[var(--primary)]/15 stroke-[var(--primary)]" 
             strokeWidth="3" 
             strokeLinejoin="round"
@@ -263,7 +263,7 @@ export default function GeoAnalysisPage() {
 
           {/* Data Vertices Points */}
           {points.map((p, idx) => (
-            <circle key={idx} cx={p.x} cy={p.y} r="5" className="fill-[var(--primary)] stroke-[var(--bg)]" strokeWidth="2" />
+            <circle key={idx} cx={p.x + 20} cy={p.y + 10} r="5" className="fill-[var(--primary)] stroke-[var(--bg)]" strokeWidth="2" />
           ))}
         </svg>
       </div>
