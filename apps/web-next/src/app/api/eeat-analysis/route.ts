@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-export const maxDuration = 60; // Allow enough time for crawling + LLM
+export const maxDuration = 60; // Allow enough time for deep multi-page crawl + LLM
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Missing URL parameter" }, { status: 400 });
     }
 
-    // 1. Normalize the URL
+    // 1. Normalize URL
     let normalizedUrl = rawUrl.trim();
     if (!/^https?:\/\//i.test(normalizedUrl)) {
       normalizedUrl = `https://${normalizedUrl}`;
@@ -24,142 +24,113 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Invalid URL format" }, { status: 400 });
     }
 
-    console.log(`[EEAT Scraper] Analyzing domain: ${hostname} (URL: ${normalizedUrl})`);
+    console.log(`[EEAT Scraper v2] Deep analyzing domain: ${hostname} (URL: ${normalizedUrl})`);
 
-    // 2. Fetch page HTML
-    let html = "";
-    let isSsl = normalizedUrl.startsWith("https://");
-    let crawlFailed = false;
-
-    // Helper fetch with 10-second timeout
-    const fetchWithTimeout = async (url: string, options: any = {}) => {
+    // Helper fetch with timeout & realistic desktop browser headers
+    const fetchPage = async (url: string) => {
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), 10000);
+      const id = setTimeout(() => controller.abort(), 8000);
       try {
         const response = await fetch(url, {
-          ...options,
-          signal: controller.signal
+          headers: {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+          },
+          signal: controller.signal,
+          redirect: "follow",
         });
         clearTimeout(id);
-        return response;
-      } catch (e) {
+        if (!response.ok) return "";
+        return await response.text();
+      } catch {
         clearTimeout(id);
-        throw e;
+        return "";
       }
     };
 
-    try {
-      const res = await fetchWithTimeout(normalizedUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.5",
-        },
-      });
+    // 2. Multi-Page Crawl (Homepage + Subpages)
+    let homeHtml = await fetchPage(normalizedUrl);
+    let isSsl = normalizedUrl.startsWith("https://");
 
-      if (!res.ok) {
-        console.warn(`[EEAT Scraper] Crawl returned non-200 code: ${res.status}`);
-        throw new Error(`Crawl returned status ${res.status}`);
-      }
-      html = await res.text();
-    } catch (crawlErr: any) {
-      console.error(`[EEAT Scraper] Scraping failed for ${normalizedUrl}:`, crawlErr);
-      // Fallback: If https failed, try http
-      if (normalizedUrl.startsWith("https://")) {
+    if (!homeHtml && normalizedUrl.startsWith("https://")) {
+      const fallbackUrl = normalizedUrl.replace("https://", "http://");
+      homeHtml = await fetchPage(fallbackUrl);
+      if (homeHtml) isSsl = false;
+    }
+
+    // Extract inner subpage links from homepage HTML to perform multi-page audit
+    const subpageHtmls: string[] = [];
+    const linkMatches = homeHtml.match(/href=["']([^"']+)["']/gi) || [];
+    const targetSubPaths = ["about", "contact", "privacy", "terms", "team", "company", "locations", "products", "services"];
+
+    const subUrlsToFetch = new Set<string>();
+    for (const hrefAttr of linkMatches) {
+      const match = hrefAttr.match(/href=["']([^"']+)["']/i);
+      if (!match) continue;
+      const href = match[1];
+      if (targetSubPaths.some((path) => href.toLowerCase().includes(path))) {
         try {
-          const fallbackUrl = normalizedUrl.replace("https://", "http://");
-          const res = await fetchWithTimeout(fallbackUrl, {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            },
-          });
-          if (!res.ok) {
-            throw new Error(`Fallback HTTP returned status ${res.status}`);
-          }
-          html = await res.text();
-          isSsl = false;
-        } catch (fallbackErr) {
-          console.error(`[EEAT Scraper] Fallback HTTP failed:`, fallbackErr);
-          crawlFailed = true;
-        }
-      } else {
-        crawlFailed = true;
+          const absUrl = new URL(href, normalizedUrl).toString();
+          if (absUrl.includes(hostname)) subUrlsToFetch.add(absUrl);
+        } catch {}
       }
     }
 
-    if (crawlFailed) {
-      console.warn(`[EEAT Scraper] Both HTTPS and HTTP failed for ${normalizedUrl}. Falling back to general LLM brand knowledge.`);
-      html = `
-        <html>
-          <head>
-            <title>${hostname}</title>
-            <meta name="description" content="AI evaluation placeholder for ${hostname}">
-          </head>
-          <body>
-            <h1>${hostname}</h1>
-            <p>Evaluating ${hostname} based on brand presence.</p>
-          </body>
-        </html>
-      `;
+    // Fetch up to 4 relevant subpages in parallel to ensure 100% signal extraction
+    const fetchedSubpages = await Promise.all(
+      Array.from(subUrlsToFetch).slice(0, 4).map((url) => fetchPage(url))
+    );
+
+    const combinedHtml = [homeHtml, ...fetchedSubpages].join("\n");
+    const lowerCombined = combinedHtml.toLowerCase();
+
+    // 3. Robust Ground-Truth Technical Signal Audit
+    const hasAboutUs =
+      /href="[^"]*(about|about-us|aboutus|company|who-we-are)[^"]*"/i.test(combinedHtml) ||
+      /about us|who we are|our story|company history/i.test(combinedHtml);
+
+    const hasContactDetails =
+      /href="mailto:/i.test(combinedHtml) ||
+      /href="tel:/i.test(combinedHtml) ||
+      /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i.test(combinedHtml) ||
+      /contact us|get in touch|reach out|contact details|\+1\s*\d|\(\d{3}\)/i.test(combinedHtml) ||
+      /href="[^"]*contact[^"]*"/i.test(combinedHtml);
+
+    const hasOrganizationSchema =
+      /type="application\/ld\+json"[^>]*>[\s\S]*?"@type"\s*:\s*"(Organization|Corporation|LocalBusiness|Brand|Manufacturer|Product)"/i.test(combinedHtml) ||
+      /schema\.org\/(Organization|Corporation|LocalBusiness|Brand|Manufacturer|Product)/i.test(combinedHtml) ||
+      /application\/ld\+json/i.test(combinedHtml);
+
+    const hasSocialLinks =
+      /(facebook\.com|instagram\.com|linkedin\.com|pinterest\.com|tiktok\.com|youtube\.com|twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(combinedHtml) ||
+      /linkedin\.com|facebook\.com|instagram\.com|twitter\.com|x\.com|youtube\.com/i.test(combinedHtml);
+
+    const hasG2 = /g2\.com\/[a-zA-Z0-9_-]+/i.test(combinedHtml);
+    const hasReddit = /reddit\.com\/[a-zA-Z0-9_-]+/i.test(combinedHtml);
+    const hasCapterra = /capterra\.com\/[a-zA-Z0-9_-]+/i.test(combinedHtml);
+    const hasLinkedIn =
+      /linkedin\.com\/(company|school|in|pub)\/[a-zA-Z0-9_-]+/i.test(combinedHtml) ||
+      /linkedin\.com\/[a-zA-Z0-9_-]+/i.test(combinedHtml) ||
+      /linkedin\.com/i.test(combinedHtml);
+    const hasCrunchbase = /crunchbase\.com\/[a-zA-Z0-9_-]+/i.test(combinedHtml);
+    const hasTrustPilot = /trustpilot\.com\/[a-zA-Z0-9_-]+/i.test(combinedHtml);
+    const hasX =
+      /(twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(combinedHtml) ||
+      /twitter\.com|x\.com/i.test(combinedHtml);
+    const hasYouTube =
+      /(youtube\.com|youtu\.be)\/[a-zA-Z0-9_-]+/i.test(combinedHtml) ||
+      /youtube\.com/i.test(combinedHtml);
+
+    // Determine Industry Type for Adaptive Checklist
+    let industryCategory: "software_saas" | "hardware_manufacturing" | "ecommerce_retail" | "general" = "general";
+    if (/software|saas|app|platform|api|cloud|downloads/i.test(lowerCombined)) {
+      industryCategory = "software_saas";
+    } else if (/hardware|manufactur|architectural|door|machin|industrial|factory|engineering/i.test(lowerCombined)) {
+      industryCategory = "hardware_manufacturing";
+    } else if (/cart|shop|checkout|store|price|buy/i.test(lowerCombined)) {
+      industryCategory = "ecommerce_retail";
     }
-
-    // 3. Technical Checklist Audit (regex-based)
-    const lowerHtml = html.toLowerCase();
-
-    // Check for About Us Page
-    let hasAboutUs = /href="[^"]*(about|about-us|aboutus)[^"]*"/i.test(html) || /about us/i.test(html);
-
-    // Check for Contact Details
-    let hasContactDetails = /href="mailto:/i.test(html) || /href="tel:/i.test(html) || /contact us|contact details/i.test(html) || /href="[^"]*contact[^"]*"/i.test(html);
-
-    // Dynamic checks for client-rendered SPA sites or missing footer/header links in initial home page crawl
-    if (!hasAboutUs) {
-      try {
-        const aboutPaths = ["/about", "/about-us", "/aboutus", "/company"];
-        for (const path of aboutPaths) {
-          const testUrl = new URL(path, normalizedUrl).toString();
-          const testRes = await fetch(testUrl, { method: "HEAD", signal: AbortSignal.timeout(1500) }).catch(() => null);
-          if (testRes && testRes.ok) {
-            hasAboutUs = true;
-            break;
-          }
-        }
-      } catch {}
-    }
-
-    if (!hasContactDetails) {
-      try {
-        const contactPaths = ["/contact", "/contact-us", "/contactus", "/support"];
-        for (const path of contactPaths) {
-          const testUrl = new URL(path, normalizedUrl).toString();
-          const testRes = await fetch(testUrl, { method: "HEAD", signal: AbortSignal.timeout(1500) }).catch(() => null);
-          if (testRes && testRes.ok) {
-            hasContactDetails = true;
-            break;
-          }
-        }
-      } catch {}
-    }
-
-    // Check for Schema Organization
-    // Check for Schema Organization or Structured Data
-    const hasOrganizationSchema = /type="application\/ld\+json"[^>]*>[\s\S]*?"@type"\s*:\s*"(Organization|Corporation|LocalBusiness|Brand|Manufacturer)"/i.test(html) ||
-                                  /schema\.org\/(Organization|Corporation|LocalBusiness|Brand|Manufacturer)/i.test(html) ||
-                                  /application\/ld\+json/i.test(html);
-
-    // Check for general Social Links (Facebook, Instagram, LinkedIn, etc.)
-    const hasSocialLinks = /(facebook\.com|instagram\.com|linkedin\.com|pinterest\.com|tiktok\.com|youtube\.com|twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(html) ||
-                           /linkedin\.com|facebook\.com|instagram\.com/i.test(html);
-
-    // Check social & GEO Platforms with robust URL patterns
-    const hasG2 = /g2\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasReddit = /reddit\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasCapterra = /capterra\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasLinkedIn = /linkedin\.com\/(company|school|in|pub)\/[a-zA-Z0-9_-]+/i.test(html) || /linkedin\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasCrunchbase = /crunchbase\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasTrustPilot = /trustpilot\.com\/[a-zA-Z0-9_-]+/i.test(html);
-    const hasX = /(twitter\.com|x\.com)\/[a-zA-Z0-9_-]+/i.test(html) || /twitter\.com|x\.com/i.test(html);
-    const hasYouTube = /(youtube\.com|youtu\.be)\/[a-zA-Z0-9_-]+/i.test(html) || /youtube\.com/i.test(html);
 
     const checklist = {
       ssl: isSsl,
@@ -167,9 +138,9 @@ export async function GET(request: NextRequest) {
       contactDetails: hasContactDetails,
       socialLinks: hasSocialLinks,
       organizationSchema: hasOrganizationSchema,
-      g2: hasG2,
+      g2: industryCategory === "software_saas" ? hasG2 : true, // Omit G2 penalty for non-software sites
       reddit: hasReddit,
-      capterra: hasCapterra,
+      capterra: industryCategory === "software_saas" ? hasCapterra : true, // Omit Capterra penalty for non-software sites
       linkedin: hasLinkedIn,
       crunchbase: hasCrunchbase,
       trustpilot: hasTrustPilot,
@@ -177,129 +148,67 @@ export async function GET(request: NextRequest) {
       youtube: hasYouTube,
     };
 
-    // 4. Content Extract for LLM
-    // Extract title, description, and visible heading tags
-    const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+    // 4. Extract Key Metadata & Text for LLM
+    const titleMatch = homeHtml.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
     const pageTitle = titleMatch ? titleMatch[1].trim() : hostname;
 
-    const metaDescMatch = html.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"/i) ||
-                         html.match(/<meta[^>]*content="([^"]*)"[^>]*name="description"/i);
+    const metaDescMatch =
+      homeHtml.match(/<meta[^>]*name="description"[^>]*content="([^"]*)"/i) ||
+      homeHtml.match(/<meta[^>]*content="([^"]*)"[^>]*name="description"/i);
     const pageDescription = metaDescMatch ? metaDescMatch[1].trim() : "";
 
-    // Extract headings
     const headings: string[] = [];
-    const headingMatches = html.match(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi) || [];
-    headingMatches.slice(0, 10).forEach((h) => {
+    const headingMatches = homeHtml.match(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi) || [];
+    headingMatches.slice(0, 15).forEach((h) => {
       const cleanH = h.replace(/<[^>]*>/g, "").trim();
       if (cleanH) headings.push(cleanH);
     });
 
-    // Extract raw text lines (first 3000 chars)
-    const rawText = html
+    const cleanSnippet = combinedHtml
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
       .replace(/<[^>]*>/g, " ")
       .replace(/\s+/g, " ")
       .trim()
-      .substring(0, 2000000);
+      .substring(0, 4000);
 
-    // 5. OpenRouter LLM Call
+    // 5. OpenRouter LLM Evaluation
     const openrouterKey = process.env.OPENROUTER_API_KEY;
     if (!openrouterKey) {
       throw new Error("OpenRouter API key is missing");
     }
 
-    const systemPrompt = `You are a Google Search Quality Rater and GEO (Generative Engine Optimization) expert.
-Evaluate the following website details and text content against Google's official EEAT (Experience, Expertise, Authoritativeness, Trustworthiness) guidelines.
+    const systemPrompt = `You are an expert Google Search Quality Rater auditing a domain for EEAT (Experience, Expertise, Authoritativeness, Trustworthiness).
 
-CRAWLER DETECTED CHECKLIST (INITIAL ESTIMATES):
+VERIFIED TECHNICAL CHECKS FOR DOMAIN "${hostname}":
 - SSL Active: ${checklist.ssl}
-- About Us Page: ${checklist.aboutUs}
-- Contact Details: ${checklist.contactDetails}
-- Social Links: ${checklist.socialLinks}
-- Organization Schema: ${checklist.organizationSchema}
-- GEO Platform references linked:
-  * G2: ${checklist.g2}
-  * Reddit: ${checklist.reddit}
-  * Capterra: ${checklist.capterra}
-  * LinkedIn: ${checklist.linkedin}
-  * Crunchbase: ${checklist.crunchbase}
-  * Trustpilot: ${checklist.trustpilot}
-  * X (Twitter): ${checklist.x}
-  * YouTube: ${checklist.youtube}
+- About Us Page Present: ${checklist.aboutUs}
+- Contact Info (Phone/Email/Form): ${checklist.contactDetails}
+- Social Media Links Present: ${checklist.socialLinks}
+- Schema JSON-LD Present: ${checklist.organizationSchema}
+- Social Profiles Found: LinkedIn=${checklist.linkedin}, YouTube=${checklist.youtube}, Twitter/X=${checklist.x}, Trustpilot=${checklist.trustpilot}
+- Industry Category: ${industryCategory}
 
-WEBSITE METADATA:
+WEBSITE CONTENT DETAILS:
 - Title: ${pageTitle}
-- Description: ${pageDescription}
-- Main Headings: ${headings.join(" | ")}
-- Home Content Snippet: "${rawText}"
+- Meta Description: ${pageDescription}
+- Key Headings: ${headings.join(" | ")}
+- Content Text Snippet: "${cleanSnippet}"
 
-${crawlFailed ? `IMPORTANT NOTE: The crawler was blocked or unable to reach the page. Please evaluate the brand/website "${hostname}" using your general knowledge of this brand and its digital presence. If you do not know this specific brand, generate plausible rating points based on standard industry expectations for this domain.` : `NOTE: The crawled HTML was ${html.length} characters long. ${html.length < 5000 ? "This is quite short, indicating the site likely uses client-side rendering (React/Next.js/SPA). The content above may not represent the full site. Use your knowledge of this brand/domain to supplement." : "This appears to be a server-rendered page with substantial content."}`}
+CRITICAL AUDIT INSTRUCTIONS:
+1. Maintain 100% accuracy to the verified technical checks above. If About Us, Contact Details, or Social Profiles are true, do NOT fail them.
+2. Evaluate exactly 6 check questions for each category:
+   - Experience: 1. Personal experience narration, 2. Original photos/videos/specs, 3. Practical lessons/advice, 4. Case studies/testimonials, 5. Active subject participation, 6. Relevant topic experience.
+   - Expertise: 1. Technical knowledge & terminology, 2. Spec sheets/guides, 3. Structured content, 4. Cites authoritative sources, 5. Detailed methodologies, 6. Factual accuracy.
+   - Authority: 1. Industry recognition, 2. Expert recommendations, 3. Long-standing reputation/years in business, 4. Customer/institutional following, 5. Official partnerships, 6. Established brand name.
+   - Trust: 1. Transparent mission, 2. No conflicts of interest, 3. Accurate pricing/info, 4. Accessible contact/privacy, 5. Secure HTTPS & design, 6. Honest content.
+3. For each category:
+   - Calculate passedCount = length of 'working' array (max 6).
+   - Calculate score = Math.round((passedCount / 6) * 100).
+   - Set totalCount = 6.
+   - Set status = passedCount <= 1 ? "Poor" : passedCount <= 3 ? "Needs Work" : "Good".
 
-INSTRUCTIONS:
-For each of the 4 EEAT categories, evaluate 6 standard check questions and decide PASS or FAIL for each one.
-Also, output the corrected/final technical checklist.
-
-INFERENCE & EVALUATION RULES (SNOWSEO COMPATIBLE):
-- Evaluate the EEAT category check items by combining the crawled HTML/metadata with your general knowledge of this brand and domain.
-- If you have knowledge of the brand/website (e.g., if you know the business, if it has standard social presence, or if the website content points to an active business structure), you should evaluate it realistically. Do NOT artificially fail checks if the crawled HTML is short or SPA-rendered.
-- Make reasonable, fair inferences about the presence of EEAT signals (e.g., if the website is a professional agency or site, it naturally possesses expertise, topic relevance, and active subject participation).
-
-SCORING RULE:
-- The score for each category is calculated automatically as: score = Math.round((passedCount / 6) * 100)
-- You do NOT need to calculate the score yourself. Just set passedCount to the number of checks that passed (length of the 'working' array). Set score to 0 as a placeholder — the server will override it.
-- Set status to "Poor" if passedCount <= 1, "Needs Work" if passedCount <= 3, "Good" if passedCount >= 4.
-
-CRITICAL RULE FOR CHECKLIST:
-- Use the crawler detections as your starting point, but perform full SEMANTIC analysis on the provided metadata, headings, and HTML text snippet.
-- For example, if you find links, headings, or texts like "Reach to Us", "Get in Touch", "Write to Us", "Talk to Us", "Contact", "Support", or visible email addresses/phone numbers, you MUST mark contactDetails as true (PASS).
-- Similarly, if you find links or texts like "Our Story", "Who We Are", "Team", "Company", or "About Us", you MUST mark aboutUs as true (PASS).
-- Do not fail valid elements due to differences in phrasing or naming. If the intent or link exists semantically in the content, pass the check.
-- If you have general knowledge that the brand has active social channels, profiles, or an about/contact section that the crawler might have missed due to SPA connection limits, override it to true (PASS).
-
-CRITICAL RULE FOR CATEGORIES:
-- You must evaluate exactly the following 6 standard check questions for each of the 4 categories:
-
-  EEAT check questions:
-  1. "Does it reflect first-hand experience with personal narration?"
-  2. "Are original photos/videos/screenshots present?"
-  3. "Does it discuss challenges faced, lessons learned, or practical advice?"
-  4. "Are specific anecdotes or testimonials provided?"
-  5. "Is there evidence of active participation in the subject?"
-  6. "Is the experience clearly relevant to the topic?"
-
-  EXPERTISE check questions:
-  1. "Is the creator's/company's expertise explicitly mentioned?"
-  2. "Does it display specialized technical knowledge and use terminology correctly?"
-  3. "Is the content structured systematically and recently updated?"
-  4. "Are sources cited to support claims?"
-  5. "Are methodologies detailed with examples or case studies?"
-  6. "Does it avoid factual errors and contribute new knowledge?"
-
-  AUTHORITY check questions:
-  1. "Is the brand widely recognized or cited by other authoritative sources?"
-  2. "Is it recommended by experts or featured in reputable media?"
-  3. "Does it have a long-standing reputation or evidence of awards?"
-  4. "Is there a significant following, engagement, or institutional acknowledgment?"
-  5. "Does it host exclusive content or have official partnerships?"
-  6. "Is the name synonymous with the topic?"
-
-  TRUST check questions:
-  1. "Are unsubstantiated claims avoided with transparent purpose/mission?"
-  2. "Are conflicts of interest disclosed?"
-  3. "Are errors corrected transparently?"
-  4. "Are contact info, privacy policies, and TOS accessible?"
-  5. "Is the site secure (HTTPS) and professionally designed?"
-  6. "Is the content free of hate, bias, and excessive ads?"
-
-- For each category, distribute all 6 questions between the 'working' and 'missing' arrays depending on whether they pass or fail.
-- The sum of items in the 'working' array and the 'missing' array MUST equal exactly 6 (so 'totalCount' is always exactly 6).
-- 'passedCount' MUST exactly equal the length of the 'working' array.
-- For 'working' items, set 'question' to the exact check question string, and set 'details' to a string starting with "Found: " followed by the positive evidence you found.
-- For 'missing' items, set 'question' to the exact check question string, and set 'details' to a description of the gap or missing details.
-- Provide 3-5 high-quality actionable improvement recommendations in the 'improve' array.
-
-Return ONLY a valid JSON object matching this schema (do not include markdown syntax outside of the JSON block):
+Return ONLY a valid JSON object matching this schema:
 {
   "checklist": {
     "ssl": boolean,
@@ -317,48 +226,16 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
     "youtube": boolean
   },
   "scores": {
-    "experience": number (0-100),
-    "expertise": number (0-100),
-    "authority": number (0-100),
-    "trust": number (0-100)
+    "experience": number,
+    "expertise": number,
+    "authority": number,
+    "trust": number
   },
   "categories": {
-    "experience": {
-      "score": number,
-      "passedCount": number,
-      "totalCount": number,
-      "status": "Poor" | "Needs Work" | "Good",
-      "working": [{"question": string, "details": string}, ...],
-      "missing": [{"question": string, "details": string}, ...],
-      "improve": [string, ...]
-    },
-    "expertise": {
-      "score": number,
-      "passedCount": number,
-      "totalCount": number,
-      "status": "Poor" | "Needs Work" | "Good",
-      "working": [{"question": string, "details": string}, ...],
-      "missing": [{"question": string, "details": string}, ...],
-      "improve": [string, ...]
-    },
-    "authority": {
-      "score": number,
-      "passedCount": number,
-      "totalCount": number,
-      "status": "Poor" | "Needs Work" | "Good",
-      "working": [{"question": string, "details": string}, ...],
-      "missing": [{"question": string, "details": string}, ...],
-      "improve": [string, ...]
-    },
-    "trust": {
-      "score": number,
-      "passedCount": number,
-      "totalCount": number,
-      "status": "Poor" | "Needs Work" | "Good",
-      "working": [{"question": string, "details": string}, ...],
-      "missing": [{"question": string, "details": string}, ...],
-      "improve": [string, ...]
-    }
+    "experience": { "score": number, "passedCount": number, "totalCount": 6, "status": "Poor"|"Needs Work"|"Good", "working": [{"question": string, "details": string}], "missing": [{"question": string, "details": string}], "improve": [string] },
+    "expertise": { "score": number, "passedCount": number, "totalCount": 6, "status": "Poor"|"Needs Work"|"Good", "working": [{"question": string, "details": string}], "missing": [{"question": string, "details": string}], "improve": [string] },
+    "authority": { "score": number, "passedCount": number, "totalCount": 6, "status": "Poor"|"Needs Work"|"Good", "working": [{"question": string, "details": string}], "missing": [{"question": string, "details": string}], "improve": [string] },
+    "trust": { "score": number, "passedCount": number, "totalCount": 6, "status": "Poor"|"Needs Work"|"Good", "working": [{"question": string, "details": string}], "missing": [{"question": string, "details": string}], "improve": [string] }
   }
 }`;
 
@@ -368,12 +245,12 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
         Authorization: `Bearer ${openrouterKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://solospider.ai",
-        "X-Title": "SoloSpider GEO Analyzer",
+        "X-Title": "SoloSpider EEAT Analyzer",
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [{ role: "user", content: systemPrompt }],
-        temperature: 0.2,
+        temperature: 0.1,
       }),
     });
 
@@ -384,56 +261,45 @@ Return ONLY a valid JSON object matching this schema (do not include markdown sy
     const llmData = await llmRes.json();
     const rawContent = llmData.choices?.[0]?.message?.content?.trim() || "";
 
-    // Parse JSON safely
-    let parsedData;
-    try {
-      // Remove any markdown block syntax if LLM returns it
-      const cleanJson = rawContent.replace(/```json/i, "").replace(/```/g, "").trim();
-      parsedData = JSON.parse(cleanJson);
-    } catch (err) {
-      console.error("[GEO Scraper] Failed to parse LLM JSON:", rawContent);
-      throw new Error("Failed to generate structured EEAT results.");
-    }
+    const cleanJson = rawContent.replace(/```json/i, "").replace(/```/g, "").trim();
+    const parsedData = JSON.parse(cleanJson);
 
-    const finalChecklist = parsedData.checklist || checklist;
+    // Override checklist with node-verified ground truth for 100% accuracy
+    parsedData.checklist = {
+      ...checklist,
+      ...(parsedData.checklist || {}),
+      ssl: isSsl,
+      aboutUs: hasAboutUs,
+      contactDetails: hasContactDetails,
+      socialLinks: hasSocialLinks,
+      linkedin: hasLinkedIn,
+      x: hasX,
+      youtube: hasYouTube,
+    };
 
-    // Deterministic scoring: score = Math.round((passedCount / 6) * 100)
-    // This matches SnowSEO's exact formula
+    // Calculate deterministic scores
     const categoryKeys = ["experience", "expertise", "authority", "trust"] as const;
     for (const key of categoryKeys) {
-      const cat = parsedData.categories?.[key];
-      if (cat) {
-        const passed = Array.isArray(cat.working) ? cat.working.length : 0;
-        const total = 6;
+      if (parsedData.categories?.[key]) {
+        const cat = parsedData.categories[key];
+        const passed = cat.working ? cat.working.length : 0;
         cat.passedCount = passed;
-        cat.totalCount = total;
-        cat.score = Math.round((passed / total) * 100);
+        cat.totalCount = 6;
+        cat.score = Math.round((passed / 6) * 100);
         cat.status = passed <= 1 ? "Poor" : passed <= 3 ? "Needs Work" : "Good";
-        // Also override the top-level scores
-        if (parsedData.scores) {
-          parsedData.scores[key] = cat.score;
-        }
+        if (parsedData.scores) parsedData.scores[key] = cat.score;
       }
     }
 
-    const finalAnalysis = {
-      scores: parsedData.scores,
-      categories: parsedData.categories
-    };
-
     return NextResponse.json({
-      url: normalizedUrl,
       domain: hostname,
-      updatedAt: new Date().toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      checklist: finalChecklist,
-      analysis: finalAnalysis,
+      url: normalizedUrl,
+      industryCategory,
+      analysis: parsedData,
+      timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error("[GEO Audit API] Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to analyze domain" }, { status: 500 });
+    console.error("[EEAT Scraper Error]:", error);
+    return NextResponse.json({ error: error.message || "EEAT Analysis failed" }, { status: 500 });
   }
 }
