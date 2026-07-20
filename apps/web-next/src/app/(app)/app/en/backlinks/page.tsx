@@ -21,6 +21,7 @@ import {
   Layers,
   Plug2,
   Loader2,
+  Bot,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -32,80 +33,76 @@ export default function ResponaBacklinksDashboardPage() {
   const [websiteUrl, setWebsiteUrl] = useState(activeProject?.domain || '');
   const [gscConnected, setGscConnected] = useState(false);
   const [isCrawling, setIsCrawling] = useState(false);
-  const [loadingData, setLoadingData] = useState(true);
+
+  // Live Crawl Progress State
+  const [crawlProgress, setCrawlProgress] = useState(0);
+  const [crawlStatusText, setCrawlStatusText] = useState('');
 
   // Dynamic state from database
   const [prospects, setProspects] = useState<any[]>([]);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [verifiedLinks, setVerifiedLinks] = useState<any[]>([]);
   const [lostLinks, setLostLinks] = useState<any[]>([]);
-  const [projectData, setProjectData] = useState<any>(null);
+
+  // Function to load all data from Supabase
+  const loadBacklinksData = async () => {
+    if (!activeProject?.id) return;
+
+    try {
+      const { data: gsc } = await supabase
+        .from('workspace_integrations')
+        .select('*')
+        .eq('user_id', activeProject.user_id)
+        .eq('platform', 'google_search_console')
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (gsc) setGscConnected(true);
+
+      const { data: bProj } = await supabase
+        .from('backlink_projects')
+        .select('*')
+        .eq('project_id', activeProject.id)
+        .maybeSingle();
+
+      if (bProj) {
+        if (bProj.promotable_pages?.length > 0) setStep(3);
+
+        const { data: pList } = await supabase
+          .from('prospects')
+          .select('*')
+          .eq('backlink_project_id', bProj.id)
+          .order('relevance_score', { ascending: false });
+
+        if (pList) setProspects(pList);
+
+        const { data: cList } = await supabase
+          .from('campaigns')
+          .select('*')
+          .eq('backlink_project_id', bProj.id);
+
+        if (cList) setCampaigns(cList);
+
+        const { data: vList } = await supabase
+          .from('verified_backlinks')
+          .select('*')
+          .eq('backlink_project_id', bProj.id);
+
+        if (vList) setVerifiedLinks(vList);
+
+        const { data: lList } = await supabase
+          .from('lost_backlinks')
+          .select('*')
+          .eq('backlink_project_id', bProj.id);
+
+        if (lList) setLostLinks(lList);
+      }
+    } catch (err: any) {
+      console.error("Error loading backlink data:", err);
+    }
+  };
 
   useEffect(() => {
-    async function loadBacklinksData() {
-      if (!activeProject?.id) {
-        setLoadingData(false);
-        return;
-      }
-
-      try {
-        setLoadingData(true);
-        const { data: gsc } = await supabase
-          .from('workspace_integrations')
-          .select('*')
-          .eq('user_id', activeProject.user_id)
-          .eq('platform', 'google_search_console')
-          .eq('is_active', true)
-          .maybeSingle();
-
-        if (gsc) setGscConnected(true);
-
-        const { data: bProj } = await supabase
-          .from('backlink_projects')
-          .select('*')
-          .eq('project_id', activeProject.id)
-          .maybeSingle();
-
-        if (bProj) {
-          setProjectData(bProj);
-          if (bProj.promotable_pages?.length > 0) setStep(3);
-
-          const { data: pList } = await supabase
-            .from('prospects')
-            .select('*')
-            .eq('backlink_project_id', bProj.id)
-            .order('relevance_score', { ascending: false });
-
-          if (pList) setProspects(pList);
-
-          const { data: cList } = await supabase
-            .from('campaigns')
-            .select('*')
-            .eq('backlink_project_id', bProj.id);
-
-          if (cList) setCampaigns(cList);
-
-          const { data: vList } = await supabase
-            .from('verified_backlinks')
-            .select('*')
-            .eq('backlink_project_id', bProj.id);
-
-          if (vList) setVerifiedLinks(vList);
-
-          const { data: lList } = await supabase
-            .from('lost_backlinks')
-            .select('*')
-            .eq('backlink_project_id', bProj.id);
-
-          if (lList) setLostLinks(lList);
-        }
-      } catch (err: any) {
-        console.error("Error loading backlink data:", err);
-      } finally {
-        setLoadingData(false);
-      }
-    }
-
     loadBacklinksData();
   }, [activeProject, supabase]);
 
@@ -118,35 +115,44 @@ export default function ResponaBacklinksDashboardPage() {
 
     setIsCrawling(true);
     setStep(2);
+    setCrawlProgress(15);
+    setCrawlStatusText("Connecting to website & scanning homepage, /blog, /pricing, /docs, /resources...");
+
+    // Simulated progress steps for real-time user feedback
+    const t1 = setTimeout(() => {
+      setCrawlProgress(50);
+      setCrawlStatusText("AI analyzing industry topics, products, and outreach angles...");
+    }, 1200);
+
+    const t2 = setTimeout(() => {
+      setCrawlProgress(85);
+      setCrawlStatusText("Discovering and scoring target prospects (0–100)...");
+    }, 2400);
 
     try {
       const cleanUrl = websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`;
 
-      const { data: newProj, error } = await supabase
-        .from('backlink_projects')
-        .upsert({
-          user_id: activeProject?.user_id,
-          project_id: activeProject?.id,
-          website: cleanUrl,
-          name: activeProject?.name || 'My Project',
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      await fetch('/api/backlinks/projects', {
+      const res = await fetch('/api/backlinks/projects', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ website: cleanUrl, name: activeProject?.name || 'My Project' }),
       });
 
-      setProjectData(newProj);
-      toast.success("AI Crawling & Prospect Discovery initiated!");
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to analyze website");
+
+      setCrawlProgress(100);
+      setCrawlStatusText("Discovery complete! Discovered and scored relevant prospects.");
+      toast.success("AI Crawling & Prospect Discovery completed!");
+
+      // Refresh database records
+      await loadBacklinksData();
       setStep(3);
     } catch (err: any) {
       toast.error(err.message || "Failed to trigger AI crawl");
     } finally {
+      clearTimeout(t1);
+      clearTimeout(t2);
       setIsCrawling(false);
     }
   };
@@ -262,6 +268,25 @@ export default function ResponaBacklinksDashboardPage() {
             )}
           </button>
         </form>
+
+        {/* Live Visual Crawl Progress Bar (When Crawling) */}
+        {isCrawling && (
+          <div className="p-4 bg-white border border-blue-200 rounded-xl space-y-2.5 shadow-sm animate-in fade-in">
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2 text-blue-700 font-bold">
+                <Bot className="w-4 h-4 text-blue-600 animate-bounce" />
+                <span>{crawlStatusText}</span>
+              </div>
+              <span className="font-bold text-blue-600">{crawlProgress}%</span>
+            </div>
+            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+              <div
+                className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                style={{ width: `${crawlProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Dashboard KPI Grid */}
@@ -325,7 +350,7 @@ export default function ResponaBacklinksDashboardPage() {
 
         {prospects.length > 0 ? (
           <div className="space-y-3 text-xs">
-            {prospects.slice(0, 5).map((p) => (
+            {prospects.map((p) => (
               <div key={p.id} className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="font-bold text-slate-900 flex items-center gap-2">
