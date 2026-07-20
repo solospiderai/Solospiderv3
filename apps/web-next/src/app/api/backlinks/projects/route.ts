@@ -43,6 +43,18 @@ export async function POST(req: Request) {
     const cleanWebsite = website.startsWith("http") ? website : `https://${website}`;
     const cleanDomain = cleanWebsite.replace(/https?:\/\//, "").replace(/\/$/, "");
 
+    // Check Google Search Console Integration
+    const { data: gscIntegration } = await supabase
+      .from("workspace_integrations")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("platform", "google_search_console")
+      .eq("is_active", true)
+      .maybeSingle();
+
+    const isGscActive = !!gscIntegration;
+    const gscSiteUrl = isGscActive ? `sc-domain:${cleanDomain}` : null;
+
     // 1. Create or update backlink project
     const { data: project, error: projErr } = await supabase
       .from("backlink_projects")
@@ -52,6 +64,8 @@ export async function POST(req: Request) {
         name: name || cleanDomain,
         industry: industry || "Technology & Software",
         target_keywords: target_keywords || ["SaaS", "Automation", "SEO"],
+        gsc_connected: isGscActive,
+        gsc_site_url: gscSiteUrl,
         promotable_pages: [
           { title: "Homepage", url: cleanWebsite },
           { title: "Blog Guide", url: `${cleanWebsite}/blog` },
@@ -110,7 +124,6 @@ export async function POST(req: Request) {
     for (const p of sampleProspects) {
       const { data: insertedP } = await supabase.from("prospects").insert(p).select().single();
       if (insertedP) {
-        // Create initial contact
         await supabase.from("contacts").insert({
           prospect_id: insertedP.id,
           name: "Editorial Team",
@@ -124,7 +137,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       project,
-      message: "AI Site Crawl and Prospect Discovery completed",
+      gscConnected: isGscActive,
+      message: isGscActive
+        ? "Google Search Console synced & AI Prospect Discovery completed!"
+        : "AI Prospect Discovery completed (Connect GSC in Settings for Google Index Sync)",
     });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
