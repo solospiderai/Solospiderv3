@@ -333,12 +333,14 @@ export function startBacklinksWorkers() {
         });
 
         // Update campaign counter
-        await supabase.rpc("increment_campaign_sent", { cid: message.campaign_id }).catch(async () => {
+        try {
+          await supabase.rpc("increment_campaign_sent", { cid: message.campaign_id });
+        } catch {
           const { data: camp } = await supabase.from("campaigns").select("emails_sent").eq("id", message.campaign_id).single();
           if (camp) {
             await supabase.from("campaigns").update({ emails_sent: (camp.emails_sent || 0) + 1 }).eq("id", message.campaign_id);
           }
-        });
+        }
 
         console.log(`[SendEmails] Successfully sent email to ${recipientEmail}`);
       } catch (err: any) {

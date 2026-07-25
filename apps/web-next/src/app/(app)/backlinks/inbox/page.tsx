@@ -39,11 +39,22 @@ export default function InboxPage() {
       try {
         setLoading(true);
 
-        const { data: bProj } = await supabase
-          .from('backlink_projects')
-          .select('id')
-          .eq('project_id', activeProject.id)
-          .maybeSingle();
+        let bProj: any = null;
+        if (activeProject?.id) {
+          const res = await supabase.from('backlink_projects').select('id').eq('project_id', activeProject.id).maybeSingle();
+          bProj = res.data;
+        }
+
+        if (!bProj) {
+          const { data: fallbackList } = await supabase
+            .from('backlink_projects')
+            .select('id')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (fallbackList && fallbackList.length > 0) {
+            bProj = fallbackList[0];
+          }
+        }
 
         if (bProj) {
           const { data: rList } = await supabase

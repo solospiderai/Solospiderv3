@@ -20,7 +20,6 @@ import {
   Sun
 } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { DemoBookingButton } from "@/components/ui/demo-booking-button";
 
 interface MarketingNavbarProps {
   onOpenWizard?: () => void;
@@ -139,10 +138,6 @@ export const MarketingNavbar = ({ onOpenWizard, isDark, onToggleTheme }: Marketi
             >
               {isDark ? <Sun className="w-4 h-4 text-amber-500 animate-pulse" /> : <Moon className="w-4 h-4 text-indigo-650" />}
             </button>
-            <DemoBookingButton 
-              buttonText="Book Demo" 
-              className="px-4 py-2 text-xs rounded-xl border border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 font-medium transition-all"
-            />
             {user ? (
               <Link href="/app/en/dashboard" className="btn btn-grad px-6 py-2.5 h-auto text-xs cursor-pointer">
                 Go to Dashboard

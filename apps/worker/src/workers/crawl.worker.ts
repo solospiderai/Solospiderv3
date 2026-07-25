@@ -281,8 +281,17 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     );
 
     const rows = batchData.map(p => ({ 
-      ...p, 
       project_id,
+      url: p.url,
+      title: p.title,
+      meta_desc: p.meta_desc,
+      h1: p.h1,
+      word_count: p.word_count,
+      schema_types: p.schema_types || [],
+      has_faq_schema: Boolean(p.has_faq_schema),
+      has_howto: Boolean(p.has_howto),
+      status_code: p.status_code,
+      source: p.source,
       crawled_at: new Date().toISOString()
     }));
 
@@ -297,7 +306,10 @@ async function processCrawlJob(job: Job<CrawlJobData>): Promise<object> {
     const { error } = await supabase
       .from("crawled_pages")
       .upsert(rows, { onConflict: "project_id,url", ignoreDuplicates: false });
-    if (error) console.warn(`[CrawlWorker] Upsert error: ${error.message}`);
+    if (error) {
+      console.error(`[CrawlWorker] Upsert error: ${error.message}`);
+      throw new Error(`Supabase crawled_pages upsert failed: ${error.message}`);
+    }
 
     pagesCrawled += batch.length;
     const { error: pagesCrawledErr } = await supabase.from("crawl_runs")

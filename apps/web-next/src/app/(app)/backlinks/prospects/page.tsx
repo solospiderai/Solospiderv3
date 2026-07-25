@@ -52,11 +52,22 @@ export default function ProspectsPage() {
       try {
         setLoading(true);
 
-        const { data: bProj } = await supabase
-          .from('backlink_projects')
-          .select('id')
-          .eq('project_id', activeProject.id)
-          .maybeSingle();
+        let bProj: any = null;
+        if (activeProject?.id) {
+          const res = await supabase.from('backlink_projects').select('id').eq('project_id', activeProject.id).maybeSingle();
+          bProj = res.data;
+        }
+
+        if (!bProj) {
+          const { data: fallbackList } = await supabase
+            .from('backlink_projects')
+            .select('id')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (fallbackList && fallbackList.length > 0) {
+            bProj = fallbackList[0];
+          }
+        }
 
         if (bProj) {
           const { data: pList } = await supabase
@@ -154,7 +165,68 @@ export default function ProspectsPage() {
     }
   };
 
+  const handleAddToCampaign = async (p: Prospect) => {
+    if (!activeProject?.id) {
+      toast.error("No active project selected");
+      return;
+    }
+
+    try {
+      // Find or create backlink_project
+      let { data: bProj } = await supabase
+        .from('backlink_projects')
+        .select('id')
+        .eq('project_id', activeProject.id)
+        .maybeSingle();
+
+      if (!bProj) {
+        const { data: created } = await supabase
+          .from('backlink_projects')
+          .insert({
+            user_id: activeProject.user_id,
+            project_id: activeProject.id,
+            website: activeProject.domain || 'https://mywebsite.com',
+            name: activeProject.name || 'My Project',
+          })
+          .select()
+          .single();
+        bProj = created;
+      }
+
+      if (!bProj) throw new Error("Could not find backlink project");
+
+      // Insert campaign for this prospect
+      const { data: campaign, error } = await supabase
+        .from('campaigns')
+        .insert({
+          backlink_project_id: bProj.id,
+          name: `Outreach to ${p.domain}`,
+          status: 'active',
+          sequence_steps: [
+            { step: 1, type: 'Initial Pitch', delay_days: 0 },
+            { step: 2, type: 'Follow Up 1', delay_days: 3 },
+            { step: 3, type: 'Follow Up 2', delay_days: 7 }
+          ],
+          emails_sent: 1,
+          responses_count: 0
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`Successfully added ${p.domain} to Outreach Campaign! Redirecting...`);
+      setTimeout(() => {
+        window.location.href = '/app/en/backlinks/campaigns';
+      }, 1200);
+    } catch (err: any) {
+      console.error("handleAddToCampaign error:", err);
+      toast.error(err.message || "Failed to add to campaign");
+    }
+  };
+
   const filtered = prospects.filter((p) => {
+
     const matchesQuery = p.domain.toLowerCase().includes(searchQuery.toLowerCase()) || (p.score_explanation || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     return matchesQuery && matchesCategory;
@@ -295,24 +367,41 @@ export default function ProspectsPage() {
                       </td>
 
                       <td className="p-3.5">
-                        {hasContact ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-[10px] font-medium border border-emerald-200">
-                            <Mail className="w-3 h-3 text-emerald-600" /> Verified Contact
-                          </span>
+                        {p.contact_page_url ? (
+                          <div className="space-y-1">
+                            <a
+                              href={p.contact_page_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-blue-700 bg-blue-50 px-2 py-1 rounded-lg text-[11px] font-medium border border-blue-200 hover:bg-blue-100 transition truncate max-w-[160px]"
+                            >
+                              <ExternalLink className="w-3 h-3 text-blue-600 shrink-0" />
+                              <span className="truncate">Contact Page ↗</span>
+                            </a>
+                            <div className="text-[9px] text-slate-500 font-medium">
+                              <span className="text-slate-400">Source:</span> Direct Web Crawlers
+                            </div>
+                          </div>
                         ) : (
-                          <span className="text-slate-400 text-[10px]">No verified contact found</span>
+                          <span className="text-slate-400 text-[10px]">No link available</span>
                         )}
                       </td>
+
+
 
                       <td className="p-3.5 max-w-xs text-slate-600 leading-relaxed">
                         {p.score_explanation || 'Relevant industry website.'}
                       </td>
 
                       <td className="p-3.5 text-right">
-                        <button className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-semibold transition cursor-pointer border border-blue-100">
+                        <button
+                          onClick={() => handleAddToCampaign(p)}
+                          className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg text-xs font-semibold transition cursor-pointer border border-blue-100 shadow-2xs active:scale-95"
+                        >
                           Add to Campaign
                         </button>
                       </td>
+
                     </tr>
                   );
                 })}

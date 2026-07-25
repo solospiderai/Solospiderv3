@@ -36,13 +36,13 @@ export default function BacklinksLayout({ children }: { children: React.ReactNod
       <header className="border-b border-slate-800 bg-slate-900/60 sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-sm text-white">
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-sm text-white shrink-0">
                 <LinkIcon className="w-5 h-5" />
               </div>
-              <div>
-                <h1 className="text-base font-bold text-white leading-none">Backlink Engine</h1>
-                <p className="text-xs text-slate-400 mt-0.5">Respona-Style AI Acquisition Platform</p>
+              <div className="shrink-0">
+                <h1 className="text-sm sm:text-base font-bold text-white leading-none whitespace-nowrap">Backlink Engine</h1>
+                <p className="text-xs text-slate-400 mt-0.5 whitespace-nowrap hidden sm:block">Respona-Style AI Acquisition Platform</p>
               </div>
             </div>
 

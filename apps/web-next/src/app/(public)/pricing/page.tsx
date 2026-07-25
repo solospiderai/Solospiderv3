@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { triggerRazorpayCheckout } from "@/lib/razorpay";
 import { CouponModal } from "@/components/dashboard/coupon-modal";
 import { captureReferralCode } from "@/lib/affiliate-tracking";
+import { DemoBookingButton } from "@/components/ui/demo-booking-button";
 
 export default function PricingPage() {
   const { user } = useAuth();
@@ -564,29 +565,19 @@ export default function PricingPage() {
                     fontSize: 16,
                     lineHeight: '100%',
                     letterSpacing: '0%',
-                    verticalAlign: 'middle'
                   }}
                 >
                   Start Free — No Card Needed
                 </button>
-                <button 
-                  onClick={triggerWizard} 
+                <DemoBookingButton
+                  buttonText="Book a 20-Minute Demo"
+                  showIcon={false}
                   className={`btn px-8 py-4 rounded-full cursor-pointer transition-all ${
                     isDark 
-                      ? "btn-ghost" 
+                      ? "btn-ghost text-white border border-white/20 hover:bg-white/10" 
                       : "bg-transparent border border-white/40 text-white hover:bg-white/10"
                   }`}
-                  style={{
-                    fontFamily: "'Geist', sans-serif",
-                    fontWeight: 600,
-                    fontSize: 16,
-                    lineHeight: '100%',
-                    letterSpacing: '0%',
-                    verticalAlign: 'middle'
-                  }}
-                >
-                  Book a 20-Minute Demo
-                </button>
+                />
               </div>
               
               <div 

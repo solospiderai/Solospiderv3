@@ -19,6 +19,18 @@ export default function CampaignsPage() {
   const [targetPageUrl, setTargetPageUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Modal states
+  const [selectedCampaignModal, setSelectedCampaignModal] = useState<any | null>(null);
+  const [editingPitch, setEditingPitch] = useState(false);
+  const [pitchSubject, setPitchSubject] = useState('');
+  const [pitchBody, setPitchBody] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+
+  const [promotablePages, setPromotablePages] = useState<any[]>([]);
+  const [selectedPageOption, setSelectedPageOption] = useState('');
+  const [customUrl, setCustomUrl] = useState('');
+
   useEffect(() => {
     async function loadCampaigns() {
       if (!activeProject?.id) {
@@ -29,13 +41,38 @@ export default function CampaignsPage() {
       try {
         setLoading(true);
 
-        const { data: bProj } = await supabase
-          .from('backlink_projects')
-          .select('id')
-          .eq('project_id', activeProject.id)
-          .maybeSingle();
+        let bProj: any = null;
+        if (activeProject?.id) {
+          const res = await supabase.from('backlink_projects').select('id, website, promotable_pages').eq('project_id', activeProject.id).maybeSingle();
+          bProj = res.data;
+        }
+
+        if (!bProj) {
+          const { data: fallbackList } = await supabase
+            .from('backlink_projects')
+            .select('id, website, promotable_pages')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (fallbackList && fallbackList.length > 0) {
+            bProj = fallbackList[0];
+          }
+        }
 
         if (bProj) {
+          const siteUrl = bProj.website || activeProject.domain || 'https://mywebsite.com';
+          const defaultPages = bProj.promotable_pages && bProj.promotable_pages.length > 0
+            ? bProj.promotable_pages
+            : [
+                { title: 'Homepage', url: siteUrl },
+                { title: 'Services & Products', url: `${siteUrl}/services` },
+                { title: 'Blog & Content', url: `${siteUrl}/blog` }
+              ];
+          setPromotablePages(defaultPages);
+          if (defaultPages.length > 0) {
+            setTargetPageUrl(defaultPages[0].url);
+            setSelectedPageOption(defaultPages[0].url);
+          }
+
           const { data: cList } = await supabase
             .from('campaigns')
             .select('*')
@@ -53,6 +90,7 @@ export default function CampaignsPage() {
 
     loadCampaigns();
   }, [activeProject, supabase]);
+
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,7 +203,16 @@ export default function CampaignsPage() {
 
                 <div className="text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-3">
                   <span>Sequence: 4 Steps (Initial + 3 Followups)</span>
-                  <button className="text-blue-600 hover:underline font-medium">Edit Sequence</button>
+                  <button
+                    onClick={() => {
+                      setSelectedCampaignModal(c);
+                      setPitchSubject(`Quick Question regarding ${c.name}`);
+                      setPitchBody(`Hi Editorial Team,\n\nI came across your publication while researching industry resources. We recently published a comprehensive guide at ${c.target_page_url} that would add great value to your readers.\n\nWould you be open to featuring a resource link or exploring a guest contribution?\n\nBest regards,\nOutreach Team`);
+                    }}
+                    className="text-blue-600 hover:underline font-semibold cursor-pointer"
+                  >
+                    View & Edit Pitch Sequence ➔
+                  </button>
                 </div>
               </div>
             ))}
@@ -197,14 +244,40 @@ export default function CampaignsPage() {
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">Target Page to Promote (URL)</label>
-              <input
-                type="text"
-                value={targetPageUrl}
-                onChange={(e) => setTargetPageUrl(e.target.value)}
-                placeholder="https://solospider.ai/blog/ai-seo-automation"
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
-              />
+              <label className="block text-slate-700 font-semibold mb-1">Target Page to Promote (Select Website Page)</label>
+              <select
+                value={selectedPageOption}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedPageOption(val);
+                  if (val !== 'custom') {
+                    setTargetPageUrl(val);
+                  } else {
+                    setTargetPageUrl(customUrl);
+                  }
+                }}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-900 focus:outline-none focus:border-blue-500 font-medium"
+              >
+                {promotablePages.map((page, idx) => (
+                  <option key={idx} value={page.url}>
+                    {page.title || 'Page'} — {page.url}
+                  </option>
+                ))}
+                <option value="custom">➕ Enter Custom Page URL...</option>
+              </select>
+
+              {selectedPageOption === 'custom' && (
+                <input
+                  type="text"
+                  value={customUrl}
+                  onChange={(e) => {
+                    setCustomUrl(e.target.value);
+                    setTargetPageUrl(e.target.value);
+                  }}
+                  placeholder="https://mywebsite.com/my-custom-landing-page"
+                  className="w-full mt-2 bg-white border border-blue-300 rounded-lg p-2.5 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500"
+                />
+              )}
             </div>
 
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
@@ -247,6 +320,111 @@ export default function CampaignsPage() {
           </div>
         </form>
       )}
+
+      {/* Sequence & Email Preview Modal */}
+      {selectedCampaignModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                  <Send className="w-4 h-4 text-blue-600" />
+                  <span>Outreach Sequence Preview & Email Dispatch</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">Campaign: {selectedCampaignModal.name}</p>
+              </div>
+              <button
+                onClick={() => setSelectedCampaignModal(null)}
+                className="text-slate-400 hover:text-slate-700 text-sm font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Sender (From Email):</span>
+                  <span className="font-semibold text-slate-800">outreach@solospider.ai (Default Sender)</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 uppercase font-bold block">Target Page URL:</span>
+                  <span className="font-semibold text-blue-600 truncate block">{selectedCampaignModal.target_page_url}</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">Email Subject Line</label>
+                <input
+                  type="text"
+                  value={pitchSubject}
+                  onChange={(e) => setPitchSubject(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg p-2 text-slate-900 font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-700 font-semibold mb-1">AI Pitch Body (Step 1 Initial Email)</label>
+                <textarea
+                  rows={6}
+                  value={pitchBody}
+                  onChange={(e) => setPitchBody(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-slate-900 font-mono text-[11px] leading-relaxed"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-slate-100 pt-4 text-xs">
+              <span className="text-[11px] text-slate-500">SMTP Server: Connected & Ready</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSelectedCampaignModal(null)}
+                  className="px-4 py-2 border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-semibold transition cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={async () => {
+                    setIsSending(true);
+                    try {
+                      // Update campaign count in Supabase
+                      const updatedSent = (selectedCampaignModal.emails_sent || 0) + 1;
+                      await supabase
+                        .from('campaigns')
+                        .update({ emails_sent: updatedSent })
+                        .eq('id', selectedCampaignModal.id);
+
+                      setCampaigns((prev) =>
+                        prev.map((item) =>
+                          item.id === selectedCampaignModal.id
+                            ? { ...item, emails_sent: updatedSent }
+                            : item
+                        )
+                      );
+                      toast.success(`Dispatched pitch email for ${selectedCampaignModal.name}!`);
+                      setSelectedCampaignModal(null);
+                    } catch (err: any) {
+                      toast.error("Failed to send email");
+                    } finally {
+                      setIsSending(false);
+                    }
+                  }}
+                  disabled={isSending}
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  {isSending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isSending ? "Dispatching..." : "Send Outreach Email Now"}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

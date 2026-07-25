@@ -3,14 +3,14 @@ import { env } from "../config.js";
 const BASE_URL = "https://openrouter.ai/api/v1";
 
 export const MODEL_MAP: Record<string, string> = {
-  chatgpt:       "openai/gpt-4o-mini",
-  gemini:        "google/gemini-2.5-flash",
-  claude:        "anthropic/claude-3-haiku",
-  perplexity:    "anthropic/claude-sonnet-4", // Maps under-the-hood to Claude 3.5 Sonnet
-  grok:          "x-ai/grok-4.3",
+  chatgpt:       "openai/gpt-4o-mini:online",
+  gemini:        "google/gemini-2.5-flash:online",
+  claude:        "anthropic/claude-3.5-haiku:online",
+  perplexity:    "perplexity/sonar",
+  grok:          "x-ai/grok-2-1212",
   deepseek:      "deepseek/deepseek-chat",
-  claude_sonnet: "anthropic/claude-sonnet-4",
-  claude_opus:   "anthropic/claude-opus-4",
+  claude_sonnet: "anthropic/claude-3.5-sonnet",
+  claude_opus:   "anthropic/claude-3-opus",
 };
 
 async function fetchWithRetry(
@@ -47,19 +47,34 @@ export async function queryModel(
   modelKey: string,
   prompt: string,
   systemPrompt?: string,
-  maxTokens?: number
+  maxTokens?: number,
+  enableWebSearch: boolean = true
 ): Promise<{ 
   text: string; 
   latencyMs: number; 
-  usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number } 
+  usage: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  citations?: string[];
 }> {
-  const modelId = MODEL_MAP[modelKey];
-  if (!modelId) throw new Error(`Unknown model key: ${modelKey}`);
+  let modelId = MODEL_MAP[modelKey] || MODEL_MAP["chatgpt"];
 
   const start = Date.now();
+  const requestBody: Record<string, any> = {
+    model: modelId,
+    messages: [
+      { role: "system", content: systemPrompt ?? "You are a live search engine assistant. Provide accurate, real-time up-to-date search results, citing specific brand names, products, and web domain URLs." },
+      { role: "user", content: prompt },
+    ],
+    max_tokens: maxTokens ?? 800,
+    temperature: 0.3,
+  };
+
+  if (enableWebSearch && !modelId.includes(":online") && !modelId.startsWith("perplexity/")) {
+    requestBody.plugins = [{ id: "web" }];
+  }
+
   const res = await fetchWithRetry(`${BASE_URL}/chat/completions`, {
     method: "POST",
-    signal: AbortSignal.timeout(20000),
+    signal: AbortSignal.timeout(25000),
     headers: {
       Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
       "Content-Type": "application/json",
@@ -67,15 +82,7 @@ export async function queryModel(
       "X-Title": "SoloSpider Worker",
       "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
     },
-    body: JSON.stringify({
-      model: modelId,
-      messages: [
-        { role: "system", content: systemPrompt ?? "You are a helpful assistant. Answer the question comprehensively. Mention specific products, tools, companies, and brand names where relevant." },
-        { role: "user", content: prompt },
-      ],
-      max_tokens: maxTokens ?? 800,
-      temperature: 0.3,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   const latencyMs = Date.now() - start;
@@ -85,7 +92,8 @@ export async function queryModel(
   }
 
   const data = await res.json() as { 
-    choices: Array<{ message: { content: string } }>;
+    choices: Array<{ message: { content: string; citations?: string[] } }>;
+    citations?: string[];
     usage?: {
       prompt_tokens: number;
       completion_tokens: number;
@@ -101,9 +109,46 @@ export async function queryModel(
   }
 
   const text = data?.choices?.[0]?.message?.content ?? "";
+  const citations = data?.citations || data?.choices?.[0]?.message?.citations || [];
+
   return { 
     text, 
     latencyMs,
-    usage: usage ?? { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+    usage: usage ?? { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
+    citations
   };
+}
+
+export async function callOpenRouter(
+  messagesOrModelKey: Array<{ role: string; content: string }> | string,
+  modelOrPrompt?: string,
+  systemPrompt?: string,
+  maxTokens?: number
+): Promise<any> {
+  if (Array.isArray(messagesOrModelKey)) {
+    const messages = messagesOrModelKey;
+    const modelId = modelOrPrompt || "google/gemini-2.5-flash";
+    const res = await fetchWithRetry(`${BASE_URL}/chat/completions`, {
+      method: "POST",
+      signal: AbortSignal.timeout(25000),
+      headers: {
+        Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://solospider.ai",
+        "X-Title": "SoloSpider Worker",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+      body: JSON.stringify({
+        model: modelId,
+        messages,
+        max_tokens: maxTokens ?? 1000,
+        temperature: 0.3,
+      }),
+    });
+    if (!res.ok) throw new Error(`OpenRouter ${modelId} → ${res.status}`);
+    const data = await res.json() as { choices: Array<{ message: { content: string } }> };
+    return data?.choices?.[0]?.message?.content ?? "";
+  } else {
+    return queryModel(messagesOrModelKey, modelOrPrompt ?? "", systemPrompt, maxTokens);
+  }
 }

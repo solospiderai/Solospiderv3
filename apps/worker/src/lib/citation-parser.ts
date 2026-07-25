@@ -77,10 +77,18 @@ export function parseCitations(
     .map(v => v.trim())
     .filter(v => v.length > 2);
 
-  // Helper to check if a string contains any brand variation
+  // Helper to check if a string contains any brand variation with word boundaries
   const matchesBrand = (str: string) => {
     const s = str.toLowerCase();
-    return activeVariations.some(v => s.includes(v));
+    return activeVariations.some(v => {
+      // For domain names or URLs with dots, use literal boundary check; for words, use \b
+      if (v.includes(".")) {
+        return s.includes(v);
+      }
+      const escaped = v.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(?:^|\\W)${escaped}(?:$|\\W)`, "i");
+      return regex.test(s);
+    });
   };
 
   let mentionPosition: number | null = null;
@@ -98,35 +106,54 @@ export function parseCitations(
 
   const brandMentioned = mentionPosition !== null;
 
-  // Count mentions in the entire response text using activeVariations
+  // Count mentions in the entire response text using activeVariations with strict boundaries
   let mentionCount = 0;
   if (brandMentioned) {
     for (const variation of activeVariations) {
       const escaped = variation.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const count = (lower.match(new RegExp(escaped, "g")) ?? []).length;
-      if (count > 0) {
-        mentionCount = count;
+      const regex = variation.includes(".")
+        ? new RegExp(escaped, "gi")
+        : new RegExp(`(?:^|\\W)${escaped}(?:$|\\W)`, "gi");
+      const matches = lower.match(regex);
+      if (matches && matches.length > 0) {
+        mentionCount = matches.length;
         break;
       }
     }
     if (mentionCount === 0) mentionCount = 1;
   }
 
-  // Sentiment scoring on the context window (50 words around first mention)
+  // Negation-aware sentiment scoring on context window
   let mentionSentiment: CitationResult["mentionSentiment"] = "not_mentioned";
   if (brandMentioned) {
     const ctx = (mentionContext ?? lower).toLowerCase();
-    const posScore = POSITIVE_WORDS.filter(w => ctx.includes(w)).length;
-    const negScore = NEGATIVE_WORDS.filter(w => ctx.includes(w)).length;
+    
+    // Check for negations near positive terms (e.g. "not recommended", "not the best", "lacks features")
+    const negationRegex = /\b(not|no|never|hardly|rarely|cannot|lacks|fails|without)\b(?:\s+\w+){0,3}\s+(best|top|recommended|excellent|great|leading|trusted|popular|powerful|innovative|perfect|outstanding|robust|reliable)/gi;
+    const negatedPositives = (ctx.match(negationRegex) ?? []).length;
+
+    let posScore = POSITIVE_WORDS.filter(w => new RegExp(`\\b${w}\\b`, "i").test(ctx)).length;
+    let negScore = NEGATIVE_WORDS.filter(w => new RegExp(`\\b${w}\\b`, "i").test(ctx)).length;
+
+    // Flip negated positives to negative score
+    posScore = Math.max(0, posScore - negatedPositives);
+    negScore += negatedPositives;
+
     if (posScore > negScore) mentionSentiment = "positive";
     else if (negScore > posScore) mentionSentiment = "negative";
     else mentionSentiment = "neutral";
   }
 
-  // Which competitors are mentioned?
-  const competitorsMentioned = competitors.filter(c =>
-    c && lower.includes(c.toLowerCase())
-  );
+  // Which competitors are mentioned? (Use word boundaries)
+  const competitorsMentioned = competitors.filter(c => {
+    if (!c || c.trim().length === 0) return false;
+    const cleanComp = c.trim().toLowerCase();
+    const escaped = cleanComp.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const regex = cleanComp.includes(".")
+      ? new RegExp(escaped, "i")
+      : new RegExp(`(?:^|\\W)${escaped}(?:$|\\W)`, "i");
+    return regex.test(lower);
+  });
 
   return {
     brandMentioned,

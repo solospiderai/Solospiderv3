@@ -40,9 +40,12 @@ function topicFromPrompt(prompt: string): string {
     .slice(0, 80);
 }
 
-// ── Score gap priority ───────────────────────────────────────────────────────
-function scoreGap(competitorCount: number, modelCount: number): number {
-  return Math.min(100, competitorCount * 25 + modelCount * 20);
+// ── Score gap priority with intent weighting ────────────────────────────────
+function scoreGap(competitorCount: number, modelCount: number, promptText: string = ""): number {
+  const lower = promptText.toLowerCase();
+  const isCommercial = /\b(best|compare|vs|pricing|cost|top|alternative|review|buy|choose)\b/i.test(lower);
+  const intentBonus = isCommercial ? 20 : 5;
+  return Math.min(100, competitorCount * 25 + modelCount * 15 + intentBonus);
 }
 
 function priorityFromScore(score: number): "high" | "medium" | "low" {
@@ -59,16 +62,21 @@ async function generateBrief(
 ): Promise<Brief | null> {
   if (!env.OPENROUTER_API_KEY) return null;
 
-  const systemPrompt = `You are an AEO content strategist. Given a query where a brand was absent from AI search results
-and competitors were cited, generate a content brief that will help the brand win this query.
+  const systemPrompt = `You are a senior AEO/GEO (Answer Engine Optimization) content strategist.
+Given a search query where the target brand was missing and competitors were cited, generate an authoritative content brief optimized for AI search engine extraction (Perplexity, ChatGPT Search, Gemini).
+
+Structure Requirements:
+1. Every section MUST use an "Answer-First" H2 heading that directly addresses the user question in the first 2 sentences.
+2. Include explicit JSON-LD FAQ schema markup recommendations.
+3. Highlight unique brand differentiators and authoritative data benchmarks.
 
 Return ONLY valid JSON with this exact shape:
 {
-  "title": "<SEO-optimised article title, max 90 chars>",
+  "title": "<SEO/AEO-optimised article title, max 90 chars>",
   "outline": [
-    { "h2": "<section heading>", "keyPoints": ["<point 1>", "<point 2>"] },
-    { "h2": "<section heading>", "keyPoints": ["<point 1>", "<point 2>"] },
-    { "h2": "<section heading>", "keyPoints": ["<point 1>", "<point 2>"] }
+    { "h2": "<Answer-First section heading>", "keyPoints": ["<point 1>", "<point 2>"] },
+    { "h2": "<Answer-First section heading>", "keyPoints": ["<point 1>", "<point 2>"] },
+    { "h2": "<FAQ & JSON-LD Schema section>", "keyPoints": ["<point 1>", "<point 2>"] }
   ]
 }`;
 
@@ -225,7 +233,7 @@ export async function persistGapsForRun(
   let upserted = 0;
 
   for (const cluster of clusters) {
-    const score = scoreGap(cluster.competitors.length, cluster.models.length);
+    const score = scoreGap(cluster.competitors.length, cluster.models.length, cluster.promptText);
     const priority = priorityFromScore(score);
     const exists = await contentExists(projectId, cluster.promptText);
 

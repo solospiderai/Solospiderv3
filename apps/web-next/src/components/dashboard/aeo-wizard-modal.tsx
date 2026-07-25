@@ -301,15 +301,15 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl border border-slate-150 shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
+      <div className="bg-white dark:bg-[#151329] rounded-3xl border border-slate-150 dark:border-slate-800 shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[85vh]">
         {/* Wizard Header */}
-        <div className="px-6 py-4.5 border-b border-slate-100 flex items-center justify-between shrink-0">
+        <div className="px-6 py-4.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
           <div className="space-y-0.5">
-            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
-              <Sparkles className="h-4.5 w-4.5 text-violet-600" />
+            <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <Sparkles className="h-4.5 w-4.5 text-violet-600 dark:text-violet-400" />
               AEO Workspace Setup Wizard
             </h3>
-            <p className="text-[10px] text-slate-450 font-bold uppercase tracking-wider">
+            <p className="text-[10px] text-slate-450 dark:text-slate-400 font-bold uppercase tracking-wider">
               Step {step} of 4 · {step === 1 ? "Target Domain" : step === 2 ? "Market Discovery" : step === 3 ? "Conversational Prompts" : "Ready"}
             </p>
           </div>
@@ -317,7 +317,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
             <button
               type="button"
               onClick={onClose}
-              className="text-slate-400 hover:text-slate-600 font-black text-lg p-1 transition-colors"
+              className="text-slate-400 dark:text-slate-400 hover:text-slate-600 dark:hover:text-white font-black text-lg p-1 transition-colors"
             >
               ×
             </button>
@@ -325,39 +325,39 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
         </div>
 
         {/* Wizard Steps Content */}
-        <div className="p-6 flex-1 overflow-y-auto min-h-0 space-y-5 text-left text-xs font-semibold text-slate-650">
+        <div className="p-6 flex-1 overflow-y-auto min-h-0 space-y-5 text-left text-xs font-semibold text-slate-650 dark:text-slate-300">
           {/* STEP 1: Enter Domain and Brand Details */}
           {step === 1 && (
             <div className="space-y-4">
-              <div className="rounded-2xl bg-violet-50/50 border border-violet-100 p-4 space-y-2">
-                <h4 className="text-[11px] font-black uppercase text-violet-700 tracking-wider flex items-center gap-1">
-                  <Database className="h-4 w-4" /> Discover Topics to Track
+              <div className="rounded-2xl bg-violet-50/50 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-900/50 p-4 space-y-2">
+                <h4 className="text-[11px] font-black uppercase text-violet-700 dark:text-violet-300 tracking-wider flex items-center gap-1">
+                  <Database className="h-4 w-4 text-violet-600 dark:text-violet-400" /> Discover Topics to Track
                 </h4>
-                <p className="text-slate-500 font-medium leading-relaxed">
+                <p className="text-slate-500 dark:text-slate-300 font-medium leading-relaxed">
                   Provide your brand details. SoloSpider will browse your website content and deduce your target geographical market and key topics to analyze.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-450">Website URL (Domain)</label>
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-450 dark:text-slate-400">Website URL (Domain)</label>
                   <input
                     type="text"
                     required
                     placeholder="example.com"
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-violet-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-violet-500"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-450">Brand Name</label>
+                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-450 dark:text-slate-400">Brand Name</label>
                   <input
                     type="text"
                     placeholder="Brand (optional)"
                     value={brandName}
                     onChange={(e) => setBrandName(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:border-violet-500"
+                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-violet-500"
                   />
                 </div>
               </div>
@@ -380,25 +380,25 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
               ) : (
                 <div className="space-y-5">
                   {/* Location deduced display */}
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-3">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 p-4 space-y-3">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white shrink-0">
                           <MapPin className="h-4.5 w-4.5" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Deduced Target Location</p>
-                          <p className="text-slate-800 font-black text-sm mt-1 flex items-center gap-1.5">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest leading-none">Deduced Target Location</p>
+                          <p className="text-slate-800 dark:text-white font-black text-sm mt-1 flex items-center gap-1.5">
                             {selectedLocation}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Change:</label>
+                        <label className="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest">Change:</label>
                         <select
                           value={selectedLocation}
                           onChange={(e) => setSelectedLocation(e.target.value)}
-                          className="bg-white border border-slate-200 rounded-lg text-xs font-bold px-2.5 py-1 text-slate-700 focus:outline-none"
+                          className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold px-2.5 py-1 text-slate-700 dark:text-slate-200 focus:outline-none"
                         >
                           {COUNTRIES.map((c) => (
                             <option key={c.code} value={c.name}>{c.name}</option>
@@ -407,7 +407,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                       </div>
                     </div>
                     {deducedExplanation && (
-                      <p className="text-[10px] font-bold text-slate-400 border-t border-slate-100 pt-2 flex items-center gap-1 leading-snug">
+                      <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-2 flex items-center gap-1 leading-snug">
                         <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                         Explanation: {deducedExplanation}
                       </p>
@@ -416,14 +416,14 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
 
                   {/* Competitors List display & edit */}
                   <div className="space-y-3">
-                    <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3.5">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 space-y-3.5">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0 border border-indigo-100">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0 border border-indigo-100 dark:border-indigo-900/50">
                           <Database className="h-4.5 w-4.5" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Discovered Competitors</p>
-                          <p className="text-slate-500 text-[11px] font-semibold mt-1">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest leading-none">Discovered Competitors</p>
+                          <p className="text-slate-500 dark:text-slate-300 text-[11px] font-semibold mt-1">
                             Review and edit domains to benchmark against in comparison prompts:
                           </p>
                         </div>
@@ -433,21 +433,21 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                         placeholder="competitor1.com, competitor2.com, competitor3.com"
                         value={competitors.join(", ")}
                         onChange={(e) => setCompetitors(e.target.value.split(",").map(c => c.trim()).filter(Boolean))}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-violet-500 font-bold transition-all shadow-inner-sm"
+                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-violet-500 font-bold transition-all shadow-inner-sm"
                       />
                     </div>
                   </div>
 
                   {/* Prompt Count Selection */}
-                  <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3.5">
+                  <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 space-y-3.5">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center text-violet-600 shrink-0 border border-violet-100">
+                        <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-950/40 flex items-center justify-center text-violet-600 dark:text-violet-400 shrink-0 border border-violet-100 dark:border-violet-900/50">
                           <Database className="h-4.5 w-4.5" />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Number of Prompts</p>
-                          <p className="text-slate-500 text-[11px] font-semibold mt-1">
+                          <p className="text-[10px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest leading-none">Number of Prompts</p>
+                          <p className="text-slate-500 dark:text-slate-300 text-[11px] font-semibold mt-1">
                             Choose how many unbranded search prompts to scan
                           </p>
                         </div>
@@ -455,7 +455,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                       <select
                         value={promptLimit}
                         onChange={(e) => setPromptLimit(Number(e.target.value))}
-                        className="bg-white border border-slate-200 rounded-lg text-xs font-bold px-3 py-1.5 text-slate-700 focus:outline-none cursor-pointer"
+                        className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold px-3 py-1.5 text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer"
                       >
                         {[10, 15, 20, 25, 30, 40, 50].map((n) => (
                           <option key={n} value={n}>{n} Prompts</option>
@@ -464,7 +464,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                     </div>
                   </div>                  {/* Topics List */}
                   <div className="mt-6 mb-8 pb-10">
-                    <h4 className="text-sm font-bold uppercase text-slate-800 tracking-wider text-center">Select Topics to Track</h4>
+                    <h4 className="text-sm font-bold uppercase text-slate-800 dark:text-white tracking-wider text-center">Select Topics to Track</h4>
                     <div className="h-6"></div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-8">
                       {discoveredTopics.map((item) => {
@@ -475,24 +475,24 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                             onClick={() => setSelectedTopics(prev => ({ ...prev, [item.topic]: !active }))}
                             className={`rounded-2xl border p-4 cursor-pointer select-none transition-all flex items-start justify-between gap-3 ${
                               active 
-                                ? "bg-violet-50/40 border-violet-200 shadow-sm" 
-                                : "bg-white border-slate-150 hover:bg-slate-50/50"
+                                ? "bg-violet-50/40 dark:bg-violet-950/60 border-violet-200 dark:border-violet-700 shadow-sm" 
+                                : "bg-white dark:bg-slate-900/50 border-slate-150 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/50"
                             }`}
                           >
                             <div className="min-w-0 space-y-1">
-                              <p className={`font-black text-[13px] ${active ? "text-violet-750" : "text-slate-800"}`}>{item.topic}</p>
-                              <p className="text-[10px] text-slate-450 leading-relaxed font-semibold">{item.description}</p>
+                              <p className={`font-black text-[13px] ${active ? "text-violet-750 dark:text-violet-300" : "text-slate-800 dark:text-white"}`}>{item.topic}</p>
+                              <p className="text-[10px] text-slate-450 dark:text-slate-400 leading-relaxed font-semibold">{item.description}</p>
                             </div>
                             <div className="flex flex-col items-end shrink-0 gap-1.5">
                               <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
-                                item.volume === "High" ? "bg-emerald-50 text-emerald-700" :
-                                item.volume === "Medium" ? "bg-amber-50 text-amber-700" :
-                                "bg-slate-100 text-slate-500"
+                                item.volume === "High" ? "bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300" :
+                                item.volume === "Medium" ? "bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300" :
+                                "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
                               }`}>
                                 {item.volume} vol
                               </span>
                               <div className={`w-4.5 h-4.5 rounded-md border flex items-center justify-center transition-colors ${
-                                active ? "bg-violet-600 border-violet-600 text-white" : "border-slate-300 bg-white"
+                                active ? "bg-violet-600 border-violet-600 text-white" : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
                               }`}>
                                 {active && <Check className="w-3.5 h-3.5 stroke-[3.5]" />}
                               </div>
@@ -512,58 +512,58 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
             <div className="space-y-4 flex flex-col h-full min-h-0">
               {loadingPrompts ? (
                 <div className="py-16 text-center space-y-4 flex flex-col items-center">
-                  <Loader2 className="h-8 w-8 text-violet-600 animate-spin" />
+                  <Loader2 className="h-8 w-8 text-violet-600 dark:text-violet-400 animate-spin" />
                   <div className="space-y-1">
-                    <p className="font-black text-slate-850 text-sm">Crafting realistic search engine prompts...</p>
-                    <p className="text-slate-400 font-medium max-w-sm leading-relaxed text-[11px]">
+                    <p className="font-black text-slate-850 dark:text-white text-sm">Crafting realistic search engine prompts...</p>
+                    <p className="text-slate-400 dark:text-slate-400 font-medium max-w-sm leading-relaxed text-[11px]">
                       Writing exactly {promptLimit} conversational queries targeted for searchers in {selectedLocation}...
                     </p>
                   </div>
                 </div>
               ) : (
                 <div className="space-y-4 flex flex-col flex-1 min-h-0">
-                  <div className="rounded-xl bg-violet-50/50 border border-violet-100 px-4 py-3 flex items-center justify-between shrink-0">
-                    <p className="text-violet-750 font-bold text-xs">
+                  <div className="rounded-xl bg-violet-50/50 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-900/50 px-4 py-3 flex items-center justify-between shrink-0">
+                    <p className="text-violet-750 dark:text-violet-300 font-bold text-xs">
                       We crafted <strong>{prompts.length} prompts</strong>. Review, edit, and select which queries to run in active scans.
                     </p>
                   </div>
 
                   {/* Prompts Table List */}
-                  <div className="border border-slate-200 rounded-2xl overflow-hidden flex-1 overflow-y-auto max-h-[380px] bg-white shadow-inner-sm">
-                    <table className="w-full border-collapse text-left text-xs font-semibold text-slate-650">
+                  <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden flex-1 overflow-y-auto max-h-[380px] bg-white dark:bg-slate-900/80 shadow-inner-sm">
+                    <table className="w-full border-collapse text-left text-xs font-semibold text-slate-650 dark:text-slate-300">
                       <thead>
-                        <tr className="bg-slate-50 border-b border-slate-155 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr className="bg-slate-50 dark:bg-slate-800/80 border-b border-slate-155 dark:border-slate-700 text-[10px] font-black text-slate-400 dark:text-slate-300 uppercase tracking-widest">
                           <th className="px-3.5 py-2.5 w-12 text-center">Track</th>
                           <th className="px-3.5 py-2.5 min-w-[120px]">Topic</th>
                           <th className="px-3.5 py-2.5 min-w-[280px]">Prompt</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {prompts.map((row, idx) => {
                           const isEditing = editingPromptIdx === idx;
                           return (
-                            <tr key={idx} className="hover:bg-slate-50/30 align-middle">
+                            <tr key={idx} className="hover:bg-slate-50/30 dark:hover:bg-slate-800/40 align-middle">
                               <td className="px-3.5 py-3.5 text-center">
                                 <input
                                   type="checkbox"
                                   checked={row.selected}
                                   onChange={() => togglePromptSelect(idx)}
-                                  className="w-4 h-4 text-violet-600 rounded border-slate-300 focus:ring-violet-500 cursor-pointer"
+                                  className="w-4 h-4 text-violet-600 rounded border-slate-300 dark:border-slate-600 focus:ring-violet-500 cursor-pointer"
                                 />
                               </td>
                               <td className="px-3.5 py-3.5">
-                                <span className="px-2 py-0.5 rounded bg-violet-50 border border-violet-100 text-[8px] font-black uppercase tracking-wider text-violet-750">
+                                <span className="px-2 py-0.5 rounded bg-violet-50 dark:bg-violet-950/60 border border-violet-100 dark:border-violet-800 text-[8px] font-black uppercase tracking-wider text-violet-750 dark:text-violet-300">
                                   {row.topic}
                                 </span>
                               </td>
-                              <td className="px-3.5 py-3.5">
+                              <td className="px-3.5 py-3.5 text-slate-800 dark:text-slate-100">
                                 {isEditing ? (
                                   <div className="flex gap-2 items-center">
                                     <input
                                       type="text"
                                       value={editingPromptText}
                                       onChange={(e) => setEditingPromptText(e.target.value)}
-                                      className="flex-1 bg-slate-50 border border-slate-300 rounded px-2.5 py-1 text-xs text-slate-800 focus:outline-none"
+                                      className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded px-2.5 py-1 text-xs text-slate-800 dark:text-white focus:outline-none"
                                     />
                                     <button 
                                       onClick={saveEditedPrompt}
@@ -581,13 +581,13 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                                           copyToClipboard(row.prompt);
                                           toast.success("Prompt copied to clipboard!");
                                         }}
-                                        className="text-[9px] text-emerald-600 font-bold hover:underline"
+                                        className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
                                       >
                                         Copy
                                       </button>
                                       <button 
                                         onClick={() => handleEditPrompt(idx, row.prompt)}
-                                        className="text-[9px] text-violet-600 font-bold hover:underline"
+                                        className="text-[9px] text-violet-600 dark:text-violet-400 font-bold hover:underline"
                                       >
                                         Edit
                                       </button>
@@ -609,12 +609,12 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
           {/* STEP 4: Success & Scan Queue tracking */}
           {step === 4 && (
             <div className="py-8 text-center space-y-4 flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 animate-bounce">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 animate-bounce">
                 <CheckCircle2 className="h-9 w-9 stroke-[2.5]" />
               </div>
               <div className="space-y-1.5">
-                <h4 className="text-lg font-black text-slate-850">AEO Pipeline Initiated!</h4>
-                <p className="text-slate-500 font-medium max-w-sm leading-relaxed">
+                <h4 className="text-lg font-black text-slate-850 dark:text-white">AEO Pipeline Initiated!</h4>
+                <p className="text-slate-500 dark:text-slate-300 font-medium max-w-sm leading-relaxed">
                   Your project has been successfully registered. The background site crawler has started, and active real-time grounded AEO scans will execute immediately after.
                 </p>
               </div>
@@ -624,7 +624,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                   onClose();
                   router.push("/app/en/dashboard");
                 }}
-                className="px-6 py-2.5 rounded-xl bg-slate-900 text-white font-extrabold shadow hover:bg-slate-800 transition-all text-xs"
+                className="px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-violet-600 text-white font-extrabold shadow hover:bg-slate-800 dark:hover:bg-violet-700 transition-all text-xs"
               >
                 Go to Workspace
               </button>
@@ -634,14 +634,14 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
 
         {/* Wizard Footer Controls */}
         {step < 4 && (
-          <div className="px-6 py-4.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between shrink-0">
+          <div className="px-6 py-4.5 bg-slate-50 dark:bg-slate-900/90 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
             <div>
               {step > 1 && (
                 <button
                   type="button"
                   disabled={loadingTopics || loadingPrompts || submitting}
                   onClick={() => setStep((prev) => (prev - 1) as WizardStep)}
-                  className="px-4 py-2 text-xs font-bold bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 text-xs font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
                 >
                   Back
                 </button>
@@ -652,7 +652,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-all cursor-pointer"
+                className="px-4 py-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -662,7 +662,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                   type="button"
                   onClick={handleDiscoverTopics}
                   disabled={!domain}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold shadow hover:shadow-md active:scale-[0.98] transition-all flex items-center gap-1.5 text-xs disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-violet-600 hover:bg-slate-800 dark:hover:bg-violet-700 text-white font-extrabold shadow hover:shadow-md active:scale-[0.98] transition-all flex items-center gap-1.5 text-xs disabled:opacity-50 cursor-pointer"
                 >
                   Discover Topics <ChevronRight className="w-3.5 h-3.5" />
                 </button>
@@ -672,7 +672,7 @@ export function AeoWizardModal({ isOpen, onClose, initialDomain }: AeoWizardModa
                 <button
                   type="button"
                   onClick={handleCraftPrompts}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold shadow hover:shadow-md active:scale-[0.98] transition-all flex items-center gap-1.5 text-xs cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-violet-600 hover:bg-slate-800 dark:hover:bg-violet-700 text-white font-extrabold shadow hover:shadow-md active:scale-[0.98] transition-all flex items-center gap-1.5 text-xs cursor-pointer"
                 >
                   Craft realistic prompts <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 </button>

@@ -5,16 +5,22 @@
 // ALL DATA IS REAL — no simulated/fake pages.
 
 export interface CrawledPageData {
-  url:            string;
-  title:          string | null;
-  meta_desc:      string | null;
-  h1:             string | null;
-  word_count:     number;
-  schema_types:   string[];
-  has_faq_schema: boolean;
-  has_howto:      boolean;
-  status_code:    number | null;
-  source:         "sitemap" | "crawl" | "manual";
+  url:                     string;
+  title:                   string | null;
+  meta_desc:               string | null;
+  h1:                      string | null;
+  word_count:              number;
+  schema_types:            string[];
+  has_faq_schema:          boolean;
+  has_howto:               boolean;
+  has_article_schema:      boolean;
+  has_product_schema:      boolean;
+  has_organization_schema: boolean;
+  canonical_url:           string | null;
+  has_og_tags:             boolean;
+  is_indexable:            boolean;
+  status_code:             number | null;
+  source:                  "sitemap" | "crawl" | "manual";
 }
 
 // Multiple User-Agent strings for rotation — bypass WAFs/bot detection
@@ -257,15 +263,45 @@ function parseMeta(html: string): Omit<CrawledPageData, "url" | "status_code" | 
   const text       = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   const word_count = text.trim().split(" ").filter(Boolean).length;
 
+  // Schema parsing
   const schemaRe   = /"@type"\s*:\s*"([^"]+)"/g;
   const schemaTypes: string[] = [];
   let sm: RegExpExecArray | null;
   while ((sm = schemaRe.exec(html)) !== null) schemaTypes.push(sm[1]);
-  const schema_types   = [...new Set(schemaTypes)];
-  const has_faq_schema = schema_types.some(s => s.toLowerCase().includes("faq"));
-  const has_howto      = schema_types.some(s => s.toLowerCase().includes("howto"));
+  const schema_types           = [...new Set(schemaTypes)];
+  const has_faq_schema         = schema_types.some(s => s.toLowerCase().includes("faq"));
+  const has_howto              = schema_types.some(s => s.toLowerCase().includes("howto"));
+  const has_article_schema     = schema_types.some(s => /article|newsarticle|blogposting/i.test(s));
+  const has_product_schema     = schema_types.some(s => s.toLowerCase().includes("product"));
+  const has_organization_schema = schema_types.some(s => s.toLowerCase().includes("organization"));
 
-  return { title, meta_desc, h1, word_count, schema_types, has_faq_schema, has_howto };
+  // Canonical tag check
+  const canonicalM = /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i.exec(html)
+                  ?? /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']canonical["']/i.exec(html);
+  const canonical_url = canonicalM ? canonicalM[1].trim() : null;
+
+  // OpenGraph tag check
+  const has_og_tags = /<meta[^>]+property=["']og:/i.test(html);
+
+  // Robot indexability check
+  const robotsM = /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']+)["']/i.exec(html);
+  const is_indexable = !robotsM || !/noindex/i.test(robotsM[1]);
+
+  return {
+    title,
+    meta_desc,
+    h1,
+    word_count,
+    schema_types,
+    has_faq_schema,
+    has_howto,
+    has_article_schema,
+    has_product_schema,
+    has_organization_schema,
+    canonical_url,
+    has_og_tags,
+    is_indexable
+  };
 }
 
 /**
@@ -678,6 +714,12 @@ export async function crawlPage(
       schema_types: [],
       has_faq_schema: false,
       has_howto: false,
+      has_article_schema: false,
+      has_product_schema: false,
+      has_organization_schema: false,
+      canonical_url: null,
+      has_og_tags: false,
+      is_indexable: false,
       status_code: page ? (page.status || null) : null,
       source,
     };
