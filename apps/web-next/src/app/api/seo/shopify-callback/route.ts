@@ -12,8 +12,8 @@ export async function GET(req: NextRequest) {
   }
 
   // Get the application origin to redirect back to integrations page
-  const host = req.headers.get("host") || "localhost:3000";
-  const protocol = req.nextUrl.protocol || "http:";
+  const host = req.headers.get("host") || "solospider.ai";
+  const protocol = host.includes("solospider.ai") ? "https:" : (req.nextUrl.protocol || "https:");
   const origin = `${protocol}//${host}`;
 
   const redirectUrl = new URL(`${origin}/app/en/settings/integrations`);

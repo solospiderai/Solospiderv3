@@ -4,7 +4,7 @@ const ServerEnvSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(10),
-  REDIS_URL: z.string().default("redis://localhost:6379"),
+  REDIS_URL: z.string().default("redis://default:HFysZbXqTLpqbpgGcdsTEZhLFFrBlWIk@tokaido.proxy.rlwy.net:55049"),
   WORKER_SECRET: z.string().default("dev-secret"),
   LINKEDIN_CLIENT_ID: z.string().optional(),
   LINKEDIN_CLIENT_SECRET: z.string().optional(),

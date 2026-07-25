@@ -21,12 +21,6 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (!user) {
-    const host = request.headers.get("host") || "";
-    if (host.includes("127.0.0.1")) {
-      const localhostUrl = new URL(request.url);
-      localhostUrl.hostname = "localhost";
-      return NextResponse.redirect(localhostUrl.toString());
-    }
     return NextResponse.json({ 
       error: "Unauthorized",
       details: authError?.message || "No active session user found",
