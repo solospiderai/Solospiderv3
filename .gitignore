@@ -41,4 +41,5 @@ supabase/.temp/
 .next/
 dist/
 build/
+solospiderv1-main/
 
