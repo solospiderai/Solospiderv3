@@ -5,7 +5,7 @@
   "description": "SoloSpider AI Monorepo — Next.js app, BullMQ worker, Supabase",
   "scripts": {
     "dev": "npx -y concurrently -n \"next,worker\" -c \"blue,magenta\" \"npm run dev:next\" \"npm run dev:worker\"",
-    "build": "npm run build --prefix apps/web-next",
+    "build": "npm run build --prefix apps/web-next && node -e \"const fs=require('fs'); if(fs.existsSync('apps/web-next/.next')) fs.cpSync('apps/web-next/.next', '.next', {recursive:true, force:true});\"",
     "dev:next": "npm run dev --prefix apps/web-next",
     "build:next": "npm run build --prefix apps/web-next",
     "lint:next": "npm run lint --prefix apps/web-next",
