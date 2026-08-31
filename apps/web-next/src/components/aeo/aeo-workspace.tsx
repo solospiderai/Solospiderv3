@@ -2265,7 +2265,9 @@ export function AeoWorkspace({ view }: { view: AeoView }) {
                 <div className="flex items-center justify-between border-b border-slate-55 pb-2.5">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-550 flex items-center gap-1">
                     Visibility ranking
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-350 cursor-help" title="Ranked by how often a brand is cited or mentioned across all query scans." />
+                    <span title="Ranked by how often a brand is cited or mentioned across all query scans.">
+                      <HelpCircle className="w-3.5 h-3.5 text-slate-350 cursor-help" />
+                    </span>
                   </h4>
                   <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Visibility</span>
                 </div>
