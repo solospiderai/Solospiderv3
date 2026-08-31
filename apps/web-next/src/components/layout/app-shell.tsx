@@ -1,0 +1,536 @@
+"use client";
+
+import Link from "next/link";
+import { ReactNode, useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { useProjects } from "@/hooks/useProjects";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { AeoWizardModal } from "@/components/dashboard/aeo-wizard-modal";
+import { TourGuide } from "@/components/tour-guide";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { 
+  LayoutDashboard, 
+  Fingerprint, 
+  Search, 
+  FileText, 
+  Link2, 
+  Megaphone, 
+  TrendingUp, 
+  BarChart3, 
+  Plug2, 
+  Settings2, 
+  LogOut, 
+  Plus, 
+  ChevronDown, 
+  ChevronsUpDown,
+  Check,
+  Globe,
+  Loader2, 
+  Menu, 
+  X, 
+  MessageSquare, 
+  Sparkles, 
+  PlayCircle,
+  Shield
+} from "lucide-react";
+import { NotificationCenter } from "./notification-center";
+
+interface SidebarMenuItem {
+  label: string;
+  to: string;
+  icon: React.ElementType;
+  isActive: (pathname: string) => boolean;
+  badge?: "coming_soon" | "beta";
+}
+
+function normalizeUrl(raw: string) {
+  if (!raw.startsWith("http://") && !raw.startsWith("https://")) return `https://${raw}`;
+  return raw;
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
+  const { 
+    projects, 
+    activeProject, 
+    selectActiveProject, 
+    addProject, 
+    canAddProject, 
+    currentPlan, 
+    projectLimit 
+  } = useProjects();
+
+  const qc = useQueryClient();
+  const [autoGenRunning, setAutoGenRunning] = useState<string | null>(null);
+
+  // Claim pending anonymous projects if any exist in localStorage
+  useEffect(() => {
+    if (user) {
+      const pendingProjectId = localStorage.getItem("pending_project_id");
+      if (pendingProjectId) {
+        console.log(`[AppShell] Found pending project ${pendingProjectId} to claim for user ${user.id}`);
+        fetch("/api/projects/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: pendingProjectId }),
+        })
+          .then(async (res) => {
+            if (res.ok) {
+              localStorage.removeItem("pending_project_id");
+              toast.success("✨ Project linked successfully! Your website analysis is underway.");
+              // Refetch projects
+              await qc.invalidateQueries({ queryKey: ["projects"] });
+              // Select the new project as active
+              selectActiveProject(pendingProjectId);
+            } else {
+              const data = await res.json();
+              console.warn("[AppShell] Failed to claim pending project:", data.error);
+            }
+          })
+          .catch((err) => {
+            console.error("[AppShell] Error claiming project:", err);
+          });
+      }
+    }
+  }, [user, qc, selectActiveProject]);
+
+  useEffect(() => {
+    if (activeProject?.id && !autoGenRunning) {
+      const isPlaceholder = !activeProject.brand_description || 
+        (activeProject.brand_description.includes("Market audience targeted:") && 
+         activeProject.brand_description.includes("Generated based on selection."));
+      if (isPlaceholder) {
+        setAutoGenRunning(activeProject.id);
+        fetch("/api/jobs/generate-brand-summary", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ projectId: activeProject.id }),
+        })
+          .then(async (res) => {
+            if (res.ok) {
+              await qc.invalidateQueries({ queryKey: ["projects"] });
+              toast.success("✨ Brand profile details auto-refreshed successfully!");
+            }
+          })
+          .catch((err) => {
+            console.error("Failed to auto-generate brand summary:", err);
+          })
+          .finally(() => {
+            setAutoGenRunning(null);
+          });
+      }
+    }
+  }, [activeProject?.id, activeProject?.brand_description, qc]);
+
+  const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [roleView, setRoleView] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setRoleView(window.localStorage.getItem("solospider_role_view"));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      if (user.email === "info@solospider.ai") {
+        setIsAdmin(true);
+      } else {
+        fetch("/api/admin/auth")
+          .then((res) => {
+            if (res.ok) setIsAdmin(true);
+          })
+          .catch(() => {});
+      }
+    }
+  }, [user]);
+
+  const menuItems: SidebarMenuItem[] = [
+    {
+      label: "Dashboard",
+      to: "/app/en/dashboard",
+      icon: LayoutDashboard,
+      isActive: (path) => path === "/app/en/dashboard" || path === "/dashboard"
+    },
+    {
+      label: "Branding",
+      to: "/app/en/brand",
+      icon: Fingerprint,
+      isActive: (path) => path.startsWith("/app/en/brand") || path.startsWith("/app/en/competitors") || path.startsWith("/brand-identity")
+    },
+    {
+      label: "SEO",
+      to: "/app/en/seo",
+      icon: Search,
+      isActive: (path) => path.startsWith("/app/en/seo") && !path.startsWith("/app/en/seo/rank-tracking")
+    },
+    {
+      label: "Blogs",
+      to: "/app/en/content/generate",
+      icon: FileText,
+      isActive: (path) => path.startsWith("/app/en/content") || path.startsWith("/app/en/blogs") || path.startsWith("/blogs") || path.startsWith("/bulk-generate") || path.startsWith("/calendar") || path.startsWith("/generate") || path.startsWith("/manage-posts")
+    },
+    {
+      label: "Backlinks",
+      to: "/app/en/backlinks",
+      icon: Link2,
+      isActive: (path) => path.startsWith("/app/en/backlinks"),
+    },
+    {
+      label: "Social Media",
+      to: "/app/en/social/posts",
+      icon: MessageSquare,
+      isActive: (path) => path.startsWith("/app/en/social")
+    },
+    {
+      label: "AEO / GEO",
+      to: "/app/en/aeo/overview",
+      icon: Sparkles,
+      isActive: (path) => path.startsWith("/app/en/aeo")
+    },
+    {
+      label: "Media Studio",
+      to: "/app/en/media-studio",
+      icon: PlayCircle,
+      isActive: (path) => path.startsWith("/app/en/media-studio"),
+      badge: "beta"
+    },
+    {
+      label: "Reports",
+      to: "/app/en/reports",
+      icon: BarChart3,
+      isActive: (path) => path.startsWith("/app/en/reports")
+    },
+    {
+      label: "Rank Tracking",
+      to: "/app/en/seo/rank-tracking",
+      icon: TrendingUp,
+      isActive: (path) => path.startsWith("/app/en/seo/rank-tracking"),
+    },
+    {
+      label: "Integrations",
+      to: "/app/en/settings/integrations",
+      icon: Plug2,
+      isActive: (path) => path.startsWith("/app/en/settings/integrations") || path.startsWith("/integrations")
+    },
+    {
+      label: "Support Center",
+      to: "/app/en/support",
+      icon: MessageSquare,
+      isActive: (path) => path.startsWith("/app/en/support")
+    },
+    ...(isAdmin ? [{
+      label: "Admin Panel",
+      to: "/app/en/admin",
+      icon: Shield,
+      isActive: (path: string) => path.startsWith("/app/en/admin")
+    }] : []),
+    {
+      label: "Settings",
+      to: "/app/en/settings/project",
+      icon: Settings2,
+      isActive: (path) => (path.startsWith("/app/en/settings") && !path.startsWith("/app/en/settings/integrations")) || (path.startsWith("/settings") && !path.startsWith("/settings/integrations"))
+    }
+  ];
+
+  // Wizard modal is now used instead of local project create handler
+
+  const handleSignOut = async () => {
+    const supabase = getSupabaseBrowserClient();
+    if (typeof window !== "undefined") {
+      window.localStorage.clear();
+    }
+    await supabase.auth.signOut();
+    toast.success("Signed out successfully");
+    router.replace("/login");
+    router.refresh();
+  };
+
+  const sidebarContent = (
+    <aside className="w-full h-full bg-[#0a0822] flex flex-col justify-between select-none overflow-y-auto scrollbar-none text-white font-sans">
+      <div>
+        {/* Logo area */}
+        <div className="h-16 px-6 flex items-center border-b border-white/[0.08]">
+          <Link href="/app/en/dashboard" className="flex items-center gap-2.5 group flex-1">
+            <img src="/assets/solospider-logo.png" alt="SoloSpider" className="h-[26px] w-auto block filter brightness-0 invert" />
+          </Link>
+        </div>
+
+        {/* Project Switcher Section */}
+        <div className="px-4 pt-5 pb-3">
+          <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-2.5 block px-1">
+            Workspace
+          </p>
+
+          <div className="relative">
+            <button
+              onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+              className="w-full flex items-center justify-between bg-white/[0.04] text-white border border-white/[0.08] hover:bg-white/[0.07] transition-all px-3 py-2.5 rounded-2xl text-sm font-semibold shadow-sm"
+            >
+              {activeProject ? (
+                <div className="flex items-center gap-3 truncate">
+                  {activeProject.brand_logo_url || activeProject.favicon_url || activeProject.og_image_url || activeProject.domain ? (
+                    <img
+                      src={(activeProject.brand_logo_url || activeProject.favicon_url || activeProject.og_image_url || `https://www.google.com/s2/favicons?domain=${activeProject.domain}&sz=128`) ?? undefined}
+                      alt={activeProject.brand_name || activeProject.name}
+                      className="w-8 h-8 rounded-lg object-cover border border-white/10 shrink-0 shadow-sm bg-white"
+                      onError={(e) => { e.currentTarget.src = `https://www.google.com/s2/favicons?domain=${activeProject.domain}&sz=128`; }}
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9025F2] to-[#b260ff] text-white flex items-center justify-center text-[12px] font-extrabold shrink-0 shadow-[0_0_10px_rgba(144,37,242,0.3)]">
+                      {(activeProject.brand_name || activeProject.name).substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="flex flex-col text-left truncate leading-tight">
+                    <span className="truncate text-[13px] font-bold text-white">
+                      {activeProject.brand_name || activeProject.name}
+                    </span>
+                    <span className="text-[10px] text-white/40 font-medium mt-0.5">
+                      {currentPlan ? `${currentPlan} Plan` : "Free Plan"}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <span className="text-white/40 text-xs font-medium">Select project...</span>
+              )}
+              <ChevronDown className="h-4 w-4 shrink-0 text-white/30" />
+            </button>
+
+            {isSwitcherOpen && (
+              <>
+                <div className="fixed inset-0 z-20" onClick={() => setIsSwitcherOpen(false)} />
+                <div className="absolute left-0 right-0 mt-1.5 p-2 bg-[#121133] border border-white/[0.08] shadow-2xl rounded-2xl z-30 space-y-1">
+                  <div className="mb-1.5 px-2 pb-1.5 border-b border-white/[0.08]">
+                    <p className="text-[9px] font-black uppercase text-white/30 tracking-widest">
+                      Your Projects
+                    </p>
+                  </div>
+                  <div className="max-h-[220px] overflow-y-auto space-y-0.5 scrollbar-thin">
+                    {projects.length === 0 ? (
+                      <div className="p-2 text-xs text-white/40">No projects found.</div>
+                    ) : (
+                      projects.map((project) => (
+                        <button
+                          key={project.id}
+                          onClick={() => {
+                            selectActiveProject(project.id);
+                            setIsSwitcherOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-2.5 py-2.5 rounded-xl text-xs text-left transition-colors ${
+                            activeProject?.id === project.id
+                              ? "bg-[#9025F2]/20 text-[#b260ff] font-bold border border-[#9025F2]/30"
+                              : "text-white/70 hover:bg-white/[0.04] hover:text-white font-medium"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            {project.brand_logo_url || project.favicon_url || project.og_image_url || project.domain ? (
+                              <img
+                                src={(project.brand_logo_url || project.favicon_url || project.og_image_url || `https://www.google.com/s2/favicons?domain=${project.domain}&sz=128`) ?? undefined}
+                                alt={project.brand_name || project.name}
+                                className="w-6 h-6 rounded-md object-cover border border-white/10 shrink-0 shadow-sm bg-white"
+                                onError={(e) => { e.currentTarget.src = `https://www.google.com/s2/favicons?domain=${project.domain}&sz=128`; }}
+                              />
+                            ) : (
+                              <div className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                activeProject?.id === project.id ? "bg-[#9025F2] text-white" : "bg-white/[0.08] text-white/50"
+                              }`}>
+                                {(project.brand_name || project.name).charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="truncate">{project.brand_name || project.name}</span>
+                          </div>
+                          {activeProject?.id === project.id && (
+                            <Check className="h-3.5 w-3.5 shrink-0 text-[#b260ff]" />
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                  <div className="mt-1.5 pt-1.5 border-t border-white/[0.08]">
+                    <button
+                      onClick={() => {
+                        setIsSwitcherOpen(false);
+                        setIsDialogOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-xl text-xs font-bold text-white/40 hover:text-white hover:bg-white/[0.04] transition-all text-left"
+                    >
+                      <Plus className="h-4 w-4 text-white/30" />
+                      Create New Project
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="px-3 py-3 space-y-1 overflow-y-auto scrollbar-none flex-1 max-h-[calc(100vh-250px)]">
+          {menuItems.map((item) => {
+            const active = item.isActive(pathname || "");
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.to}
+                href={item.to}
+                id={`tour-step-${item.label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center gap-3 px-3 py-2.5 text-[13px] font-semibold transition-all rounded-xl ${
+                  active
+                    ? "bg-gradient-to-r from-[#9025F2] to-[#b260ff] text-white shadow-[0_4px_16px_rgba(144,37,242,0.35)]"
+                    : "text-white/60 hover:text-white hover:bg-white/[0.03]"
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 shrink-0 transition-transform ${
+                    active ? "text-white" : "text-white/50 group-hover:text-white"
+                  }`}
+                />
+                <span className="flex-1 flex items-center gap-2 min-w-0">
+                  <span className="truncate">{item.label}</span>
+                  {item.badge === "coming_soon" && (
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-[#9025F2]/15 border border-[#9025F2]/30 text-[#b260ff] rounded-md select-none shrink-0">
+                      Soon
+                    </span>
+                  )}
+                  {item.badge === "beta" && (
+                    <span className="px-1.5 py-0.5 text-[9px] font-bold tracking-wider uppercase bg-[#9025F2]/15 border border-[#9025F2]/30 text-[#b260ff] rounded-md select-none shrink-0">
+                      Beta
+                    </span>
+                  )}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Bottom Profile HUD */}
+      <div className="border-t border-white/[0.08] p-4 space-y-2 bg-black/10">
+        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+          <div className="h-7 w-7 rounded-full bg-gradient-to-br from-[#9025F2] to-[#b260ff] flex items-center justify-center text-white text-[11px] font-black shrink-0 shadow-[0_0_8px_rgba(144,37,242,0.25)]">
+            {user?.email?.charAt(0).toUpperCase() || "U"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold text-white truncate">
+              {user?.email?.split("@")[0] || "User"}
+            </p>
+            <p className="text-[10px] text-white/40 font-semibold truncate capitalize">
+              {currentPlan || "free"} plan
+            </p>
+          </div>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem("solospider_role_view", "admin");
+              }
+              window.location.href = "/app/en/admin";
+            }}
+            className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-bold text-violet-400 hover:bg-white/[0.04] hover:text-violet-300 transition-colors cursor-pointer bg-transparent border-0 text-left"
+          >
+            <Shield className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+            Switch to Admin
+          </button>
+        )}
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-[12px] font-bold text-white/50 hover:bg-white/[0.04] hover:text-white transition-colors cursor-pointer bg-transparent border-0 text-left"
+        >
+          <LogOut className="h-3.5 w-3.5 text-white/40 shrink-0" />
+          Sign Out
+        </button>
+      </div>
+    </aside>
+  );
+
+  if (pathname?.startsWith("/app/en/admin")) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex flex-col md:flex-row">
+      {/* Mobile Topbar */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-100 bg-white z-20 sticky top-0">
+        <img src="/assets/solospider-logo.png" alt="Solo Spider" className="h-[24px] w-auto" />
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-1.5 border border-slate-200 rounded-lg hover:bg-slate-50"
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+      </div>
+
+      {/* Mobile Menu Overlay Drawer */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 flex">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="relative w-64 h-full z-50 flex flex-col bg-[#0a0822]">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block w-64 shrink-0 sticky top-0 h-screen bg-[#0a0822]">
+        {sidebarContent}
+      </div>
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-h-screen min-w-0 bg-transparent">
+        {/* Top Header Bar with Notifications */}
+        {activeProject && (
+          <header className="h-16 bg-white border-b border-slate-200/80 px-4 md:px-8 flex items-center justify-end sticky top-0 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div className="flex items-center gap-4">
+              <NotificationCenter />
+            </div>
+          </header>
+        )}
+
+        {/* Content Box - direct render, transparent glass header is gone */}
+        <div className="flex-1 p-4 md:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
+          {activeProject ? children : (
+            <div className="max-w-xl mx-auto my-12 md:my-20 p-8 md:p-10 rounded-3xl border border-slate-200 bg-white shadow-xl space-y-6 text-center">
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-500 text-white flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/20">
+                <Globe className="h-8 w-8" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Welcome to SoloSpider!</h2>
+                <p className="text-sm text-slate-500 font-semibold leading-relaxed">
+                  Start by adding your first project. Enter your website URL below to configure your SEO audit, AI search visibility tracking, and content workspaces.
+                </p>
+              </div>
+
+              <div className="pt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setIsDialogOpen(true)}
+                  className="w-full max-w-sm h-12 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg cursor-pointer"
+                >
+                  <Plus className="h-4 w-4 text-white" />
+                  Start Setup Wizard
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Tour Guide Walks */}
+      <TourGuide />
+
+      {/* Create Project Custom Modal Dialog */}
+      <AeoWizardModal isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
+    </div>
+  );
+}
+

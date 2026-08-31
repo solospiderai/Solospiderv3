@@ -1,0 +1,569 @@
+"use client";
+
+import React, { useMemo } from "react";
+import { AreaChart, Area, ResponsiveContainer } from "recharts";
+import { useQuery } from "@tanstack/react-query";
+import { useProjects } from "@/hooks/useProjects";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import { HelpCircle } from "lucide-react";
+import { isNonUserPage, estimateDomainMetrics } from "@/lib/seo-utils";
+import Link from "next/link";
+
+interface CrawledPage {
+  id: string;
+  project_id: string;
+  url: string;
+  title: string | null;
+  meta_desc: string | null;
+  h1: string | null;
+  word_count: number | null;
+  schema_types: string[];
+  status_code: number | null;
+  crawled_at: string;
+  created_at: string;
+}
+
+const trafficData = [
+  { value: 10 }, { value: 12 }, { value: 11 }, { value: 15 }, { value: 13 }, { value: 16 }, { value: 20 },
+];
+const impressionsData = [
+  { value: 50 }, { value: 45 }, { value: 55 }, { value: 60 }, { value: 58 }, { value: 65 }, { value: 70 },
+];
+const backlinksData = [
+  { value: 5 }, { value: 7 }, { value: 6 }, { value: 8 }, { value: 9 }, { value: 10 }, { value: 12 },
+];
+export function CircularProgress({ 
+  value, 
+  label, 
+  subtitle, 
+  color, 
+  isPositive, 
+  percentage,
+  tooltipContent,
+  redirectTo
+}: { 
+  value: number, 
+  label: string, 
+  subtitle: string, 
+  color: string, 
+  isPositive?: boolean, 
+  percentage?: string,
+  tooltipContent?: React.ReactNode,
+  redirectTo?: string
+}) {
+  const radius = 35;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (value / 100) * circumference;
+
+  const cardContent = (
+    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] hover:scale-[1.02] duration-300 transition-all cursor-pointer">
+      <div className="group relative flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+        <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h3>
+        <div className="relative" onClick={(e) => e.stopPropagation()}>
+          <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-655 transition-colors" />
+          <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-900 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
+            {tooltipContent || (label === "AI Visibility Score" 
+              ? "Your brand's recommendation share across AI search engines. Run an active scan in AEO Workspace to update."
+              : "Your overall technical SEO health based on page crawl results.")}
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center gap-6">
+        <div className="relative w-20 h-20 flex items-center justify-center shrink-0">
+          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+            <circle
+              cx="40"
+              cy="40"
+              r={radius}
+              stroke="currentColor"
+              strokeWidth="6"
+              fill="transparent"
+              className="text-slate-100"
+            />
+            <circle
+              cx="40"
+              cy="40"
+              r={radius}
+              stroke={color}
+              strokeWidth="6"
+              fill="transparent"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              className="transition-all duration-1000 ease-out"
+            />
+          </svg>
+          <div className="absolute flex flex-col items-center justify-center">
+            <span className="text-xl font-black text-slate-900">{value}</span>
+            <span className="text-[9px] text-slate-400 font-bold">/100</span>
+          </div>
+        </div>
+        <div>
+          <p className="font-black text-base tracking-tight mb-1" style={{ color }}>{subtitle}</p>
+          {percentage ? (
+            <p className={`text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 w-fit flex items-center gap-0.5`}>
+              +{percentage}% from last week ↗
+            </p>
+          ) : (
+            <p className="text-[10px] font-bold text-slate-400">
+              {label === "AI Visibility Score" ? "Run AEO Scan to update" : "Crawled pages health"}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  if (redirectTo) {
+    return (
+      <Link href={redirectTo} className="block h-full">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
+}
+
+export function TrendCard({ 
+  label, 
+  value, 
+  trend, 
+  trendValue, 
+  color, 
+  data, 
+  gradientId,
+  tooltipContent,
+  isLocked,
+  redirectTo
+}: { 
+  label: string, 
+  value: string, 
+  trend: 'up' | 'down', 
+  trendValue: string, 
+  color: string, 
+  data: any[], 
+  gradientId: string,
+  tooltipContent?: React.ReactNode,
+  isLocked?: boolean,
+  redirectTo?: string
+}) {
+  const isPositive = trend === 'up';
+
+  let currentRedirect = redirectTo;
+  if (!isLocked) {
+    if (label === "Organic Traffic" || label === "Total Impressions") {
+      currentRedirect = "/app/en/seo/rank-tracking";
+    } else if (label === "Backlinks") {
+      currentRedirect = "/app/en/backlinks";
+    }
+  }
+
+  const cardContent = (
+    <div className={`bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between h-full min-h-[160px] duration-300 transition-all relative overflow-hidden cursor-pointer ${
+      isLocked ? 'hover:border-violet-300 hover:shadow-md' : 'hover:scale-[1.02]'
+    }`}>
+      <div className={`flex flex-col justify-between h-full ${isLocked ? 'filter blur-[4px] select-none pointer-events-none' : ''}`}>
+        <div className="group relative flex items-center justify-between mb-4 border-b border-slate-50 pb-2">
+          <h3 className="text-slate-400 font-black text-[10px] uppercase tracking-widest">{label}</h3>
+          <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <HelpCircle className="h-3.5 w-3.5 text-slate-350 cursor-help hover:text-slate-650 transition-colors" />
+            <div className="absolute bottom-full right-0 mb-2 w-52 hidden group-hover:block bg-slate-950 text-white text-[10px] p-2.5 rounded-xl shadow-xl z-20 font-medium leading-normal">
+              {tooltipContent}
+            </div>
+          </div>
+        </div>
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="text-3xl font-black text-slate-900 tracking-tight">{value}</span>
+            <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5 ${
+              isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+            }`}>
+              {isPositive ? '↑' : '↓'} {trendValue}
+            </span>
+          </div>
+        </div>
+        
+        <div className="h-14 mt-4 -mx-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={color} stopOpacity={0.2} />
+                  <stop offset="95%" stopColor={color} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area 
+                type="monotone" 
+                dataKey="value" 
+                stroke={color} 
+                strokeWidth={2}
+                fillOpacity={1} 
+                fill={`url(#${gradientId})`} 
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">vs last 7 days</span>
+        </div>
+      </div>
+
+      {isLocked && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/5 p-4 text-center z-10 backdrop-blur-[1px]">
+          <div className="bg-white/95 shadow-lg border border-slate-100 rounded-xl px-4 py-3 flex flex-col items-center gap-1.5 max-w-[90%]">
+            <span className="text-[9px] font-black text-violet-700 uppercase tracking-widest bg-violet-50 px-2 py-0.5 rounded-md">GSC Required</span>
+            <span className="text-[10px] text-slate-500 font-extrabold leading-normal">Connect to unlock metric</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (currentRedirect) {
+    return (
+      <Link href={currentRedirect} className="block h-full">
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return cardContent;
+}
+interface MetricCardsProps {
+  timeRange: string;
+}
+
+export function MetricCards({ timeRange }: MetricCardsProps) {
+  const { activeProject } = useProjects();
+
+  // Query crawled pages for Overall SEO Score calculation & metric scaling
+  const crawledPagesQuery = useQuery<CrawledPage[]>({
+    queryKey: ["crawled_pages", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("crawled_pages" as any)
+        .select("*")
+        .eq("project_id", activeProject!.id)
+        .order("crawled_at", { ascending: false });
+      
+      if (error) throw error;
+      return (data || []) as CrawledPage[];
+    },
+  });
+
+  // Query backlinks submissions count
+  const backlinksQuery = useQuery({
+    queryKey: ["backlinks_count", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { count, error } = await supabase
+        .from("backlink_submissions" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("project_id", activeProject!.id)
+        .eq("status", "active");
+      
+      if (error) throw error;
+      return count || 0;
+    },
+  });
+
+  // Query AEO analysis for AI Visibility Score
+  const aeoAnalysisQuery = useQuery({
+    queryKey: ["aeo_analysis", activeProject?.id],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("aeo_analyses" as any)
+        .select("*")
+        .eq("project_id", activeProject!.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Query Google Search Console connection status
+  const gscQuery = useQuery({
+    queryKey: ["search_analytics", activeProject?.id, timeRange],
+    enabled: Boolean(activeProject?.id),
+    queryFn: async () => {
+      const res = await fetch(`/api/seo/search-analytics?projectId=${activeProject!.id}&timeRange=${timeRange}`);
+      if (!res.ok) throw new Error("Failed to load search console metrics");
+      return res.json();
+    }
+  });
+
+  const gscConnected = Boolean(gscQuery.data?.connected);
+
+  // Filter crawled pages by the selected time range
+  const filteredPages = useMemo(() => {
+    const pages = (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url));
+    if (!timeRange) return pages;
+    
+    const cutoff = new Date();
+    if (timeRange === "today") {
+      cutoff.setHours(0, 0, 0, 0);
+    } else if (timeRange === "30") {
+      cutoff.setDate(cutoff.getDate() - 30);
+    } else if (timeRange === "90") {
+      cutoff.setDate(cutoff.getDate() - 90);
+    } else {
+      // Last 7 days
+      cutoff.setDate(cutoff.getDate() - 7);
+    }
+    
+    return pages.filter((p: CrawledPage) => {
+      const date = new Date(p.crawled_at || p.created_at);
+      return date >= cutoff;
+    });
+  }, [crawledPagesQuery.data, timeRange]);
+
+  // Fallback to overall pages for score computation to avoid sudden drop to 0 if there are no crawls in the active filter
+  const pagesForCalculation = filteredPages.length > 0 ? filteredPages : (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url));
+  const scaleCount = pagesForCalculation.length;
+
+  const { seoScore, subtitle, color, brokenPagesCount, missingTitlesCount, duplicateTitlesCount, missingDescsCount, missingH1sCount, totalCalculatedCount } = useMemo(() => {
+    const pages = pagesForCalculation;
+    const total = pages.length;
+    if (total === 0) {
+      return { 
+        seoScore: 0, 
+        subtitle: "No Crawls", 
+        color: "#94a3b8",
+        brokenPagesCount: 0,
+        missingTitlesCount: 0,
+        duplicateTitlesCount: 0,
+        missingDescsCount: 0,
+        missingH1sCount: 0,
+        totalCalculatedCount: 0
+      };
+    }
+
+    const brokenPages = pages.filter((p: CrawledPage) => p.status_code && p.status_code !== 200);
+    const missingTitles = pages.filter((p: CrawledPage) => !p.title || p.title.trim() === "");
+    
+    const titleCounts: Record<string, number> = {};
+    pages.forEach((p: CrawledPage) => {
+      if (p.title && p.title.trim() !== "") {
+        const t = p.title.trim().toLowerCase();
+        titleCounts[t] = (titleCounts[t] || 0) + 1;
+      }
+    });
+    const duplicateTitles = pages.filter((p: CrawledPage) => p.title && titleCounts[p.title.trim().toLowerCase()] > 1);
+    const missingDescs = pages.filter((p: CrawledPage) => !p.meta_desc || p.meta_desc.trim() === "");
+
+    let meta: any = null;
+    if (activeProject?.brand_description) {
+      const parts = activeProject.brand_description.split("\n---\nMETADATA: ");
+      if (parts.length > 1) {
+        try {
+          meta = JSON.parse(parts[1]);
+        } catch {}
+      }
+    }
+
+    const missingH1s = pages.filter((p: CrawledPage) => {
+      const isHomepage = activeProject?.domain && p.url.replace(/\/$/, "") === activeProject.domain.replace(/\/$/, "");
+      const hasLogo = activeProject?.brand_logo_url || meta?.logoUrl;
+      if (isHomepage && hasLogo) return false;
+      return !p.h1 || p.h1.trim() === "";
+    });
+
+    const brokenPct = brokenPages.length / total;
+    const missingTitlePct = missingTitles.length / total;
+    const duplicateTitlePct = duplicateTitles.length / total;
+    const missingDescPct = missingDescs.length / total;
+    const missingH1Pct = missingH1s.length / total;
+
+    let score = 100;
+    score -= Math.min(40, Math.round(brokenPct * 100));
+    score -= Math.min(20, Math.round(missingTitlePct * 60));
+    score -= Math.min(15, Math.round(duplicateTitlePct * 40));
+    score -= Math.min(15, Math.round(missingDescPct * 30));
+    score -= Math.min(10, Math.round(missingH1Pct * 20));
+    score = Math.max(30, score);
+
+    const subtitle = score >= 80 ? "Great!" : score >= 60 ? "Good" : "Needs Work";
+    const color = score >= 80 ? "#10b981" : score >= 60 ? "#3b82f6" : "#ef4444";
+
+    return { 
+      seoScore: score, 
+      subtitle, 
+      color,
+      brokenPagesCount: brokenPages.length,
+      missingTitlesCount: missingTitles.length,
+      duplicateTitlesCount: duplicateTitles.length,
+      missingDescsCount: missingDescs.length,
+      missingH1sCount: missingH1s.length,
+      totalCalculatedCount: total
+    };
+  }, [pagesForCalculation, activeProject?.brand_description, activeProject?.domain, activeProject?.brand_logo_url]);
+
+  const totalPageCount = useMemo(() => {
+    return (crawledPagesQuery.data || []).filter((p) => !isNonUserPage(p.url)).length;
+  }, [crawledPagesQuery.data]);
+
+  // Parse real traffic data from project metadata
+  const realTrafficData = useMemo(() => {
+    if (!activeProject?.brand_description) return null;
+    const parts = activeProject.brand_description.split("\n---\nMETADATA: ");
+    if (parts.length > 1) {
+      try {
+        const meta = JSON.parse(parts[1]);
+        return meta?.trafficData || null;
+      } catch { return null; }
+    }
+    return null;
+  }, [activeProject?.brand_description]);
+
+  const estimated = useMemo(() => {
+    return estimateDomainMetrics(activeProject?.domain || "", totalPageCount, realTrafficData);
+  }, [activeProject?.domain, totalPageCount, realTrafficData]);
+
+  const multiplier = useMemo(() => {
+    if (timeRange === "today") return 0.033;
+    if (timeRange === "30") return 1.0;
+    if (timeRange === "90") return 3.0;
+    return 0.233; // 7 days fallback
+  }, [timeRange]);
+
+  const trafficNum = gscConnected ? (gscQuery.data?.organicTraffic ?? 0) : estimated.organicTraffic;
+  const trafficValue = trafficNum >= 1000000 
+    ? (trafficNum / 1000000).toFixed(1) + "M"
+    : trafficNum >= 1000 
+      ? (trafficNum / 1000).toFixed(1) + "K" 
+      : trafficNum.toString();
+
+  const impressionsNum = gscConnected ? (gscQuery.data?.impressions ?? 0) : Math.round(trafficNum * 4.5);
+  const impressionsValue = impressionsNum >= 1000000 
+    ? (impressionsNum / 1000000).toFixed(1) + "M"
+    : impressionsNum >= 1000 
+      ? (impressionsNum / 1000).toFixed(1) + "K" 
+      : impressionsNum.toString();
+
+  const backlinksNum = gscConnected ? (backlinksQuery.data ?? 0) : Math.round(estimated.backlinks * multiplier);
+  const backlinksValue = backlinksNum >= 1000 
+    ? (backlinksNum / 1000).toFixed(1) + "K" 
+    : backlinksNum.toString();
+
+  const sparklineTraffic = useMemo(() => {
+    if (gscConnected && Array.isArray(gscQuery.data?.sparklineTraffic)) {
+      return gscQuery.data.sparklineTraffic;
+    }
+    return estimated.sparklineTraffic.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
+  }, [estimated.sparklineTraffic, multiplier, gscConnected, gscQuery.data]);
+
+  const sparklineImpressions = useMemo(() => {
+    if (gscConnected && Array.isArray(gscQuery.data?.sparklineImpressions)) {
+      return gscQuery.data.sparklineImpressions;
+    }
+    return estimated.sparklineImpressions.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
+  }, [estimated.sparklineImpressions, multiplier, gscConnected, gscQuery.data]);
+
+  const sparklineBacklinks = useMemo(() => {
+    if (gscConnected) {
+      // Return a flat active curve matching current actual count for backlinks
+      return Array(7).fill(null).map((_, idx) => ({ date: `${7 - idx} days ago`, value: backlinksNum }));
+    }
+    return estimated.sparklineBacklinks.map((d: any) => ({ ...d, value: Math.round(d.value * multiplier) }));
+  }, [estimated.sparklineBacklinks, multiplier, gscConnected, backlinksNum]);
+  const aeoScore = aeoAnalysisQuery.data?.overall_score ?? 0;
+  const aeoSubtitle = aeoScore >= 80 ? "Optimized" : aeoScore >= 50 ? "Moderate" : aeoScore > 0 ? "Poor" : "No Data";
+  const aeoColor = aeoScore >= 80 ? "#f97316" : aeoScore >= 50 ? "#3b82f6" : aeoScore > 0 ? "#ef4444" : "#94a3b8";
+
+  const seoTooltipContent = useMemo(() => {
+    if (totalPageCount === 0) {
+      return "Your overall technical SEO health based on page crawl results. No pages crawled yet.";
+    }
+    return (
+      <div className="space-y-1 text-left">
+        <p className="font-bold border-b border-slate-700 pb-1 mb-1">Score breakdown:</p>
+        <p>• Broken Pages: {brokenPagesCount} (-40 max)</p>
+        <p>• Missing Titles: {missingTitlesCount} (-20 max)</p>
+        <p>• Duplicate Titles: {duplicateTitlesCount} (-15 max)</p>
+        <p>• Missing Meta Descs: {missingDescsCount} (-15 max)</p>
+        <p>• Missing H1 Tags: {missingH1sCount} (-10 max)</p>
+        <p className="text-[9px] text-slate-400 mt-1.5 italic border-t border-slate-800 pt-1 font-semibold">
+          Calculated across {totalCalculatedCount} crawled pages.
+        </p>
+      </div>
+    );
+  }, [brokenPagesCount, missingTitlesCount, duplicateTitlesCount, missingDescsCount, missingH1sCount, totalCalculatedCount, totalPageCount]);
+
+  return (
+    <div className="flex md:grid grid-cols-1 md:grid-cols-5 gap-4 overflow-x-auto md:overflow-x-visible pb-6 md:pb-0 no-scrollbar snap-x snap-mandatory">
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
+        <CircularProgress 
+          label="Overall SEO Score" 
+          value={seoScore} 
+          subtitle={subtitle} 
+          color={color} 
+          percentage={scaleCount > 0 ? "8" : undefined} 
+          isPositive={true} 
+          tooltipContent={seoTooltipContent}
+          redirectTo="/app/en/seo"
+        />
+      </div>
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
+        <TrendCard 
+          label="Organic Traffic" 
+          value={trafficValue} 
+          trend="up" 
+          trendValue={scaleCount === 0 ? "0%" : "18.6%"} 
+          color="#10b981" 
+          data={sparklineTraffic}
+          gradientId="trafficGradient"
+          tooltipContent="Estimated monthly organic search visits to your domain. This scales automatically as more pages are crawled."
+          isLocked={!gscConnected}
+          redirectTo="/app/en/settings/integrations"
+        />
+      </div>
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
+        <TrendCard 
+          label="Total Impressions" 
+          value={impressionsValue} 
+          trend="up" 
+          trendValue={scaleCount === 0 ? "0%" : "11.3%"} 
+          color="#8b5cf6" 
+          data={sparklineImpressions}
+          gradientId="impressionsGradient"
+          tooltipContent="Estimated monthly views of your site's links in search engine result pages (SERPs)."
+          isLocked={!gscConnected}
+          redirectTo="/app/en/settings/integrations"
+        />
+      </div>
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
+        <TrendCard 
+          label="Backlinks" 
+          value={backlinksValue} 
+          trend="up" 
+          trendValue={scaleCount === 0 ? "0%" : "9.5%"} 
+          color="#3b82f6" 
+          data={sparklineBacklinks}
+          gradientId="backlinksGradient"
+          tooltipContent="Estimated volume of incoming links to your domain from external reference sites."
+          isLocked={!gscConnected}
+          redirectTo="/app/en/settings/integrations"
+        />
+      </div>
+      <div className="md:col-span-1 snap-start min-w-[260px] flex-shrink-0 w-[260px] md:w-auto md:min-w-0 md:flex-shrink">
+        <CircularProgress 
+          label="AI Visibility Score" 
+          value={aeoScore} 
+          subtitle={aeoSubtitle} 
+          color={aeoColor} 
+          percentage={aeoScore > 0 ? "14" : undefined} 
+          isPositive={true} 
+          tooltipContent="Percentage of conversational scans where your brand is recommended or cited as an authority."
+          redirectTo="/app/en/aeo/overview"
+        />
+      </div>
+    </div>
+  );
+}

@@ -1,34 +1,29 @@
 {
-  "name": "solospider-homepage",
-  "version": "0.1.0",
+  "name": "solospider-monorepo",
+  "version": "1.0.0",
   "private": true,
+  "description": "SoloSpider AI Monorepo — Next.js app, BullMQ worker, Supabase",
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS=\"--max-old-space-size=2048\" next dev --webpack",
-    "build": "next build --webpack",
-    "start": "next start",
-    "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "dev": "npx -y concurrently -n \"next,worker\" -c \"blue,magenta\" \"npm run dev:next\" \"npm run dev:worker\"",
+    "build": "npm run build --prefix apps/web-next",
+    "dev:next": "npm run dev --prefix apps/web-next",
+    "build:next": "npm run build --prefix apps/web-next",
+    "lint:next": "npm run lint --prefix apps/web-next",
+    "typecheck:next": "npm run typecheck --prefix apps/web-next",
+    "dev:worker": "npm run dev --prefix apps/worker",
+    "build:worker": "npm run build --prefix apps/worker",
+    "typecheck:worker": "npm run typecheck --prefix apps/worker",
+    "typecheck": "npm run typecheck --prefix apps/worker && npm run typecheck --prefix apps/web-next",
+    "start": "npm run start --prefix apps/web-next"
+  },
+  "workspaces": [
+    "apps/worker",
+    "apps/web-next"
+  ],
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.83.0",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.462.0",
-    "next": "16.2.6",
-    "next-themes": "^0.4.6",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "sonner": "^2.0.7",
-    "tailwind-merge": "^3.0.1"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "cross-env": "^10.1.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.6",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "jimp": "^1.6.1"
   }
 }
