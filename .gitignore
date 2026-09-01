@@ -43,3 +43,9 @@ dist/
 build/
 solospiderv1-main/
 
+# Documentation generator and private credentials doc
+generate_doc.py
+*.docx
+img/
+
+
