@@ -1,4 +1,4 @@
-import { Worker, Job } from "bullmq";
+import { Worker, Job, UnrecoverableError } from "bullmq";
 import { redis, env } from "../config.js";
 import { supabase } from "../lib/supabase.js";
 import type { PublishJobData } from "../queues.js";
@@ -357,6 +357,46 @@ async function publishToPinterest(params: {
 }
 
 
+// Marks the post as failed so the due-post cron stops re-queuing it
+async function recordPublishFailure(
+  scheduledPost: ScheduledSocialPost,
+  reason: string,
+  attemptAt: string,
+  nextAttempts: number,
+) {
+  await supabase
+    .from("social_posts")
+    .update({
+      status: "failed",
+      publish_error: reason,
+      last_publish_attempt_at: attemptAt,
+      publish_attempts: nextAttempts,
+    } as never)
+    .eq("id", scheduledPost.id);
+
+  await supabase
+    .from("social_accounts")
+    .update({
+      last_publish_status: "failed",
+      last_publish_error: reason,
+    } as never)
+    .eq("project_id", scheduledPost.project_id)
+    .eq("platform", scheduledPost.platform);
+
+  // Create failed notification
+  try {
+    await supabase.from("notifications").insert({
+      project_id: scheduledPost.project_id,
+      title: "Social post failed",
+      message: `Failed to publish post to ${scheduledPost.platform.toUpperCase()}: ${reason.slice(0, 100)}`,
+      type: "social",
+      status: "unread"
+    } as never);
+  } catch (notifErr) {
+    console.warn("Failed to create worker failure notification:", notifErr);
+  }
+}
+
 async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
   const { post_id } = job.data;
   console.log(`[PublishWorker] Job ${job.id} — post_id=${post_id}`);
@@ -375,6 +415,8 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
   }
 
   const scheduledPost = post as ScheduledSocialPost;
+  const attemptAt = new Date().toISOString();
+  const nextAttempts = Number(scheduledPost.publish_attempts || 0) + 1;
 
   await job.updateProgress(30);
 
@@ -388,17 +430,19 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
 
   if (accountError) throw accountError;
   if (!account?.id) {
-    throw new Error(`No connected ${scheduledPost.platform} account for project`);
+    const reason = `No connected ${scheduledPost.platform} account for project`;
+    await recordPublishFailure(scheduledPost, reason, attemptAt, nextAttempts);
+    throw new UnrecoverableError(reason);
   }
   const socialAccount = account as SocialAccount;
 
   if (socialAccount.connection_status && socialAccount.connection_status !== "connected") {
-    throw new Error(`${scheduledPost.platform} connection status is ${socialAccount.connection_status}`);
+    const reason = `${scheduledPost.platform} connection status is ${socialAccount.connection_status}`;
+    await recordPublishFailure(scheduledPost, reason, attemptAt, nextAttempts);
+    throw new UnrecoverableError(reason);
   }
 
   let publishToken = socialAccount.access_token;
-  const attemptAt = new Date().toISOString();
-  const nextAttempts = Number(scheduledPost.publish_attempts || 0) + 1;
 
   await job.updateProgress(50);
 
@@ -430,7 +474,9 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
               last_publish_error: `Token expired and refresh failed: ${String(refreshErr?.message || "unknown")}`,
             } as never)
             .eq("id", socialAccount.id);
-          throw new Error("Publisher token expired and refresh failed");
+          const reason = "Publisher token expired and refresh failed";
+          await recordPublishFailure(scheduledPost, reason, attemptAt, nextAttempts);
+          throw new UnrecoverableError(reason);
         }
       }
     }
@@ -586,40 +632,7 @@ async function processPublishJob(job: Job<PublishJobData>): Promise<object> {
     return { success: true, post_id: scheduledPost.id, external_post_id: externalPostId };
 
   } catch (err: any) {
-    const reason = String(err?.message || "Unknown publish error");
-    
-    await supabase
-      .from("social_posts")
-      .update({
-        status: "failed",
-        publish_error: reason,
-        last_publish_attempt_at: attemptAt,
-        publish_attempts: nextAttempts,
-      } as never)
-      .eq("id", scheduledPost.id);
-
-    await supabase
-      .from("social_accounts")
-      .update({
-        last_publish_status: "failed",
-        last_publish_error: reason,
-      } as never)
-      .eq("project_id", scheduledPost.project_id)
-      .eq("platform", scheduledPost.platform);
-
-    // Create failed notification
-    try {
-      await supabase.from("notifications").insert({
-        project_id: scheduledPost.project_id,
-        title: "Social post failed",
-        message: `Failed to publish post to ${scheduledPost.platform.toUpperCase()}: ${reason.slice(0, 100)}`,
-        type: "social",
-        status: "unread"
-      } as never);
-    } catch (notifErr) {
-      console.warn("Failed to create worker failure notification:", notifErr);
-    }
-
+    await recordPublishFailure(scheduledPost, String(err?.message || "Unknown publish error"), attemptAt, nextAttempts);
     throw err; // Throw error to mark job as failed in BullMQ
   }
 }
