@@ -16,9 +16,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage(null);
 
     try {
       const supabase = getSupabaseBrowserClient();
@@ -40,6 +42,7 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch (err: any) {
+      setErrorMessage(err?.message || "Login failed");
       toast.error(err?.message || "Login failed");
     } finally {
       setLoading(false);
@@ -58,6 +61,7 @@ export default function LoginPage() {
       });
       if (error) throw error;
     } catch (error: any) {
+      setErrorMessage(error.message || "Failed to login with Google");
       toast.error(error.message || "Failed to login with Google");
       setGoogleLoading(false);
     }
@@ -92,6 +96,15 @@ export default function LoginPage() {
           <p className="text-[15px] text-ink-2 mb-8">
             Sign in to your account
           </p>
+
+          {errorMessage && (
+            <div
+              role="alert"
+              className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700"
+            >
+              {errorMessage}
+            </div>
+          )}
 
           <div className="space-y-4">
             <button
